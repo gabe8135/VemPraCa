@@ -18,9 +18,9 @@ export const metadata = {
   title: "VemPraCá↗",
   description: "Tudo que voce precisa em um só lugar",
   icons: {
-    icon: '/img/favicon.ico', 
-    shortcut: '/img/favicon.ico', // Para alguns navegadores mais antigos e atalhos
-    apple: '/img/favicon.ico', // Para iOS
+    icon: '/favicon.ico', 
+    shortcut: '/favicon.ico', // Para alguns navegadores mais antigos e atalhos
+    apple: '/favicon.ico', // Para iOS
   },
 };
 
