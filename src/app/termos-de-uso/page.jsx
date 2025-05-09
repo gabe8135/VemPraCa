@@ -38,7 +38,7 @@ export default function TermosDeUso() {
             <p>Incentivamos os proprietários a manterem suas informações atualizadas, mas a responsabilidade final por esses dados é do próprio Estabelecimento.</p>
   
             <h2 className="text-xl font-semibold text-gray-800 pt-4 border-t mt-6">4. Isenção de Responsabilidade</h2>
-            <p>Ao utilizar a Plataforma Vem Pra Cá 🡵, você concorda e reconhece que:</p>
+            <p>Ao utilizar a Plataforma Vem Pra Cá ↗, você concorda e reconhece que:</p>
             <ul className="list-disc list-inside pl-4 space-y-1">
               <li><strong>A Vem Pra Cá ↗ NÃO SE RESPONSABILIZA</strong> pela qualidade, segurança, legalidade, adequação ou qualquer outro aspecto dos produtos ou serviços oferecidos pelos Estabelecimentos listados.</li>
               <li><strong>A Vem Pra Cá ↗ NÃO SE RESPONSABILIZA</strong> por quaisquer acordos, pagamentos, reservas, promessas ou negociações feitas diretamente entre Usuários e Estabelecimentos. Toda e qualquer transação é de risco e responsabilidade exclusivos das partes envolvidas.</li>
@@ -73,7 +73,7 @@ export default function TermosDeUso() {
   
             <hr className="my-8" />
   
-            <p className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-lg  text-center font-semibold text-white">Ao utilizar a plataforma Vem Pra Cá 🡵, você declara que leu, compreendeu e concorda integralmente com estes Termos de Uso.</p>
+            <p className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-lg  text-center font-semibold text-white">Ao utilizar a plataforma Vem Pra Cá ↗, você declara que leu, compreendeu e concorda integralmente com estes Termos de Uso.</p>
           </div>
         </div>
       </div>
