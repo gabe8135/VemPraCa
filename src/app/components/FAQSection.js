@@ -4,7 +4,7 @@
 // Meu array com as perguntas e respostas para o FAQ.
 const faqData = [
   {
-    question: 'Como encontro o que preciso no Vem Pra Cá 🡵?',
+    question: 'Como encontro o que preciso no Vem Pra Cá ↗?',
     answer: 'É simples! Você pode navegar pela lista na página inicial, usar a barra de busca (em breve!) para procurar por nome ou cidade, ou clicar nas categorias para filtrar por tipo de estabelecimento ou negocio que procura.',
   },
   {
