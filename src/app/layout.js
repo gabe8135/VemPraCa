@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "VemPraCá🡵",
+  title: "VemPraCá↗",
   description: "Tudo que voce precisa em um só lugar",
 };
 

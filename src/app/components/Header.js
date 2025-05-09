@@ -104,7 +104,7 @@ export default function Header() {
             <img
               className="w-[30vw] md:w-[15vw] lg:w-[10vw] h-auto"
               src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//LETREIRO.png"
-              alt="Vem Pra Cá 🡵"
+              alt="Vem Pra Cá ↗"
             />
         </Link>
 
