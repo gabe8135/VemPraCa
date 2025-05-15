@@ -1,6 +1,6 @@
 // src/app/api/assinaturas/criar/webhooks/mercadopago/route.js
 import { NextResponse } from 'next/server';
-import { MercadoPagoConfig, PreApproval } from 'mercadopago';
+import { MercadoPagoConfig, PreApproval, Payment } from 'mercadopago'; // Adicionado Payment para buscar detalhes se necessário
 import { createClient } from '@supabase/supabase-js'; // Meu cliente Supabase padrão.
 
 export async function POST(request) {
@@ -26,64 +26,78 @@ try {
     } else {
         if (!supabaseUrl) console.error("[WEBHOOK MP] ERRO CRÍTICO: NEXT_PUBLIC_SUPABASE_URL NÃO ENCONTRADA NO AMBIENTE DO WEBHOOK!");
         if (!supabaseServiceKey) console.error("[WEBHOOK MP] ERRO CRÍTICO: SUPABASE_SERVICE_ROLE_KEY NÃO ENCONTRADA NO AMBIENTE DO WEBHOOK!");
-        // Retorna 500 se as variáveis do Supabase não estiverem configuradas
         return NextResponse.json({ error: 'Configuração interna do servidor (Supabase) incompleta.' }, { status: 500 });
     }
     // --- Fim da inicialização do Supabase Admin ---
 
-    // Extração dos campos relevantes de ambos os formatos de webhook
-    const topic = body?.topic; // Formato novo: "payment", "preapproval", "subscription_preapproval"
-    const resourceIdFromTopic = body?.resource; // Formato novo: ID do recurso
+    const topic = body?.topic;
+    const resourceIdFromTopic = body?.resource;
+    const legacyType = body?.type;
+    const legacyAction = body?.action;
+    const legacyDataId = body?.data?.id;
 
-    const legacyType = body?.type; // Formato antigo/teste: "payment", "preapproval"
-    const legacyAction = body?.action; // Formato antigo/teste
-    const legacyDataId = body?.data?.id; // Formato antigo/teste
-
-    // Determina o tipo de notificação e o ID do recurso a ser usado
-    // Prioriza o formato com "topic" se presente, senão usa o formato com "type"
     const effectiveNotificationType = topic || legacyType;
     const effectiveResourceId = resourceIdFromTopic || legacyDataId;
 
     console.log(`[WEBHOOK MP] Detalhes do Payload Bruto - Topic: ${topic}, Resource: ${resourceIdFromTopic}, LegacyType: ${legacyType}, LegacyAction: ${legacyAction}, LegacyDataId: ${legacyDataId}`);
     console.log(`[WEBHOOK MP] Valores Efetivos Usados - Type: ${effectiveNotificationType}, ResourceID: ${effectiveResourceId}`);
 
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (!accessToken) {
+        console.error("[WEBHOOK MP] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN NÃO ENCONTRADO NO AMBIENTE DO WEBHOOK!");
+        return NextResponse.json({ error: 'Configuração interna do servidor (MP Token) incompleta.' }, { status: 500 });
+    }
+    const mpClient = new MercadoPagoConfig({ accessToken: accessToken });
+
+
     if (effectiveNotificationType === 'payment') {
-        console.log(`[WEBHOOK MP] Notificação de Payment recebida: ID=${effectiveResourceId}, Action=${legacyAction || 'N/A'}. Ignorando por enquanto, esperando 'preapproval' ou 'subscription_preapproval'.`);
-        return NextResponse.json({ received: true, message: "Notificação de pagamento recebida, aguardando evento de assinatura." }, { status: 200 });
+        console.log(`[WEBHOOK MP] Notificação de Payment recebida: ID=${effectiveResourceId}, Action=${legacyAction || 'N/A'}.`);
+        // Embora estejamos focados em 'preapproval', vamos buscar os detalhes do pagamento
+        // para ver se ele contém o 'external_reference' e se o status é 'approved'.
+        // Isso pode ser um fallback ou uma forma de obter o external_reference se o evento de preapproval demorar.
+        try {
+            const paymentClient = new Payment(mpClient);
+            console.log(`[WEBHOOK MP] Buscando detalhes do Pagamento ID: ${effectiveResourceId} (originado de um evento 'payment')...`);
+            const paymentDetails = await paymentClient.get({ id: effectiveResourceId });
+            console.log("[WEBHOOK MP] Detalhes do Pagamento (evento 'payment'):", JSON.stringify(paymentDetails, null, 2));
+
+            // Se este pagamento estiver aprovado e tiver uma external_reference,
+            // poderíamos teoricamente ativar o negócio aqui, mas o ideal é esperar o evento de assinatura.
+            // Por enquanto, apenas logamos e aguardamos o evento de assinatura.
+            if (paymentDetails.status === 'approved' && paymentDetails.external_reference?.startsWith('negocio_')) {
+                console.log(`[WEBHOOK MP] Pagamento ID ${effectiveResourceId} está 'approved' e tem external_reference. Aguardando evento de assinatura para ação final.`);
+            }
+        } catch (paymentError) {
+            console.error(`[WEBHOOK MP] Erro ao buscar detalhes do pagamento ${effectiveResourceId} (originado de um evento 'payment'):`, paymentError);
+        }
+        return NextResponse.json({ received: true, message: "Notificação de pagamento recebida e logada, aguardando evento de assinatura." }, { status: 200 });
     }
 
-    // O Mercado Pago pode usar 'preapproval' ou 'subscription_preapproval' para o tópico/tipo de assinaturas
-    if (effectiveNotificationType === 'preapproval' || effectiveNotificationType === 'subscription_preapproval') {
-        console.log(`[WEBHOOK MP] Notificação de Assinatura (PreApproval/Subscription) recebida: ID=${effectiveResourceId}, Action=${legacyAction || 'N/A'}`);
+    // Tópicos relevantes para o status da assinatura
+    const subscriptionTopics = ['preapproval', 'subscription_preapproval', 'subscription_authorized_payment'];
+
+    if (subscriptionTopics.includes(effectiveNotificationType)) {
+        console.log(`[WEBHOOK MP] Notificação de Assinatura (${effectiveNotificationType}) recebida: ID=${effectiveResourceId}, Action=${legacyAction || 'N/A'}`);
 
         if (!effectiveResourceId) {
-            console.warn("[WEBHOOK MP] Webhook de Assinatura sem ID de recurso (resourceId ou data.id).");
+            console.warn("[WEBHOOK MP] Webhook de Assinatura sem ID de recurso.");
             return NextResponse.json({ received: true, message: "ID do recurso não encontrado na notificação de assinatura." }, { status: 200 });
         }
 
-        const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
-        if (!accessToken) {
-            console.error("[WEBHOOK MP] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN NÃO ENCONTRADO NO AMBIENTE DO WEBHOOK!");
-            return NextResponse.json({ error: 'Configuração interna do servidor (MP Token) incompleta.' }, { status: 500 });
-        }
-        console.log("[WEBHOOK MP] Access Token MP carregado.");
-
-        const client = new MercadoPagoConfig({ accessToken: accessToken });
-        const preapprovalClient = new PreApproval(client); // Usar PreApproval para buscar detalhes da assinatura
+        console.log("[WEBHOOK MP] Access Token MP carregado (para assinatura).");
+        const preapprovalClient = new PreApproval(mpClient);
         
         console.log(`[WEBHOOK MP] Buscando detalhes da Assinatura (PreApproval) ID: ${effectiveResourceId}...`);
         const subscriptionDetails = await preapprovalClient.get({ id: effectiveResourceId });
         console.log("[WEBHOOK MP] Detalhes da assinatura MP:", JSON.stringify(subscriptionDetails, null, 2));
 
-        const preapprovalIdFromDetails = subscriptionDetails?.id; // ID da assinatura retornado pela API do MP
-        const statusFromDetails = subscriptionDetails?.status; // Status da assinatura (ex: 'authorized')
-        const externalReferenceFromDetails = subscriptionDetails?.external_reference; // Sua referência (ex: 'negocio_ID_DO_NEGOCIO')
+        const preapprovalIdFromDetails = subscriptionDetails?.id;
+        const statusFromDetails = subscriptionDetails?.status;
+        const externalReferenceFromDetails = subscriptionDetails?.external_reference;
 
         if (!preapprovalIdFromDetails || !statusFromDetails || !externalReferenceFromDetails || !externalReferenceFromDetails.startsWith('negocio_')) {
             console.warn("[WEBHOOK MP] Dados insuficientes ou inválidos nos detalhes da assinatura MP para atualizar Supabase.", { 
-                id: preapprovalIdFromDetails, 
-                status: statusFromDetails, 
-                external_reference: externalReferenceFromDetails 
+                id: preapprovalIdFromDetails, status: statusFromDetails, external_reference: externalReferenceFromDetails 
             });
             return NextResponse.json({ received: true, message: "Dados insuficientes ou inválidos da API MP para assinatura." }, { status: 200 });
         }
@@ -110,6 +124,7 @@ try {
              updateData.data_desativacao = new Date().toISOString();
             console.log(`[WEBHOOK MP] Status '${statusFromDetails}'. Definindo ativo = false.`);
         }
+        // Adicionar outros status se necessário, ex: 'pending_cancel', 'suspended'
 
         const { error: updateError } = await supabaseAdmin
             .from('negocios')
@@ -119,7 +134,7 @@ try {
 
         if (updateError) {
             console.error(`[WEBHOOK MP] Erro ao atualizar Supabase para negocio ${negocioId} (PreApproval ID: ${preapprovalIdFromDetails}):`, updateError);
-            return NextResponse.json({ received: true, error: "Falha ao atualizar DB" }, { status: 200 }); // Responde 200 para MP não reenviar
+            return NextResponse.json({ received: true, error: "Falha ao atualizar DB" }, { status: 200 });
         }
 
         console.log(`[WEBHOOK MP] Supabase atualizado com sucesso para negocio ${negocioId}. Tempo: ${Date.now() - startTime}ms`);
