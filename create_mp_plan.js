@@ -18,7 +18,7 @@ const planClient = new PreApprovalPlan(client);
 // Define uma URL placeholder válida, já que localhost pode ser rejeitado na criação do plano.
 // A URL real será definida no fluxo de checkout.
 // const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const backUrl = 'https://www.google.com'; // Placeholder válido
+const backUrl = 'https://www.vempracaapp.com/'; // Placeholder válido
 console.log(`INFO: Usando back_url: ${backUrl}`); // Log para verificar a URL
 
 // --- Dados do Plano Mensal (TESTE) ---
@@ -86,8 +86,6 @@ async function createPlans() {
         console.warn('Causa:', JSON.stringify(error.cause, null, 2));
       }
       console.warn('Pode ser que o plano mensal já exista. Verifique o ID da execução anterior se necessário.');
-      console.warn('ID da execução anterior (se criou): 2c938084966c84bc0196999371cc14d7'); // <<< ID ATUALIZADO
-      monthlyPlanId = '2c938084966c84bc0196999371cc14d7'; // <<< Assume o ID anterior (ATUALIZADO)
       console.warn('------------------------------------\n');
   }
 

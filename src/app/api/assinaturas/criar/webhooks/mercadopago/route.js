@@ -92,13 +92,29 @@ try {
         console.log(`Atualizando Supabase para negocioId: ${negocioId}, PreApproval ID: ${preapprovalId}, Status: ${status}`);
 
         // Agora sim, atualizo o negócio lá no Supabase.
-        const { error: updateError } = await supabaseAdmin
+        // Preciso definir o campo 'ativo' com base no status da assinatura.
+        let isNegocioActive = false;
+        let updateData = {
+            preapproval_id: preapprovalId,
+            status_assinatura: status,
+            // data_atualizacao: new Date().toISOString() // Poderia atualizar a data aqui também, se quisesse.
+        };
+
+        if (status === 'authorized') {
+            isNegocioActive = true;
+            updateData.ativo = true; // Ativa o negócio
+            updateData.data_ativacao = new Date().toISOString(); // Registra data de ativação
+            console.log(`Status 'authorized'. Definindo ativo = true.`);
+        } else if (status === 'cancelled' || status === 'paused') {
+            isNegocioActive = false;
+             updateData.ativo = false; // Desativa o negócio
+             updateData.data_desativacao = new Date().toISOString(); // Registra data de desativação
+            console.log(`Status '${status}'. Definindo ativo = false.`);
+        } // Você pode adicionar outros status se necessário (ex: 'pending', 'suspended')
+
+        const { error: updateError } = await supabaseAdmin // Use supabaseAdmin para bypassar RLS se necessário
             .from('negocios')
-            .update({
-                preapproval_id: preapprovalId,
-                status_assinatura: status,
-                // data_atualizacao: new Date().toISOString() // Poderia atualizar a data aqui também, se quisesse.
-            })
+            .update(updateData)
             .eq('id', negocioId); // Uso o ID do negócio que extraí da external_reference.
 
         if (updateError) {

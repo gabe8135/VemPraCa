@@ -191,9 +191,14 @@ export default function MeuNegocioPage() {
       const originalFileName = generateUniqueFileName(file);
       return { id, file, preview: URL.createObjectURL(file), uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null };
     });
-    setImageFiles(prev => [...prev, ...newImageFilesInitialState]);
-    // Se for a primeira imagem adicionada, defino como principal.
-    if (imageFiles.length === 0 && newImageFilesInitialState.length > 0) { setMainImageIndex(0); }
+    setImageFiles(prev => {
+      const combined = [...prev, ...newImageFilesInitialState];
+      // Se não tem nenhuma imagem principal, defino a 1ª como principal
+      if (prev.length === 0 && newImageFilesInitialState.length > 0) {
+        setMainImageIndex(0);
+      }
+      return combined;
+    });
     event.target.value = ''; // Limpo o input de arquivo.
   };
 
@@ -235,7 +240,8 @@ export default function MeuNegocioPage() {
         const { data: { publicUrl } } = supabase.storage.from('imagens').getPublicUrl(filePath);
         if (!publicUrl) throw new Error('Não foi possível obter URL pública.');
         uploadedUrlsMap.set(imgState.id, publicUrl);
-        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: true, url: publicUrl, fileName: filePath, error: null, statusText: null } : i));
+        // Após o upload, atualizo 'url' e também 'preview' para a URL pública, para consistência.
+        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: true, url: publicUrl, preview: publicUrl, fileName: filePath, error: null, statusText: null } : i));
         return { id: imgState.id, success: true, url: publicUrl };
       } catch (error) {
         console.error(`Erro no processo de ${file.name} -> ${webpFileName}:`, error);
@@ -285,7 +291,12 @@ export default function MeuNegocioPage() {
 
       // 2. Atualizo o estado local das imagens e monto o array final de URLs.
       const updatedImageFilesState = imageFiles
-        .map(img => uploadedUrlsMap.has(img.id) ? { ...img, url: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null } : img)
+        .map(img => {
+            if (uploadedUrlsMap.has(img.id)) {
+                return { ...img, url: uploadedUrlsMap.get(img.id), preview: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null };
+            }
+            return img;
+        })
         .filter(img => !img.error); // Removo do estado final qualquer imagem que tenha tido erro no upload.
       setImageFiles(updatedImageFilesState); // Atualizo o estado `imageFiles` com as URLs e sem os erros.
 
@@ -349,7 +360,7 @@ export default function MeuNegocioPage() {
     // Limpo as Object URLs quando o componente desmonta ou quando `imageFiles` muda,
     // para evitar memory leaks. Só faço isso para as imagens que são novas (não `isExisting`)
     // e que têm um preview que é um blob.
-    return () => { imageFiles.forEach(img => img.preview && URL.revokeObjectURL(img.preview)); };
+    return () => { imageFiles.forEach(img => { if(img.preview && img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview) }); };
   }, [imageFiles]); // Dependência correta para este efeito.
 
   // --- Meu FILTRO DINÂMICO DAS CARACTERÍSTICAS usando useMemo (Reutilizado) ---
@@ -440,7 +451,14 @@ export default function MeuNegocioPage() {
                 <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                   {imageFiles.map((img, index) => (
                     <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
-                      <img src={img.preview} alt={`Preview ${index + 1}`} className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Erro'; }} />
+                      <img
+                        src={img.preview || img.url} // Para cadastro, img.preview (blob) será usado. img.url será null.
+                        alt={`Preview ${index + 1}`}
+                        className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
+                        onError={(e) => {
+                          e.target.onerror = null; // Previne loop de erro se o placeholder também falhar
+                          e.target.src = 'https://via.placeholder.com/150?text=Erro';
+                        }} />
                       {/* Meus Overlays de status e botões de ação para cada imagem. */}
                       <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
                         {img.uploading && ( <div className="flex flex-col items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={img.statusText || 'Processando...'}></div><p className="text-xs">{img.statusText || 'Processando...'}</p></div> )}

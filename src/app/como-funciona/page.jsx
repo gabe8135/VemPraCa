@@ -112,19 +112,22 @@ export default function ComoFuncionaPage() {
           </p>
           {/* Lista de tipos de negócios aceitos, em formato de tags. */}
           <div className="flex flex-wrap justify-center gap-4 text-gray-700 font-medium">
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Hotéis e Pousadas</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Campings</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Restaurantes</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Lanchonetes</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Cafeterias</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Farmácias</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Clínicas</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Oficinas</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Borracharias</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Agências de Turismo</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Guias Turísticos</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">Lojas em Geral</span>
-              <span className="bg-white px-4 py-2 rounded-full shadow-sm border">E muito mais!</span>
+              <span className="bg-gray-50 px-4 py-2 ">Hotéis e Pousadas</span>
+              <span className="bg-gray-50 px-4 py-2  ">Campings</span>
+              <span className="bg-gray-50 px-4 py-2  ">Restaurantes</span>
+              <span className="bg-gray-50 px-4 py-2 ">Lanchonetes</span>
+              <span className="bg-gray-50 px-4 py-2 ">Cafeterias</span>
+              <span className="bg-gray-50 px-4 py-2 ">Farmácias</span>
+              <span className="bg-gray-50 px-4 py-2 ">Clínicas</span>
+              <span className="bg-gray-50 px-4 py-2 ">Oficinas</span>
+              <span className="bg-gray-50 px-4 py-2 ">Borracharias</span>
+              <span className="bg-gray-50 px-4 py-2 ">Agências de Turismo</span>
+              <span className="bg-gray-50 px-4 py-2 ">Guias Turísticos</span>
+              <span className="bg-gray-50 px-4 py-2 ">Lojas em Geral</span>
+              <span className="bg-gray-50 px-4 py-2 ">Passeios</span>
+              <span className="bg-gray-50 px-4 py-2 ">Eventos</span>
+              <span className="bg-gray-50 px-4 py-2 ">Serviços de Beleza</span>
+              <span className="bg-gray-50 px-4 py-2 ">E muito mais!</span>
           </div>
           {/* Poderia usar um grid de imagens aqui também para representar os negócios. */}
         </div>

@@ -27,8 +27,8 @@ export default function EditarNegocioPage() {
   const router = useRouter();
   const { id: negocioId } = useParams(); // Pego o ID do negócio da URL.
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading geral da página.
-  const [negocioOriginal, setNegocioOriginal] = useState(null); // Guardo os dados originais para comparar e para as características.
+  const [loading, setLoading] = useState(true); // Meu loading geral da página.
+  const [negocioOriginal, setNegocioOriginal] = useState(null); // Preciso guardar os dados originais para comparar e para as características.
 
   // --- Meus Estados para o Formulário ---
   const [formState, setFormState] = useState({
@@ -39,14 +39,14 @@ export default function EditarNegocioPage() {
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
   const [allCharacteristics, setAllCharacteristics] = useState([]);
   const [selectedCaracteristicas, setSelectedCaracteristicas] = useState([]); // IDs das características selecionadas para ESTE negócio.
-  // Estrutura de imageFiles: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: boolean, statusText? }
+  // Minha estrutura de imageFiles: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: boolean, statusText? }
   const [imageFiles, setImageFiles] = useState([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState({ message: '', type: '' });
   const [uploadError, setUploadError] = useState('');
-  const [loadingInitialData, setLoadingInitialData] = useState(true); // Loading para os dados iniciais do formulário (negócio, categorias, características).
-  const [imagesToDelete, setImagesToDelete] = useState([]); // Array com os paths das imagens a serem deletadas do Storage.
+  const [loadingInitialData, setLoadingInitialData] = useState(true); // Meu loading para os dados iniciais do formulário (negócio, categorias, características).
+  const [imagesToDelete, setImagesToDelete] = useState([]); // Meu array com os paths das imagens a serem deletadas do Storage.
 
   // --- Minha Função para verificar se o usuário é Admin ---
   const checkUserRole = useCallback(async (userId) => {
@@ -57,7 +57,7 @@ export default function EditarNegocioPage() {
         .select('role')
         .eq('id', userId)
         .single();
-      if (error && error.code !== 'PGRST116') { throw error; } // PGRST116 = row not found, não é erro fatal.
+      if (error && error.code !== 'PGRST116') { throw error; } // PGRST116 = row not found, não é um erro fatal pra mim aqui.
       return data?.role === 'admin';
     } catch (err) {
       console.error("Erro ao verificar role do usuário:", err);
@@ -65,14 +65,14 @@ export default function EditarNegocioPage() {
     }
   }, []);
 
-  // --- Efeito Principal: Verifica Usuário e Carrega Dados do Negócio para Edição ---
+  // --- Meu Efeito Principal: Verifica Usuário e Carrega Dados do Negócio para Edição ---
   useEffect(() => {
     const loadPageData = async () => {
       setLoading(true);
       setLoadingInitialData(true);
       setSubmitStatus({ message: '', type: '' });
 
-      // 1. Verifico se o usuário está logado.
+      // 1. Verifico se estou logado.
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
         router.push('/login?message=Você precisa estar logado para editar.');
@@ -94,7 +94,7 @@ export default function EditarNegocioPage() {
           setLoading(false); setLoadingInitialData(false); return;
         }
 
-        // 3. Verifico se o usuário logado é o dono do negócio OU se é um admin.
+        // 3. Verifico se sou o dono do negócio OU se sou um admin.
         const isAdminUser = await checkUserRole(session.user.id);
         if (negocioData.usuario_id !== session.user.id && !isAdminUser) {
           setSubmitStatus({ message: 'Você não tem permissão para editar este estabelecimento.', type: 'error' });
@@ -103,7 +103,7 @@ export default function EditarNegocioPage() {
 
         setNegocioOriginal(negocioData); // Guardo os dados originais.
 
-        // 4. Preencho o estado do formulário com os dados do negócio.
+        // 4. Preencho o estado do meu formulário com os dados do negócio.
         setFormState({
           nome: negocioData.nome || '',
           categoria_id: negocioData.categoria_id || '',
@@ -123,6 +123,8 @@ export default function EditarNegocioPage() {
         const existingImages = (negocioData.imagens || []).map((url, index) => {
             const id = uuidv4(); let fileName = null;
             try { const urlParts = new URL(url); const pathParts = urlParts.pathname.split('/'); fileName = pathParts[pathParts.length - 1]; } catch {} // Tento pegar o nome do arquivo da URL.
+            // Para imagens existentes, 'preview' e 'url' são a mesma coisa inicialmente.
+            // O importante é que 'url' tenha a URL do Supabase.
             return { id, file: null, preview: url, uploading: false, uploaded: true, error: null, url: url, fileName: fileName, isExisting: true, statusText: null };
         });
         setImageFiles(existingImages);
@@ -141,7 +143,7 @@ export default function EditarNegocioPage() {
         setCategorias(catRes.data || []);
 
         if (caracRes.error) throw caracRes.error;
-        // Formato os dados das características para facilitar o filtro dinâmico depois.
+        // Formato os dados das características para facilitar meu filtro dinâmico depois.
         const formattedCharacteristics = (caracRes.data || []).map(c => ({
             id: c.id,
             nome: c.nome,
@@ -162,14 +164,14 @@ export default function EditarNegocioPage() {
     if (negocioId) { loadPageData(); } // Só carrego se tiver um ID de negócio.
     else { setSubmitStatus({ message: 'ID do estabelecimento inválido.', type: 'error' }); setLoading(false); setLoadingInitialData(false); }
 
-  }, [negocioId, router, checkUserRole]); // Dependências do efeito.
+  }, [negocioId, router, checkUserRole]); // Minhas dependências do efeito.
 
   // --- Meus Handlers para Mudanças no Formulário ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: value }));
 
-    // Se o usuário mudar a categoria, limpo as características selecionadas.
+    // Se eu mudar a categoria, limpo as características selecionadas.
     // Isso é bom porque as características disponíveis podem mudar com a categoria.
     if (name === 'categoria_id') {
         setSelectedCaracteristicas([]);
@@ -178,31 +180,48 @@ export default function EditarNegocioPage() {
   const handleCaracteristicaChange = (caracteristicaId) => {
     setSelectedCaracteristicas(prev =>
       prev.includes(caracteristicaId)
-        ? prev.filter(id => id !== caracteristicaId) // Se já está, remove.
-        : [...prev, caracteristicaId] // Se não está, adiciona.
+        ? prev.filter(id => id !== caracteristicaId) // Se já está, removo.
+        : [...prev, caracteristicaId] // Se não está, adiciono.
     );
   };
 
   // --- Meus Handlers para Gerenciamento de Imagens ---
-  const handleFileChange = (event) => { // Quando o usuário seleciona novas imagens.
-    const files = Array.from(event.target.files); const availableSlots = 5 - imageFiles.length; if (availableSlots <= 0) return; // Limite de 5 imagens.
-    const filesToProcess = files.slice(0, availableSlots); setUploadError(''); setSubmitStatus({ message: '', type: '' });
-    const newImageFilesInitialState = filesToProcess.map(file => { const id = uuidv4(); const originalFileName = generateUniqueFileName(file); return { id, file, preview: URL.createObjectURL(file), uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null }; });
-    setImageFiles(prev => [...prev, ...newImageFilesInitialState]);
+  const handleFileChange = (event) => { // Quando seleciono novas imagens.
+    const files = Array.from(event.target.files); const availableSlots = 5 - imageFiles.length; if (availableSlots <= 0) return; // Meu limite de 5 imagens.
+    const filesToProcess = files.slice(0, availableSlots);
+    setUploadError('');
+    setSubmitStatus({ message: '', type: '' });
+
+    const newImageFilesInitialState = filesToProcess.map(file => {
+      const id = uuidv4();
+      const originalFileName = generateUniqueFileName(file);
+      // Aqui 'preview' é uma URL de blob para o arquivo local.
+      return { id, file, preview: URL.createObjectURL(file), uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null };
+    });
+
+    setImageFiles(prev => {
+      const combined = [...prev, ...newImageFilesInitialState];
+      // Se o array de imagens anterior (prev) estava vazio e estou adicionando novas imagens,
+      // garanto que a primeira imagem (índice 0) seja definida como principal.
+      if (prev.length === 0 && newImageFilesInitialState.length > 0) {
+        setMainImageIndex(0);
+      }
+      return combined;
+    });
     event.target.value = ''; // Limpo o input de arquivo.
   };
-  const handleRemoveImage = (idToRemove) => { // Quando o usuário clica para remover uma imagem.
+  const handleRemoveImage = (idToRemove) => { // Quando clico para remover uma imagem.
     const imageToRemove = imageFiles.find(img => img.id === idToRemove); if (!imageToRemove) return;
     // Se a imagem a ser removida é uma que já existia no banco (isExisting = true),
     // eu adiciono o path dela ao array `imagesToDelete` para deletar do Storage depois.
     if (imageToRemove.isExisting && imageToRemove.url) { try { const urlParts = new URL(imageToRemove.url); const pathStartIndex = urlParts.pathname.indexOf('/imagens/') + '/imagens/'.length; const filePath = urlParts.pathname.substring(pathStartIndex); if (filePath) { setImagesToDelete(prev => [...prev, filePath]); console.log("Marcado para deletar do Storage:", filePath); } } catch (e) { console.warn("Erro ao parsear URL para deletar:", e); } }
-    if (imageToRemove.preview?.startsWith('blob:')) { URL.revokeObjectURL(imageToRemove.preview); } // Libero memória do blob.
+    if (imageToRemove.preview?.startsWith('blob:')) { URL.revokeObjectURL(imageToRemove.preview); } // Libero memória do blob se for um preview local.
     const updatedImageFiles = imageFiles.filter(img => img.id !== idToRemove); setImageFiles(updatedImageFiles);
     // Reajusto o índice da imagem principal se necessário.
     if (updatedImageFiles.length === 0) { setMainImageIndex(0); } else if (idToRemove === imageFiles[mainImageIndex]?.id) { setMainImageIndex(0); } else { const currentMainImageId = imageFiles[mainImageIndex]?.id; const newMainIndex = updatedImageFiles.findIndex(img => img.id === currentMainImageId); setMainImageIndex(newMainIndex >= 0 ? newMainIndex : 0); }
     setSubmitStatus({ message: '', type: '' }); setUploadError('');
   };
-  const handleSetMainImage = (idToSetMain) => { // Quando o usuário define uma imagem como principal.
+  const handleSetMainImage = (idToSetMain) => { // Quando defino uma imagem como principal.
     const indexToSetMain = imageFiles.findIndex(img => img.id === idToSetMain);
     // Só permito se a imagem não estiver em upload.
     if (indexToSetMain !== -1 && !imageFiles[indexToSetMain].uploading) { setMainImageIndex(indexToSetMain); setSubmitStatus({ message: '', type: '' }); }
@@ -214,8 +233,8 @@ export default function EditarNegocioPage() {
     const uploadedUrlsMap = new Map(); let localUploadErrors = [];
     const uploadPromises = filesToUpload.map(async (imgState) => {
       const file = imgState.file; if (!file) return { id: imgState.id, success: false, error: 'Arquivo inválido' };
-      const webpFileName = `${imgState.fileName?.replace(/\.[^/.]+$/, '') || uuidv4()}.webp`; // Nome final será .webp.
-      const filePath = `public/${user.id}/${webpFileName}`; // Caminho no Storage.
+      const webpFileName = `${imgState.fileName?.replace(/\.[^/.]+$/, '') || uuidv4()}.webp`; // Meu nome final será .webp.
+      const filePath = `public/${user.id}/${webpFileName}`; // Meu caminho no Storage.
       setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: true, statusText: 'Otimizando...' } : i));
       try {
         const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.85 }; // Minhas opções de compressão.
@@ -226,7 +245,8 @@ export default function EditarNegocioPage() {
         const { data: { publicUrl } } = supabase.storage.from('imagens').getPublicUrl(filePath);
         if (!publicUrl) throw new Error('Não foi possível obter URL pública.');
         uploadedUrlsMap.set(imgState.id, publicUrl);
-        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: true, url: publicUrl, fileName: filePath, error: null, statusText: null } : i));
+        // Após o upload, 'url' é a URL pública e 'isExisting' se torna true. 'preview' pode ser mantido como a URL pública também.
+        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: true, url: publicUrl, preview: publicUrl, fileName: filePath, error: null, statusText: null, isExisting: true } : i));
         return { id: imgState.id, success: true, url: publicUrl };
       } catch (error) { console.error(`Erro no processo de ${file.name} -> ${webpFileName}:`, error); localUploadErrors.push({ id: imgState.id, fileName: file.name, message: error.message }); setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: false, error: error.message || 'Falha', statusText: null } : i)); return { id: imgState.id, success: false, error: error.message }; }
     });
@@ -288,7 +308,8 @@ export default function EditarNegocioPage() {
       const updatedImageFilesState = imageFiles
         .map(img => { // Para cada imagem no estado atual...
             if (uploadedUrlsMap.has(img.id)) { // Se ela foi uma das que acabaram de ser upadas...
-                return { ...img, url: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null, isExisting: true }; // Atualizo com a URL e marco como existente.
+                // Atualizo com a URL, marco como existente e defino preview como a URL pública.
+                return { ...img, url: uploadedUrlsMap.get(img.id), preview: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null, isExisting: true };
             }
             return img; // Senão, mantenho como estava (pode ser uma existente antiga ou uma com erro).
         })
@@ -311,7 +332,7 @@ export default function EditarNegocioPage() {
       const additionalImageUrls = updatedImageFilesState // Pego as URLs das outras imagens.
         .filter((img, index) => index !== currentMainIndex && img.url)
         .map(img => img.url);
-      finalImageUrls = [mainImageUrl, ...additionalImageUrls]; // Array final: [principal, ...adicionais].
+      finalImageUrls = [mainImageUrl, ...additionalImageUrls]; // Meu array final: [principal, ...adicionais].
 
       // 4. Atualizo os Dados do Negócio no Banco.
       setSubmitStatus({ message: 'Atualizando dados do estabelecimento...', type: 'loading' });
@@ -357,7 +378,7 @@ export default function EditarNegocioPage() {
       // 6. Sucesso!
       setSubmitStatus({ message: 'Alterações salvas com sucesso! Redirecionando...', type: 'success' });
       // Atualizo o `negocioOriginal` no estado para refletir o que foi salvo.
-      // Isso é útil se o usuário fizer mais edições sem recarregar a página.
+      // Isso é útil se eu fizer mais edições sem recarregar a página.
       setNegocioOriginal(prev => ({
           ...prev,
           ...negocioUpdateData,
@@ -377,7 +398,7 @@ export default function EditarNegocioPage() {
     }
   };
 
-  // --- Efeito de Limpeza para as URLs de Preview das Imagens ---
+  // --- Meu Efeito de Limpeza para as URLs de Preview das Imagens ---
   useEffect(() => {
     // Limpo as Object URLs quando o componente desmonta ou quando `imageFiles` muda,
     // para evitar memory leaks. Só faço isso para as imagens que são novas (não `isExisting`)
@@ -389,7 +410,7 @@ export default function EditarNegocioPage() {
         }
       });
     };
-  }, [imageFiles]); // Dependência correta para este efeito.
+  }, [imageFiles]); // Minha dependência correta para este efeito.
 
   // --- Meu FILTRO DINÂMICO DAS CARACTERÍSTICAS usando useMemo ---
   const filteredCharacteristics = useMemo(() => {
@@ -423,7 +444,7 @@ export default function EditarNegocioPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-3 gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Editar Estabelecimento</h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              {/* Botão para a página de Gerenciar Assinatura. */}
+              {/* Meu Botão para a página de Gerenciar Assinatura. */}
               <Link href={`/pagamento-assinatura?negocioId=${negocioId}`} className="button-secondary bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm">
                   Gerenciar Assinatura
               </Link>
@@ -487,16 +508,23 @@ export default function EditarNegocioPage() {
             {imageFiles.length === 0 && !isSubmitting && ( // Mostro esta mensagem se não houver imagens e não estiver submetendo.
                 <p className="text-sm text-red-600 text-center">É necessário adicionar pelo menos uma imagem.</p>
             )}
-            {imageFiles.length > 0 && ( // Previews das imagens.
+            {imageFiles.length > 0 && ( // Meus Previews das imagens.
               <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {imageFiles.map((img, index) => (
                   <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
-                    <img src={img.preview} alt={`Preview ${index + 1}`} className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Erro'; }} />
+                    <img
+                      src={img.preview || img.url} // Se tiver preview (local ou já existente), usa. Senão, usa a URL pública.
+                      alt={`Preview ${index + 1}`}
+                      className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
+                      onError={(e) => {
+                        e.target.onerror = null; // Previne loop de erro se o placeholder também falhar
+                        e.target.src = 'https://via.placeholder.com/150?text=Erro';
+                      }} />
                     {/* Meus Overlays de status e botões de ação para cada imagem. */}
                     <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
                       {img.uploading && ( <div className="flex flex-col items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={img.statusText || 'Processando...'}></div><p className="text-xs">{img.statusText || 'Processando...'}</p></div> )}
                       {img.error && !img.uploading && ( <div className="p-1" title={typeof img.error === 'string' ? img.error : 'Erro'}><svg className="h-6 w-6 text-red-500 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><p className="text-xs text-red-300 truncate">{typeof img.error === 'string' ? img.error.substring(0, 30) : 'Erro'}</p></div> )}
-                      {/* Botões só aparecem no hover se não houver erro/upload. */}
+                      {/* Meus Botões só aparecem no hover se não houver erro/upload. */}
                       {!img.uploading && !img.error && (
                         <div className={`absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                             <button type="button" onClick={() => handleRemoveImage(img.id)} disabled={isSubmitting} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed z-10" aria-label="Remover imagem"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -545,14 +573,14 @@ export default function EditarNegocioPage() {
                   </div>
                 )}
 
-                {/* Mensagem se não houver características para a categoria selecionada (mas existem características no sistema). */}
+                {/* Minha Mensagem se não houver características para a categoria selecionada (mas existem características no sistema). */}
                 {!loadingInitialData && filteredCharacteristics.length === 0 && allCharacteristics.length > 0 && (
                   <p className="text-sm text-gray-500 mt-1 p-4 border rounded-md bg-gray-50 text-center">
                     Nenhuma característica específica encontrada para esta categoria.
                   </p>
                 )}
 
-                {/* Mensagem se não houver NENHUMA característica cadastrada no sistema. */}
+                {/* Minha Mensagem se não houver NENHUMA característica cadastrada no sistema. */}
                 {!loadingInitialData && allCharacteristics.length === 0 && (
                   <p className="text-sm text-yellow-600 mt-1 p-4 border border-yellow-200 rounded-md bg-yellow-50 text-center">
                     Nenhuma característica cadastrada no sistema ainda.
@@ -560,7 +588,7 @@ export default function EditarNegocioPage() {
                 )}
               </>
             ) : (
-              // Mensagem para o usuário selecionar uma categoria primeiro.
+              // Minha Mensagem para o usuário selecionar uma categoria primeiro.
               <p className="text-sm text-yellow-600 mt-1 p-4 border border-yellow-200 rounded-md bg-yellow-50 text-center">
                 Selecione uma categoria acima para ver as características disponíveis.
               </p>
@@ -590,7 +618,7 @@ export default function EditarNegocioPage() {
         .input-form:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5); }
         .input-form:disabled { background-color: #f3f4f6; opacity: 0.7; cursor: not-allowed; }
         .button-primary { background-color: #059669; color: white; font-weight: bold; padding: 0.75rem 1rem; border-radius: 0.375rem; transition: background-color 0.3s; }
-        .button-secondary { transition: background-color 0.3s; } /* Estilo base para transição do botão secundário. */
+        .button-secondary { transition: background-color 0.3s; } /* Meu Estilo base para transição do botão secundário. */
         .button-primary:hover:not(:disabled) { background-color: #047857; }
         .button-primary:disabled { opacity: 0.5; cursor: not-allowed; }
       `}</style>

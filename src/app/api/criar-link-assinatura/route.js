@@ -113,8 +113,18 @@ export async function POST(request) {
     const client = new MercadoPagoConfig({ accessToken: accessToken });
     const preference = new Preference(client); // <<< Usar Preference
 
-    // Log para verificar a URL base (mantido para referência, mas não usado nas back_urls abaixo)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    // AQUI: Configurar as URLs de retorno e a URL de notificação (webhook)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL; // Deve ser a URL do seu site online (ex: https://www.vempracaapp.com)
+
+    if (!baseUrl || !baseUrl.startsWith('http')) {
+        console.error("ERRO CRÍTICO: NEXT_PUBLIC_BASE_URL não está definida corretamente como uma URL válida no ambiente.");
+        return NextResponse.json({ error: 'Configuração interna do servidor incompleta (Base URL).' }, { status: 500 });
+    }
+
+    const successUrl = `${baseUrl}/negocio/${negocioId}`; // Redireciona para a página de detalhes do negócio após sucesso
+    const failureUrl = `${baseUrl}/pagamento/falha`; // Mantenha suas páginas de falha/pendente se existirem
+    const pendingUrl = `${baseUrl}/pagamento/pendente`;
+
     console.log(`INFO: Valor de NEXT_PUBLIC_BASE_URL: ${baseUrl}`);
     // if (!baseUrl || !baseUrl.startsWith('http')) {
     //     console.error("ERRO: NEXT_PUBLIC_BASE_URL não está definida corretamente como uma URL válida no .env.local");
@@ -139,15 +149,14 @@ export async function POST(request) {
         email: user.email,
       },
       back_urls: { // URLs para onde o usuário volta
-        // Usar placeholders públicos para evitar rejeição de localhost
-        success: `https://www.google.com/search?q=pagamento-aprovado&ref=${negocioId}`, // Adiciona ref para debug
-        failure: `https://www.google.com/search?q=pagamento-falhou&ref=${negocioId}`,
-        pending: `https://www.google.com/search?q=pagamento-pendente&ref=${negocioId}`,
+        success: successUrl,
+        failure: failureUrl,
+        pending: pendingUrl,
       },
       auto_return: 'approved', // Retorna automaticamente apenas em caso de sucesso
       external_reference: `negocio_${negocioId}`, // Referência para identificar no webhook
       preapproval_plan_id: planIdToUse, // <<< Associa a preferência ao plano de assinatura
-      // notification_url: SUA_URL_WEBHOOK (Opcional, já configurado no painel)
+      notification_url: `${baseUrl}/api/assinaturas/criar/webhooks/mercadopago`, // <<< ADICIONADO: URL do seu endpoint de webhook
     };
 
     const preferenceResult = await preference.create({ body: preferenceData });
