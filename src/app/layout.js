@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { inter } from '@/app/ui/fonts';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

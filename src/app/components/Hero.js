@@ -29,13 +29,13 @@ export default function Hero() {
     <div className="relative w-full h-screen mb-5">
 
         {/* Imagem de fundo da Hero. */}
-        <img src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-2.jpg" alt="hero" className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
+        <img src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO%203.jpg" alt="hero" className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
 
         {/* Conteúdo centralizado sobre a imagem. */}
         {/* Este div também contém o carrossel de categorias. */}
         <div className="pb-20 relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-2xl">Bem-vindo ao VemPraCá↗</h1>
-            <p className="text-lg md:text-xl mb-8 drop-shadow-2xl">Encontre tudo que precisa em um lugar só!</p>
+            <p className="text-lg md:text-xl mb-8 drop-shadow-2xl">Encontre tudo que precisa em um só lugar!</p>
             {/* Botão para rolar até a seção de busca. */}
             <button onClick={() => {
                 const section = document.getElementById('search-section');
