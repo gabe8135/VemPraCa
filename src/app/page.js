@@ -10,6 +10,8 @@ import Hero from '@/app/components/Hero';
 import FAQSection from '@/app/components/FAQSection';
 import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from '@/app/components/HowItWorksSection';
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 
 // Carrego o BusinessCard dinamicamente para otimizar o carregamento inicial.
 const BusinessCard = dynamic(() => import('@/app/components/BusinessCard'), {
