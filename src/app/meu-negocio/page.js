@@ -114,7 +114,7 @@ export default function MeuNegocioPage() {
         fetchInitialFormData(); // E tento buscar os dados do formulário.
       } finally {
          // Só paro o loading geral se não tiver negócio (porque se tiver, o redirect já aconteceu).
-         if (!hasNegocio) setLoading(false);
+        if (!hasNegocio) setLoading(false);
       }
     };
 

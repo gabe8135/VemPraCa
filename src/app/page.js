@@ -28,32 +28,44 @@ function BusinessList() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); // Meu estado para o termo de busca digitado.
+  const [allCategories, setAllCategories] = useState([]);
 
   // Efeito para buscar os negócios quando o componente monta.
   useEffect(() => {
-    const fetchBusinesses = async () => {
+    const fetchInitialData = async () => {
       setLoading(true);
       setError(null);
-      console.log("Buscando negócios..."); // Log para eu acompanhar.
+      console.log("Buscando dados iniciais (negócios e todas as categorias)..."); // Log para eu acompanhar.
       try {
         // Minha busca inicial pega todos os negócios ativos da view `negocios_com_media`.
-        const { data, error: dbError } = await supabase
+        const { data: businessesData, error: businessesDbError } = await supabase
           .from('negocios_com_media') // View que já tem a média de avaliações.
           .select('*')
           .eq('ativo', true); // Só os ativos.
 
-        if (dbError) throw dbError; // Se der erro no Supabase, jogo para o catch.
-        console.log("Dados brutos recebidos:", data); // Log para ver o que veio.
-        setBusinesses(data || []); // Atualizo o estado com os dados (ou um array vazio).
+        if (businessesDbError) throw businessesDbError; // Se der erro no Supabase, jogo para o catch.
+        console.log("Dados de negócios recebidos:", businessesData); // Log para ver o que veio.
+        setBusinesses(businessesData || []); // Atualizo o estado com os dados (ou um array vazio).
+
+        // Nova busca por todas as categorias para obter nomes e slugs
+        // Similar ao que CategoriesSection.js faz
+        const { data: categoriesData, error: categoriesDbError } = await supabase
+          .from('categorias')
+          .select('id, nome, slug') // Pego id, nome e slug
+          .order('nome', { ascending: true });
+        
+        if (categoriesDbError) throw categoriesDbError;
+        console.log("Dados de todas as categorias recebidos:", categoriesData);
+        setAllCategories(categoriesData || []);
 
       } catch (err) {
-        console.error("Erro ao buscar negócios:", err);
-        setError("Erro ao carregar os estabelecimentos. Tente novamente mais tarde.");
+        console.error("Erro ao buscar dados iniciais:", err);
+        setError("Erro ao carregar os dados. Tente novamente mais tarde.");
       } finally {
         setLoading(false); // Paro o loading, não importa o resultado.
       }
     };
-    fetchBusinesses();
+    fetchInitialData();
   }, []); // Array de dependências vazio, então roda só uma vez na montagem.
 
   // --- Minha Lógica de Filtragem dos Negócios ---
@@ -72,9 +84,13 @@ function BusinessList() {
   });
 
   // Pego o nome da categoria selecionada para mostrar na UI (opcional, mas melhora a UX).
-  const selectedCategoryName = categorySlug
-    ? businesses.find(b => b.slug_categoria === categorySlug)?.nome_categoria // Procuro o nome da categoria nos dados que já tenho.
-    : null; // Se não tiver slug na URL, não tem nome para mostrar.
+  const categoryDetailsFromAll = categorySlug
+    ? allCategories.find(cat => cat.slug === categorySlug)
+    : null;
+
+  // Nome da categoria para exibição. Se não encontrar na lista `allCategories` (improvável se o slug for válido),
+  // usa o próprio slug formatado como fallback.
+  const displayCategoryName = categoryDetailsFromAll?.nome || (categorySlug ? categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null);
 
   return (
     <>
@@ -88,12 +104,12 @@ function BusinessList() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)} // Atualizo o estado do termo de busca.
         />
-        {/* Mostro a categoria que está sendo filtrada, se houver. */}
-        {selectedCategoryName && (
+        {/* Mostro a categoria que está sendo filtrada e o link "Limpar filtro" SE categorySlug existir na URL. */}
+        {categorySlug && displayCategoryName && ( // Adiciono displayCategoryName para garantir que temos um nome para mostrar
             <p className="text-center text-sm text-gray-600 mt-2">
-                Filtrando por: <span className="font-semibold">{selectedCategoryName}</span>
+                Filtrando por: <span className="font-semibold">{displayCategoryName}</span>
                 {/* Link para limpar o filtro de categoria (volta para a home sem o parâmetro). */}
-                <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(Limpar filtro)</Link>
+                <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(LIMPAR FILTRO)</Link>
             </p>
         )}
       </div>
@@ -110,7 +126,7 @@ function BusinessList() {
         {!loading && !error && filteredBusinesses.length === 0 && (
             <p className="text-center text-gray-600">
                 {searchTerm || categorySlug // Se tiver algum filtro ativo...
-                    ? `Nenhum estabelecimento encontrado ${categorySlug ? `na categoria "${selectedCategoryName || categorySlug}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
+                    ? `Nenhum estabelecimento encontrado ${categorySlug && displayCategoryName ? `na categoria "${displayCategoryName}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
                     : 'Ainda não há estabelecimentos cadastrados.'} {/* Senão, mensagem padrão. */}
             </p>
         )}
