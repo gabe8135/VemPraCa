@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'; // Lembrete: Adicionei o useMemo aqui.
 import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; 
 import imageCompression from 'browser-image-compression';
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de edição) ---
@@ -43,6 +43,8 @@ const generateUniqueFileName = (file) => {
   return `${uniqueId}-${safeBaseName}.${fileExt}`; // Nome base com a extensão original (depois converto para webp).
 };
 
+// --- Constante para o limite de imagens ---
+const MAX_IMAGES_PER_BUSINESS = 15;
 
 // --- Componente Principal da Página "Meu Negócio" ---
 export default function MeuNegocioPage() {
@@ -182,8 +184,8 @@ export default function MeuNegocioPage() {
   // --- Meus Handlers para Gerenciamento de Imagens (Reutilizados) ---
   const handleFileChange = (event) => { // Quando o usuário seleciona novas imagens.
     const files = Array.from(event.target.files);
-    const availableSlots = 5 - imageFiles.length;
-    if (availableSlots <= 0) return; // Limite de 5 imagens.
+     const availableSlots = MAX_IMAGES_PER_BUSINESS - imageFiles.length; // Usa a nova constante
+    if (availableSlots <= 0) return; // Limite de MAX_IMAGES_PER_BUSINESS imagens.
     const filesToProcess = files.slice(0, availableSlots);
     setUploadError(''); setSubmitStatus({ message: '', type: '' });
     const newImageFilesInitialState = filesToProcess.map(file => {
@@ -436,12 +438,12 @@ export default function MeuNegocioPage() {
                 <div className="space-y-1 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 48 48" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" /></svg>
                     <div className="flex text-sm text-gray-600 justify-center">
-                      <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${isSubmitting || imageFiles.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS ? 'opacity-50 cursor-not-allowed' : ''}`}>
                           <span>{imageFiles.length > 0 ? 'Adicionar mais imagens' : 'Escolher imagens'}</span>
-                          <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={isSubmitting || imageFiles.length >= 5} />
-                      </label>
+                          <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS} />
+                        </label>
                     </div>
-                    <p className="text-xs text-gray-500">PNG, JPG, WEBP. Máximo de 5 fotos. ({5 - imageFiles.length} restantes)</p>
+                    <p className="text-xs text-gray-500">PNG, JPG, WEBP. Máximo de {MAX_IMAGES_PER_BUSINESS} fotos. ({MAX_IMAGES_PER_BUSINESS - imageFiles.length} restantes)</p>
                 </div>
               </div>
               {imageFiles.length === 0 && !isSubmitting && ( // Mostro esta mensagem se não houver imagens e não estiver submetendo.
@@ -520,7 +522,7 @@ export default function MeuNegocioPage() {
                   )}
 
                   {/* Mensagem se não houver NENHUMA característica cadastrada no sistema. */}
-                   {!loadingInitialData && allCharacteristics.length === 0 && (
+                  {!loadingInitialData && allCharacteristics.length === 0 && (
                     <p className="text-sm text-yellow-600 mt-1 p-4 border border-yellow-200 rounded-md bg-yellow-50 text-center">
                       Nenhuma característica cadastrada no sistema ainda.
                     </p>
