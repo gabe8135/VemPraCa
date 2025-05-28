@@ -22,6 +22,10 @@ const generateUniqueFileName = (file) => {
   const fileExt = file.name.split('.').pop()?.toLowerCase() || 'file'; const safeBaseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, '_'); const uniqueId = uuidv4().substring(0, 8); return `${uniqueId}-${safeBaseName}.${fileExt}`;
 };
 
+// --- Constante para o limite de imagens ---
+const MAX_IMAGES_PER_BUSINESS = 15; // Você pode ajustar este valor para 10, 15, ou o que preferir.
+
+
 // --- Componente Principal da Página de Edição ---
 export default function EditarNegocioPage() {
   const router = useRouter();
@@ -187,7 +191,9 @@ export default function EditarNegocioPage() {
 
   // --- Meus Handlers para Gerenciamento de Imagens ---
   const handleFileChange = (event) => { // Quando seleciono novas imagens.
-    const files = Array.from(event.target.files); const availableSlots = 5 - imageFiles.length; if (availableSlots <= 0) return; // Meu limite de 5 imagens.
+    const files = Array.from(event.target.files);
+    const availableSlots = MAX_IMAGES_PER_BUSINESS - imageFiles.length; // Usa a nova constante
+    if (availableSlots <= 0) return; // Meu limite de MAX_IMAGES_PER_BUSINESS imagens.
     const filesToProcess = files.slice(0, availableSlots);
     setUploadError('');
     setSubmitStatus({ message: '', type: '' });
@@ -492,17 +498,17 @@ export default function EditarNegocioPage() {
           <InputField name="website" label="Website ou Rede Social (Opcional)" value={formState.website} onChange={handleChange} disabled={isSubmitting} type="url" placeholder="https://..."/>
           {/* Seção 6: Upload de Imagens */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700">Imagens (máx. 5, a primeira será a principal) <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium mb-2 text-gray-700">Imagens (máx. {MAX_IMAGES_PER_BUSINESS}, a primeira será a principal) <span className="text-red-500">*</span></label>
             <div className="mb-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
               <div className="space-y-1 text-center">
                   <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 48 48" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" /></svg>
                   <div className="flex text-sm text-gray-600 justify-center">
-                    <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${isSubmitting || imageFiles.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         <span>{imageFiles.length > 0 ? 'Adicionar mais imagens' : 'Escolher imagens'}</span>
-                        <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={isSubmitting || imageFiles.length >= 5} />
+                          <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS} />
                     </label>
                   </div>
-                  <p className="text-xs text-gray-500">PNG, JPG, WEBP. Máximo de 5 fotos. ({5 - imageFiles.length} restantes)</p>
+                  <p className="text-xs text-gray-500">PNG, JPG, WEBP. Máximo de {MAX_IMAGES_PER_BUSINESS} fotos. ({MAX_IMAGES_PER_BUSINESS - imageFiles.length} restantes)</p>
               </div>
             </div>
             {imageFiles.length === 0 && !isSubmitting && ( // Mostro esta mensagem se não houver imagens e não estiver submetendo.
