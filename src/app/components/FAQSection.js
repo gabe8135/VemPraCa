@@ -52,6 +52,11 @@ export default function FAQSection() {
             </details>
           ))}
         </div>
+        <div>
+          <h3 className="text-3xl font-bold text-center text-white mb-8 md:mb-12">
+            Ficou com alguma duvida? entre em contato!
+          </h3>
+        </div>
       </div>
     </section>
   );

@@ -29,7 +29,7 @@ export default function Hero() {
     <div className="relative w-full h-screen mb-5">
 
         {/* Imagem de fundo da Hero. */}
-        <img src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3.webp" alt="hero" className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
+        <image src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3.webp" alt="hero" className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
 
         {/* Conteúdo centralizado sobre a imagem. */}
         {/* Este div também contém o carrossel de categorias. */}
