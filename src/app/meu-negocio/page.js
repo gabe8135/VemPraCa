@@ -453,7 +453,7 @@ export default function MeuNegocioPage() {
                 <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                   {imageFiles.map((img, index) => (
                     <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
-                      <img
+                      <image
                         src={img.preview || img.url} // Para cadastro, img.preview (blob) será usado. img.url será null.
                         alt={`Preview ${index + 1}`}
                         className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
