@@ -1,4 +1,10 @@
 // src/app/page.js
+export const metadata = {
+  title: 'Vem Pra Cá App - Baixe agora e aproveite ofertas exclusivas',
+  description: 'O Vem Pra Cá é o app perfeito para aproveitar promoções e serviços perto de você. Baixe agora!',
+};
+
+
 'use client';
 
 import Link from "next/link";
