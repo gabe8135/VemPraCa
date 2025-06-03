@@ -6,6 +6,7 @@ import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid'; 
 import imageCompression from 'browser-image-compression';
+import LoadingModal from '@/app/components/LoadingModal'; // Importo o novo modal.
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de edição) ---
 function InputField({ label, name, value, onChange, required = false, placeholder = '', type = 'text', disabled = false, ...props }) {
@@ -50,10 +51,8 @@ const MAX_IMAGES_PER_BUSINESS = 15;
 export default function MeuNegocioPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading geral da página.
-  const [hasNegocio, setHasNegocio] = useState(false); // Para eu saber se o usuário já tem um negócio cadastrado.
-  const [showForm, setShowForm] = useState(false); // Controla se mostro o formulário de cadastro.
-
+  const [loadingPage, setLoadingPage] = useState(true); // Renomeado para evitar conflito com loadingInitialData
+  
   // --- Meus Estados para o Formulário de Cadastro ---
   const [formState, setFormState] = useState({
     nome: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
@@ -62,6 +61,8 @@ export default function MeuNegocioPage() {
   const [categorias, setCategorias] = useState([]);
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
   const [allCharacteristics, setAllCharacteristics] = useState([]);
+  // NOVO ESTADO: Para armazenar as relações da tabela caracteristica_categorias
+  const [caracteristicaCategoriaRelations, setCaracteristicaCategoriaRelations] = useState([]);
   const [selectedCaracteristicas, setSelectedCaracteristicas] = useState([]);
   // Estrutura de imageFiles: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: false, statusText? }
   const [imageFiles, setImageFiles] = useState([]);
@@ -71,12 +72,10 @@ export default function MeuNegocioPage() {
   const [uploadError, setUploadError] = useState('');
   const [loadingInitialData, setLoadingInitialData] = useState(true); // Loading para os dados iniciais do formulário (categorias, características).
 
-  // --- Efeito Principal: Verifica se o usuário está logado e se já tem um negócio ---
+  // --- Efeito Principal: Verifica se o usuário está logado e carrega dados do formulário ---
   useEffect(() => {
-    const checkUserAndNegocio = async () => {
-      setLoading(true);
-      setShowForm(false); // Escondo o formulário no início.
-
+    const initializePage = async () => {
+      setLoadingPage(true);
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
@@ -84,78 +83,56 @@ export default function MeuNegocioPage() {
         return;
       }
       setUser(session.user); // Guardo os dados do usuário.
-
-      try {
-        // Verifico se já existe um negócio para este usuário.
-        const { data: negocioExistente, error: negocioError } = await supabase
-          .from('negocios')
-          .select('id') // Só preciso do ID para saber se existe.
-          .eq('usuario_id', session.user.id)
-          .maybeSingle(); // Uso maybeSingle para não dar erro se não encontrar.
-
-        if (negocioError) throw negocioError;
-
-        if (negocioExistente) {
-          // Se o usuário já tem um negócio, redireciono para a página de detalhes desse negócio.
-          setHasNegocio(true);
-          console.log(`Usuário já possui negócio (ID: ${negocioExistente.id}). Redirecionando...`);
-          router.replace(`/negocio/${negocioExistente.id}`); // Uso replace para não adicionar ao histórico de navegação.
-          setLoading(false); // Paro o loading aqui, pois não vou mostrar o formulário.
-          return;
-        } else {
-          // Se não tem negócio, preparo para mostrar o formulário de cadastro.
-          setHasNegocio(false);
-          setShowForm(true);
-          fetchInitialFormData(); // Chamo a função para buscar os dados necessários para o formulário (categorias, características).
-        }
-
-      } catch (error) {
-        console.error("Erro ao verificar negócio existente:", error);
-        setSubmitStatus({ message: `Erro ao verificar dados: ${error.message}`, type: 'error' });
-        setShowForm(true); // Mesmo com erro, tento mostrar o formulário.
-        fetchInitialFormData(); // E tento buscar os dados do formulário.
-      } finally {
-         // Só paro o loading geral se não tiver negócio (porque se tiver, o redirect já aconteceu).
-        if (!hasNegocio) setLoading(false);
-      }
+      
+      // Se o usuário está logado, busca os dados para o formulário.
+      // A lógica de verificar se já tem negócio foi removida.
+      // Esta página agora é sempre para CADASTRAR UM NOVO.
+      await fetchInitialFormData(); 
+      setLoadingPage(false);
     };
 
-    checkUserAndNegocio();
+    initializePage();
   }, [router]); // Dependência: router (para o redirecionamento).
 
   // --- Função para buscar os dados iniciais do formulário (categorias e características) ---
   const fetchInitialFormData = useCallback(async () => {
     setLoadingInitialData(true);
+    setSubmitStatus({ message: '', type: '' }); // Limpa status anterior
     try {
-      const [catRes, caracRes] = await Promise.all([
+      const [catRes, caracRes, relRes] = await Promise.all([
         supabase.from('categorias').select('id, nome').order('nome'),
-        // Busco as características e também os IDs das categorias às quais cada característica está associada.
+        // Busca todas as características (id e nome)
         supabase.from('caracteristicas')
-                .select(`
-                    id,
-                    nome,
-                    caracteristica_categorias ( categoria_id )
-                `)
-                .order('nome')
+                .select('id, nome')
+                .order('nome'),
+        supabase.from('caracteristica_categorias').select('caracteristica_id, categoria_id') // Busca as relações
       ]);
 
-      if (catRes.error) throw catRes.error;
+      if (catRes.error) {
+        console.error("Erro Supabase ao buscar categorias:", catRes.error);
+        throw new Error(catRes.error.message || `Erro ao buscar categorias: ${catRes.error.code || 'desconhecido'}`);
+      }
       setCategorias(catRes.data || []);
       setFormState(prev => ({ ...prev, categoria_id: '' })); // Reseto a seleção de categoria.
 
-      if (caracRes.error) throw caracRes.error;
-      // Formato os dados das características para facilitar o filtro dinâmico depois.
-      const formattedCharacteristics = (caracRes.data || []).map(c => ({
-          id: c.id,
-          nome: c.nome,
-          // Crio um array simples só com os IDs das categorias associadas a esta característica.
-          associatedCategoryIds: c.caracteristica_categorias.map(cc => cc.categoria_id)
-      }));
-      setAllCharacteristics(formattedCharacteristics); // Salvo todas as características formatadas no estado.
+      if (caracRes.error) {
+        console.error("Erro Supabase ao buscar características:", caracRes.error);
+        throw new Error(caracRes.error.message || `Erro ao buscar características: ${caracRes.error.code || 'desconhecido'}`);
+      }
+      setAllCharacteristics(caracRes.data || []);
 
-    } catch (error) {
-      console.error("Erro ao buscar dados iniciais do formulário:", error);
-      setSubmitStatus({ message: `Erro ao carregar opções: ${error.message}`, type: 'error' });
+      if (relRes.error) {
+        console.error("Erro Supabase ao buscar relações característica-categoria:", relRes.error);
+        throw new Error(relRes.error.message || `Erro ao buscar relações: ${relRes.error.code || 'desconhecido'}`);
+      }
+      setCaracteristicaCategoriaRelations(relRes.data || []);
+
+    } catch (error) { // Agora 'error' será uma instância de Error com uma mensagem útil.
+      console.error("Erro ao buscar dados iniciais do formulário:", error.message); // Logamos a mensagem do erro.
+      // A mensagem para o usuário já usa error.message, o que é bom.
+      // Adicionamos um fallback caso error.message seja undefined por algum motivo.
+      const errorMessage = error.message || 'Falha desconhecida ao carregar dados.';
+      setSubmitStatus({ message: `Erro ao carregar opções: ${errorMessage}`, type: 'error' });
     } finally {
       setLoadingInitialData(false);
     }
@@ -368,30 +345,51 @@ export default function MeuNegocioPage() {
   // --- Meu FILTRO DINÂMICO DAS CARACTERÍSTICAS usando useMemo (Reutilizado) ---
   const filteredCharacteristics = useMemo(() => {
     const selectedCategoryId = formState.categoria_id; // Pego a categoria que está selecionada no formulário.
-    if (!selectedCategoryId) return []; // Se nenhuma categoria estiver selecionada, retorno lista vazia.
-    // Filtro a lista completa de características (`allCharacteristics`).
-    return allCharacteristics.filter(char =>
-      // Uma característica aparece se:
-      // 1. O array de categorias associadas a ela (`char.associatedCategoryIds`) inclui a categoria selecionada no formulário.
-      char.associatedCategoryIds.includes(selectedCategoryId)
-      // OU
-      // 2. A característica é "global" (ou seja, `char.associatedCategoryIds` está vazio, significando que ela se aplica a todas as categorias).
-      || char.associatedCategoryIds.length === 0
-    );
-  }, [formState.categoria_id, allCharacteristics]); // Recalculo esta lista filtrada só quando a categoria selecionada ou a lista total de características mudam.
+    if (!selectedCategoryId || allCharacteristics.length === 0 || caracteristicaCategoriaRelations.length === 0) {
+      return []; // Se não houver categoria selecionada, ou dados base, retorna vazio.
+    }
 
+    // 1. Encontra todos os caracteristica_id que pertencem à categoria selecionada.
+    const relevantCaracteristicaIds = caracteristicaCategoriaRelations
+      .filter(rel => rel.categoria_id === selectedCategoryId)
+      .map(rel => rel.caracteristica_id);
+
+    // 2. Filtra allCharacteristics para incluir apenas aquelas cujos IDs estão na lista de IDs relevantes.
+    return allCharacteristics.filter(char =>
+      relevantCaracteristicaIds.includes(char.id)
+    );
+  }, [formState.categoria_id, allCharacteristics, caracteristicaCategoriaRelations]); // Dependências corretas
+
+
+  // --- Minha Função para determinar a mensagem do Modal ---
+  const getModalMessage = () => {
+    if (isSubmitting) {
+      // Se submitStatus tem uma mensagem de loading específica, usa ela.
+      if (submitStatus.type === 'loading' && submitStatus.message) {
+        return submitStatus.message;
+      }
+      return 'Salvando alterações, por favor aguarde...'; // Mensagem genérica de carregamento
+    }
+    if (submitStatus.type === 'success' && submitStatus.message) {
+      return submitStatus.message; // Mensagem de sucesso
+    }
+    return 'Processando...'; // Fallback (não deve ser atingido se isOpen estiver correto)
+  };
 
   // --- Minha Renderização ---
-  if (loading) { // Se estiver no loading inicial (verificando usuário/negócio).
-    return <div className="text-center p-10">Verificando seus dados...</div>;
+  if (loadingPage) { 
+    return <div className="text-center p-10">Carregando...</div>;
   }
 
-  // Se não está carregando e é para mostrar o formulário de cadastro.
-  if (showForm) {
-    return (
+  return ( // O formulário é sempre renderizado se loadingPage for false (usuário logado)
       <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 border-b pb-3">Cadastrar Meu Estabelecimento</h1>
+        {/* 2. Adicionar o LoadingModal */}
+        <LoadingModal
+          isOpen={isSubmitting || (submitStatus.type === 'success' && !!submitStatus.message)}
+          message={getModalMessage()}
+        />
 
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 border-b pb-3">Cadastrar Novo Estabelecimento</h1>
         {/* Minhas Mensagens de Status e Erro do formulário. */}
         {submitStatus.message && (
             <div className={`p-4 mb-6 rounded-md text-center ${ submitStatus.type === 'success' ? 'bg-green-100 text-green-800' : submitStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }`}> {submitStatus.message} </div>
@@ -433,7 +431,7 @@ export default function MeuNegocioPage() {
 
             {/* Seção 6: Upload de Imagens - JSX igual ao da página de edição. */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">Imagens (máx. 5, a primeira será a principal) <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">Imagens (máx. {MAX_IMAGES_PER_BUSINESS}, a primeira será a principal) <span className="text-red-500">*</span></label>
               <div className="mb-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                 <div className="space-y-1 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 48 48" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" /></svg>
@@ -453,7 +451,7 @@ export default function MeuNegocioPage() {
                 <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                   {imageFiles.map((img, index) => (
                     <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
-                      <image
+                      <img
                         src={img.preview || img.url} // Para cadastro, img.preview (blob) será usado. img.url será null.
                         alt={`Preview ${index + 1}`}
                         className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
@@ -564,13 +562,4 @@ export default function MeuNegocioPage() {
         `}</style>
       </div>
     );
-  }
-
-  // Mensagem enquanto redireciona (se o usuário já tem um negócio).
-  if (!loading && hasNegocio) {
-      return <div className="text-center p-10">Você já possui um cadastro. Redirecionando para os detalhes do seu estabelecimento...</div>;
-  }
-
-  // Fallback para qualquer outro caso (não deveria acontecer).
-  return <div className="text-center p-10">Ocorreu um erro inesperado ao carregar a página.</div>;
 }

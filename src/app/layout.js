@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "VemPraCá↗",
-  description: "Tudo que voce precisa em um só lugar",
+  title: "Vem Pra Cá - Baixe agora e aproveite ofertas exclusivas",
+  description: "O Vem Pra Cá é o app perfeito para aproveitar promoções e serviços perto de você. Baixe agora!",
   icons: {
     icon: '/favicon.ico', 
     shortcut: '/favicon.ico', // Para alguns navegadores mais antigos e atalhos

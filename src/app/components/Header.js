@@ -143,11 +143,11 @@ export default function Header() {
                 Contato
               </Link>
             </li>
-            {/* Link "Meu Negócio" só aparece se o usuário estiver logado. */}
+            {/* Link para usuários logados */}
             {session && (
               <li>
-                <Link href="/meu-negocio" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
-                  Meu Negocio
+                <Link href="/meus-negocios" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
+                  Meus Negócios
                 </Link>
               </li>
             )}

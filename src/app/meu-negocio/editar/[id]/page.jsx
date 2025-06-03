@@ -7,6 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import imageCompression from 'browser-image-compression';
+import LoadingModal from '@/app/components/LoadingModal'; // 1. Importar o LoadingModal
 import { FaTrash } from 'react-icons/fa';
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de cadastro) ---
@@ -23,7 +24,7 @@ const generateUniqueFileName = (file) => {
 };
 
 // --- Constante para o limite de imagens ---
-const MAX_IMAGES_PER_BUSINESS = 15; // Você pode ajustar este valor para 10, 15, ou o que preferir.
+const MAX_IMAGES_PER_BUSINESS = 15; // Limite máximo de imagens por estabelecimento.
 
 
 // --- Componente Principal da Página de Edição ---
@@ -41,6 +42,8 @@ export default function EditarNegocioPage() {
   });
   const [categorias, setCategorias] = useState([]);
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
+  // NOVO ESTADO: Para armazenar as relações da tabela caracteristica_categorias
+  const [caracteristicaCategoriaRelations, setCaracteristicaCategoriaRelations] = useState([]);
   const [allCharacteristics, setAllCharacteristics] = useState([]);
   const [selectedCaracteristicas, setSelectedCaracteristicas] = useState([]); // IDs das características selecionadas para ESTE negócio.
   // Minha estrutura de imageFiles: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: boolean, statusText? }
@@ -135,26 +138,26 @@ export default function EditarNegocioPage() {
         setMainImageIndex(0); // A primeira imagem existente é a principal por padrão.
 
         // 7. Busco todas as Categorias e TODAS as Características (com suas associações de categoria) do banco.
-        const [catRes, caracRes] = await Promise.all([
+        const [catRes, caracRes, relRes] = await Promise.all([
           supabase.from('categorias').select('id, nome').order('nome'),
-          // Busco as características e também os IDs das categorias às quais cada característica está associada.
+          // Busca todas as características (id e nome)
           supabase.from('caracteristicas')
-                  .select(`id, nome, caracteristica_categorias ( categoria_id )`)
-                  .order('nome')
+                  .select('id, nome')
+                  .order('nome'),
+          supabase.from('caracteristica_categorias').select('caracteristica_id, categoria_id') // Busca as relações
         ]);
 
         if (catRes.error) throw catRes.error;
         setCategorias(catRes.data || []);
 
         if (caracRes.error) throw caracRes.error;
-        // Formato os dados das características para facilitar meu filtro dinâmico depois.
-        const formattedCharacteristics = (caracRes.data || []).map(c => ({
-            id: c.id,
-            nome: c.nome,
-            // Crio um array simples só com os IDs das categorias associadas a esta característica.
-            associatedCategoryIds: c.caracteristica_categorias.map(cc => cc.categoria_id)
-        }));
-        setAllCharacteristics(formattedCharacteristics); // Salvo todas as características formatadas no estado.
+        setAllCharacteristics(caracRes.data || []);
+
+        if (relRes.error) {
+          console.error("Erro Supabase ao buscar relações característica-categoria:", relRes.error);
+          throw new Error(relRes.error.message || `Erro ao buscar relações: ${relRes.error.code || 'desconhecido'}`);
+        }
+        setCaracteristicaCategoriaRelations(relRes.data || []);
 
       } catch (error) {
         console.error("Erro ao carregar dados para edição:", error);
@@ -421,22 +424,38 @@ export default function EditarNegocioPage() {
   // --- Meu FILTRO DINÂMICO DAS CARACTERÍSTICAS usando useMemo ---
   const filteredCharacteristics = useMemo(() => {
     const selectedCategoryId = formState.categoria_id; // Pego a categoria que está selecionada no formulário.
-
-    // Se nenhuma categoria estiver selecionada no formulário, não mostro nenhuma característica.
-    if (!selectedCategoryId) {
-      return [];
+    if (!selectedCategoryId || allCharacteristics.length === 0 || caracteristicaCategoriaRelations.length === 0) {
+      return []; // Se não houver categoria selecionada, ou dados base, retorna vazio.
     }
 
-    // Filtro a lista completa de características (`allCharacteristics`).
+    // 1. Encontra todos os caracteristica_id que pertencem à categoria selecionada.
+    const relevantCaracteristicaIds = caracteristicaCategoriaRelations
+      .filter(rel => rel.categoria_id === selectedCategoryId)
+      .map(rel => rel.caracteristica_id);
+
+    // 2. Filtra allCharacteristics para incluir apenas aquelas cujos IDs estão na lista de IDs relevantes.
     return allCharacteristics.filter(char =>
-      // Uma característica aparece se:
-      // 1. O array de categorias associadas a ela (`char.associatedCategoryIds`) inclui a categoria selecionada no formulário.
-      char.associatedCategoryIds.includes(selectedCategoryId)
-      // OU
-      // 2. A característica é "global" (ou seja, `char.associatedCategoryIds` está vazio, significando que ela se aplica a todas as categorias).
-      || char.associatedCategoryIds.length === 0
+      relevantCaracteristicaIds.includes(char.id)
     );
-  }, [formState.categoria_id, allCharacteristics]); // Recalculo esta lista filtrada só quando a categoria selecionada ou a lista total de características mudam.
+  }, [formState.categoria_id, allCharacteristics, caracteristicaCategoriaRelations]); // Dependências corretas
+
+
+
+
+  // --- Minha Função para determinar a mensagem do Modal ---
+  const getModalMessage = () => {
+    if (isSubmitting) {
+      // Se submitStatus tem uma mensagem de loading específica, usa ela.
+      if (submitStatus.type === 'loading' && submitStatus.message) {
+        return submitStatus.message;
+      }
+      return 'Salvando alterações, por favor aguarde...'; // Mensagem genérica de carregamento
+    }
+    if (submitStatus.type === 'success' && submitStatus.message) {
+      return submitStatus.message; // Mensagem de sucesso
+    }
+    return 'Processando...'; // Fallback (não deve ser atingido se isOpen estiver correto)
+  };
 
 
   // --- Minha Renderização ---
@@ -446,6 +465,12 @@ export default function EditarNegocioPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative">
+      {/* 2. Adicionar o LoadingModal */}
+      <LoadingModal
+        isOpen={isSubmitting || (submitStatus.type === 'success' && !!submitStatus.message)}
+        message={getModalMessage()}
+      />
+
       {/* Meu CABEÇALHO da página de edição, com botão para gerenciar assinatura. */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-3 gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Editar Estabelecimento</h1>
@@ -454,15 +479,20 @@ export default function EditarNegocioPage() {
               <Link href={`/pagamento-assinatura?negocioId=${negocioId}`} className="button-secondary bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm">
                   Gerenciar Assinatura
               </Link>
-              <Link href={`/negocio/${negocioId}`} className="text-sm text-blue-600 hover:text-blue-800">
-              &larr; Voltar aos Detalhes
+              <Link href="/meus-negocios" className="text-sm bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors shadow-sm">
+              &larr; Voltar para Meus Negócios
           </Link>
           </div>
       </div>
 
       {/* Minhas Mensagens de Status e Erro do formulário. */}
-      {submitStatus.message && submitStatus.type !== 'loading' && ( <div className={`p-4 mb-6 rounded-md text-center ${ submitStatus.type === 'success' ? 'bg-green-100 text-green-800' : submitStatus.type === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800' }`}> {submitStatus.message} </div> )}
-      {submitStatus.message && submitStatus.type === 'loading' && ( <div className="p-4 mb-6 rounded-md text-center bg-blue-100 text-blue-800 flex items-center justify-center gap-2"> <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> {submitStatus.message} </div> )}
+      {/* 3. Ajustar/Remover mensagens de status inline que serão cobertas pelo modal */}
+      {/* Mensagem de sucesso e loading serão tratadas pelo modal. Manter warning e error. */}
+      {submitStatus.message && (submitStatus.type === 'warning' || submitStatus.type === 'error') && (
+        <div className={`p-4 mb-6 rounded-md text-center ${ submitStatus.type === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800' }`}>
+          {submitStatus.message}
+        </div>
+      )}
       {uploadError && !isSubmitting && ( <div className="p-4 mb-6 rounded-md text-center bg-red-100 text-red-800"> Erro no upload: {uploadError} </div> )}
 
       {/* Meu Formulário de Edição. */}
