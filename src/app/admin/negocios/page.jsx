@@ -64,15 +64,29 @@ export default function AdminNegociosPage() {
       try {
         const { data, error: fetchError } = await supabase
           .from('negocios') // Tabela principal dos negócios.
-          .select('id, nome, cidade, ativo, usuario_id, imagens') // Colunas que vou precisar. Adicionei 'imagens' para a deleção.
+          .select(` 
+            id,
+            nome,
+            cidade,
+            ativo,
+            usuario_id,
+            imagens,
+            proprietario
+          `)
           .order('nome', { ascending: true });
 
         if (fetchError) throw fetchError;
         setBusinesses(data || []);
 
       } catch (err) {
-        console.error("Erro ao buscar negócios:", err);
-        setError(`Erro ao carregar estabelecimentos: ${err.message}`);
+        console.error("Erro detalhado ao buscar negócios:", err); // Logamos o objeto de erro completo para inspeção.
+        let errorMessage = "Ocorreu um erro desconhecido ao buscar os estabelecimentos.";
+        if (err && typeof err.message === 'string' && err.message.trim() !== '') {
+          errorMessage = err.message;
+        } else if (typeof err === 'object' && err !== null && Object.keys(err).length > 0) {
+          errorMessage = `Erro: ${JSON.stringify(err)}. Verifique o console do navegador para mais detalhes.`;
+        }
+        setError(`Erro ao carregar estabelecimentos: ${errorMessage}`);
       } finally {
         setLoading(false);
       }
@@ -186,6 +200,7 @@ export default function AdminNegociosPage() {
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Proprietário</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
@@ -193,7 +208,7 @@ export default function AdminNegociosPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {businesses.length === 0 && (
               <tr>
-                <td colSpan="4" className="px-6 py-4 text-center text-gray-500">Nenhum estabelecimento cadastrado.</td>
+                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">Nenhum estabelecimento cadastrado.</td>
               </tr>
             )}
             {businesses.map((business) => (
@@ -202,6 +217,9 @@ export default function AdminNegociosPage() {
                   <div className="text-sm font-medium text-gray-900">{business.nome}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.cidade}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {business.proprietario || 'N/A'}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     business.ativo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'

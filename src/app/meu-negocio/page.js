@@ -52,10 +52,11 @@ export default function MeuNegocioPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loadingPage, setLoadingPage] = useState(true); // Renomeado para evitar conflito com loadingInitialData
+  const [userProfile, setUserProfile] = useState(null); // Para guardar o nome_proprietario do perfil do usuário
   
   // --- Meus Estados para o Formulário de Cadastro ---
   const [formState, setFormState] = useState({
-    nome: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
+    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', // Adicionado proprietario
     telefone: '', whatsapp: '', website: '',
   });
   const [categorias, setCategorias] = useState([]);
@@ -83,10 +84,24 @@ export default function MeuNegocioPage() {
         return;
       }
       setUser(session.user); // Guardo os dados do usuário.
-      
+
+      // Busco o perfil do usuário para verificar se já existe um nome_proprietario
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('nome_proprietario')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error("Erro ao buscar perfil do usuário no cadastro:", profileError);
+        // Não é fatal para o carregamento do formulário, mas pode impactar o preenchimento do nome do proprietário
+      }
+      setUserProfile(profileData);
+      if (profileData?.nome_proprietario) {
+        setFormState(prev => ({ ...prev, proprietario: profileData.nome_proprietario }));
+      }
+
       // Se o usuário está logado, busca os dados para o formulário.
-      // A lógica de verificar se já tem negócio foi removida.
-      // Esta página agora é sempre para CADASTRAR UM NOVO.
       await fetchInitialFormData(); 
       setLoadingPage(false);
     };
@@ -297,7 +312,7 @@ export default function MeuNegocioPage() {
       // 3. Preparo os dados do negócio para INSERIR no banco.
       setSubmitStatus({ message: 'Salvando informações...', type: 'loading' });
       const negocioData = {
-        nome: formState.nome, categoria_id: formState.categoria_id, descricao: formState.descricao || null,
+        nome: formState.nome, proprietario: formState.proprietario, categoria_id: formState.categoria_id, descricao: formState.descricao || null, // Adicionado proprietario
         endereco: formState.endereco || null, cidade: formState.cidade, telefone: formState.telefone || null,
         whatsapp: formState.whatsapp || null, website: formState.website || null, imagens: finalImageUrls,
         usuario_id: user.id, ativo: false // Negócios começam inativos.
@@ -308,6 +323,20 @@ export default function MeuNegocioPage() {
         .from('negocios').insert([negocioData]).select('id').single(); // Pego o ID do negócio inserido.
       if (insertNegocioError) throw insertNegocioError;
       const newNegocioId = insertedNegocio.id; // Guardo o ID para usar nas características e no redirecionamento.
+
+      // 4.1. Se o usuário ainda não tinha um nome_proprietario em seu perfil,
+      // e informou um no formulário, atualizamos o perfil.
+      if (!userProfile?.nome_proprietario && formState.proprietario) {
+        setSubmitStatus({ message: 'Definindo nome do proprietário no seu perfil...', type: 'loading' });
+        const { error: updateProfileError } = await supabase
+          .from('profiles')
+          .update({ nome_proprietario: formState.proprietario })
+          .eq('id', user.id);
+        if (updateProfileError) {
+          console.error("Erro ao atualizar nome do proprietário no perfil (cadastro):", updateProfileError);
+          // Logar, mas não impedir o fluxo principal.
+        }
+      }
 
       // 5. INSIRO as características selecionadas.
       if (selectedCaracteristicas.length > 0) {
@@ -321,7 +350,7 @@ export default function MeuNegocioPage() {
       // Sucesso!
       setSubmitStatus({ message: 'Cadastro realizado com sucesso! Redirecionando...', type: 'success' });
       // Limpo o formulário.
-      setFormState({ nome: '', categoria_id: '', descricao: '', endereco: '', cidade: '', telefone: '', whatsapp: '', website: '' });
+      setFormState({ nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', telefone: '', whatsapp: '', website: '' }); // Limpando proprietario também
       setImageFiles([]); setMainImageIndex(0); setSelectedCaracteristicas([]);
       // Redireciono para a página de detalhes do negócio recém-criado.
       setTimeout(() => { router.push(`/negocio/${newNegocioId}`); }, 2500);
@@ -407,6 +436,14 @@ export default function MeuNegocioPage() {
             {/* Seção 1: Informações Básicas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField name="nome" label="Nome do Estabelecimento" value={formState.nome} onChange={handleChange} required disabled={isSubmitting} placeholder="Nome visível ao público" />
+              <InputField 
+                name="proprietario" 
+                label="Nome do Proprietário" 
+                value={formState.proprietario} 
+                onChange={handleChange} 
+                required 
+                disabled={isSubmitting || !!userProfile?.nome_proprietario} // Desabilita se já tem no perfil
+                placeholder={userProfile?.nome_proprietario ? "Nome já definido no seu perfil" : "Seu nome completo (será usado em todos os seus negócios)"} />
               <div>
                 <label htmlFor="categoria_id" className="block text-sm font-medium text-gray-700 mb-1">Categoria <span className="text-red-500">*</span></label>
                 <select id="categoria_id" name="categoria_id" value={formState.categoria_id} onChange={handleChange} required className="input-form bg-white" disabled={isSubmitting || categorias.length === 0}>

@@ -34,10 +34,11 @@ export default function EditarNegocioPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Meu loading geral da página.
   const [negocioOriginal, setNegocioOriginal] = useState(null); // Preciso guardar os dados originais para comparar e para as características.
+  const [ownerProfile, setOwnerProfile] = useState(null); // Para guardar o nome_proprietario do perfil do dono
 
   // --- Meus Estados para o Formulário ---
   const [formState, setFormState] = useState({
-    nome: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
+    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', // Adicionado proprietario
     telefone: '', whatsapp: '', website: '',
   });
   const [categorias, setCategorias] = useState([]);
@@ -110,9 +111,23 @@ export default function EditarNegocioPage() {
 
         setNegocioOriginal(negocioData); // Guardo os dados originais.
 
-        // 4. Preencho o estado do meu formulário com os dados do negócio.
+        // 4. Busco o perfil do dono para pegar o nome_proprietario consistente
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('nome_proprietario')
+          .eq('id', negocioData.usuario_id)
+          .single();
+
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116: row not found
+          console.warn("Aviso: Perfil do proprietário não encontrado ou erro ao buscar.", profileError);
+          // Não é um erro fatal aqui, podemos prosseguir com o nome do negócio como fallback
+        }
+        setOwnerProfile(profileData);
+
+        // 5. Preencho o estado do meu formulário com os dados do negócio e do perfil.
         setFormState({
           nome: negocioData.nome || '',
+          proprietario: profileData?.nome_proprietario || negocioData.proprietario || '', // Prioriza o do perfil
           categoria_id: negocioData.categoria_id || '',
           descricao: negocioData.descricao || '',
           endereco: negocioData.endereco || '',
@@ -122,11 +137,11 @@ export default function EditarNegocioPage() {
           website: negocioData.website || '',
         });
 
-        // 5. Preencho as características que já estavam selecionadas para este negócio.
+        // 6. Preencho as características que já estavam selecionadas para este negócio.
         const currentCaracteristicaIds = negocioData.negocio_caracteristicas?.map(nc => nc.caracteristica_id) || [];
         setSelectedCaracteristicas(currentCaracteristicaIds);
 
-        // 6. Preparo o estado das imagens existentes para exibição.
+        // 7. Preparo o estado das imagens existentes para exibição.
         const existingImages = (negocioData.imagens || []).map((url, index) => {
             const id = uuidv4(); let fileName = null;
             try { const urlParts = new URL(url); const pathParts = urlParts.pathname.split('/'); fileName = pathParts[pathParts.length - 1]; } catch {} // Tento pegar o nome do arquivo da URL.
@@ -137,7 +152,7 @@ export default function EditarNegocioPage() {
         setImageFiles(existingImages);
         setMainImageIndex(0); // A primeira imagem existente é a principal por padrão.
 
-        // 7. Busco todas as Categorias e TODAS as Características (com suas associações de categoria) do banco.
+        // 8. Busco todas as Categorias e TODAS as Características (com suas associações de categoria) do banco.
         const [catRes, caracRes, relRes] = await Promise.all([
           supabase.from('categorias').select('id, nome').order('nome'),
           // Busca todas as características (id e nome)
@@ -347,6 +362,7 @@ export default function EditarNegocioPage() {
       setSubmitStatus({ message: 'Atualizando dados do estabelecimento...', type: 'loading' });
       const negocioUpdateData = {
         nome: formState.nome,
+        proprietario: formState.proprietario, // Salva o nome do proprietário no negócio
         categoria_id: formState.categoria_id,
         descricao: formState.descricao || null,
         endereco: formState.endereco || null,
@@ -362,6 +378,32 @@ export default function EditarNegocioPage() {
         .update(negocioUpdateData)
         .eq('id', negocioId);
       if (updateNegocioError) throw updateNegocioError;
+
+      // 4.1. Atualizo o nome_proprietario na tabela 'profiles' do usuário dono.
+      // Faço isso somente se o nome no formulário for diferente do que estava no perfil (ou se o perfil não tinha nome).
+      if (formState.proprietario && (formState.proprietario !== ownerProfile?.nome_proprietario)) {
+        setSubmitStatus({ message: 'Atualizando nome do proprietário no perfil...', type: 'loading' });
+        const { error: updateProfileError } = await supabase
+          .from('profiles')
+          .update({ nome_proprietario: formState.proprietario })
+          .eq('id', negocioOriginal.usuario_id);
+        if (updateProfileError) {
+          console.error("Erro ao atualizar nome do proprietário no perfil:", updateProfileError);
+          setSubmitStatus({ message: 'Aviso: Erro ao atualizar nome do proprietário no perfil. As outras alterações foram salvas.', type: 'warning' });
+          // Não paro o processo por isso, mas informo.
+        }
+      }
+
+      // 4.2. Sincronizo o campo 'proprietario' em TODOS os negócios deste usuário.
+      setSubmitStatus({ message: 'Sincronizando nome do proprietário nos seus negócios...', type: 'loading' });
+      const { error: syncNegociosError } = await supabase
+        .from('negocios')
+        .update({ proprietario: formState.proprietario })
+        .eq('usuario_id', negocioOriginal.usuario_id);
+      if (syncNegociosError) {
+        console.error("Erro ao sincronizar nome do proprietário entre os negócios:", syncNegociosError);
+        setSubmitStatus({ message: 'Aviso: Erro ao sincronizar nome do proprietário em todos os seus negócios.', type: 'warning' });
+      }
 
       // 5. Atualizo as Características Associadas (Delete as antigas que não estão mais, Insere as novas).
       setSubmitStatus({ message: 'Atualizando características...', type: 'loading' });
@@ -392,6 +434,10 @@ export default function EditarNegocioPage() {
           ...prev,
           ...negocioUpdateData,
           negocio_caracteristicas: selectedCaracteristicas.map(id => ({ caracteristica_id: id })) // Atualizo as características também.
+      }));
+      // Atualizo o perfil do proprietário no estado local também
+      setOwnerProfile(prev => ({
+        ...prev, nome_proprietario: formState.proprietario
       }));
 
       setTimeout(() => {
@@ -503,6 +549,7 @@ export default function EditarNegocioPage() {
           {/* Seção 1: Informações Básicas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField name="nome" label="Nome do Estabelecimento" value={formState.nome} onChange={handleChange} required disabled={isSubmitting} />
+            <InputField name="proprietario" label="Nome do Proprietário" value={formState.proprietario} onChange={handleChange} required disabled={isSubmitting} placeholder="Seu nome completo (será usado em todos os seus negócios)" />
             <div>
               <label htmlFor="categoria_id" className="block text-sm font-medium text-gray-700 mb-1">Categoria <span className="text-red-500">*</span></label>
               <select id="categoria_id" name="categoria_id" value={formState.categoria_id} onChange={handleChange} required className="input-form bg-white" disabled={isSubmitting || categorias.length === 0}>
@@ -588,7 +635,7 @@ export default function EditarNegocioPage() {
                 {loadingInitialData && <p className="text-sm text-gray-500">Carregando características...</p>}
 
                 {!loadingInitialData && filteredCharacteristics.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3 border p-4 rounded-md bg-gray-50">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3 shadow-md rounded-md p-4 bg-gray-50">
                     {/* Mapeio a lista JÁ FILTRADA de características. */}
                     {filteredCharacteristics.map((item) => (
                       <div key={item.id} className="flex items-center">

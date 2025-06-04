@@ -9,7 +9,7 @@ import Link from 'next/link';
 // Um componente simples para exibir cada negócio (você pode estilizar melhor)
 function NegocioCard({ negocio, onDelete }) {
   return (
-    <div className="border p-4 rounded-lg shadow-md bg-white hover:shadow-lg transition-shadow">
+    <div className="p-4 rounded-lg shadow-md bg-neutral-50 hover:bg-neutral-100 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-xl font-semibold text-gray-800">{negocio.nome}</h3>
@@ -38,11 +38,11 @@ function NegocioCard({ negocio, onDelete }) {
         >
           Excluir
         </button>
-        <Link href={`/negocio/${negocio.id}`} className="text-sm bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded-md transition-colors">
+        <Link href={`/negocio/${negocio.id}`} className="text-sm bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-md transition-colors">
           Ver Página
         </Link>
       </div>
-       {!negocio.ativo && (
+      {!negocio.ativo && (
         <p className="mt-3 text-xs text-orange-600 bg-orange-100 p-2 rounded-md">
           Este estabelecimento está pendente de aprovação e não está visível publicamente.
         </p>
@@ -166,10 +166,10 @@ export default function MeusNegociosPage() {
   
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-8">
-      <div className="flex justify-between items-center mb-8 pb-4 border-b">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Meus Estabelecimentos</h1>
-        <Link href="/meu-negocio" className="button-primary">
-          + Cadastrar Novo
+      <div className="flex justify-between items-center mb-8 pb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Meus Negocios</h1>
+        <Link href="/meu-negocio" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-2 mx-1 rounded-md transition-colors button-primary">
+          + Novo Cadastro
         </Link>
       </div>
 
