@@ -34,13 +34,13 @@ export default function Hero() {
         {/* Conteúdo centralizado sobre a imagem. */}
         {/* Este div também contém o carrossel de categorias. */}
         <div className="pb-20 relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-2">Bem-vindo ao VemPraCá↗</h1>
-            <p className="text-lg md:text-xl mb-8 drop-shadow-2xl">Encontre tudo que precisa em um só lugar!</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-md">Bem-vindo ao VemPraCá↗</h1>
+            <p className="text-lg md:text-xl mb-8 drop-shadow-md">Encontre tudo que precisa em um só lugar!</p>
             {/* Botão para rolar até a seção de busca. */}
             <button onClick={() => {
                 const section = document.getElementById('search-section');
                 section?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="bg-green-500 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-xl shadow-lg transition duration-300">
+                className="bg-green-500 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-300">
                 Ver Mais
             </button>
 

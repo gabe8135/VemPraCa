@@ -39,7 +39,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
   const [selectedCaracteristicas, setSelectedCaracteristicas] = useState([]);
 
   // Estados para o upload de imagens.
-  // A estrutura de cada item é: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: false, statusText? }
+  // Estrutura: { id, file?, preview, uploading, uploaded, error, url?, fileName?, isExisting: false, statusText? }
   const [imageFiles, setImageFiles] = useState([]);
   const [mainImageIndex, setMainImageIndex] = useState(0); // Índice da imagem principal no array imageFiles.
   const [uploadError, setUploadError] = useState(''); // Erro geral do upload.
@@ -67,31 +67,42 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
 
   // Handler para quando seleciono arquivos de imagem.
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    const availableSlots = 5 - imageFiles.length;
-    if (availableSlots <= 0) return; // Não adiciono mais se já atingi o limite de 5.
+    const selectedFiles = Array.from(event.target.files);
+    if (selectedFiles.length === 0) return;
 
-    const filesToProcess = files.slice(0, availableSlots);
+    console.log('Arquivos selecionados (MeuNegocioForm):', selectedFiles);
     setUploadError('');
     setSubmitStatus({ message: '', type: '' }); // Limpo o status ao adicionar novas imagens.
 
-    const newImageFilesInitialState = filesToProcess.map(file => {
+    const newFilesToAdd = selectedFiles.slice(0, 5 - imageFiles.length); // Limite de 5 imagens
+
+    const newImageObjects = newFilesToAdd.map(file => {
       const id = uuidv4();
       const originalFileName = generateUniqueFileName(file); // Gero o nome baseado no original.
+      const blobURL = URL.createObjectURL(file);
+
+      console.log(`Processando arquivo (MeuNegocioForm): Nome: ${file.name}, Tipo: ${file.type}, BlobURL: ${blobURL}`);
+
       return {
-        id, file, preview: URL.createObjectURL(file),
-        uploading: false, uploaded: false, error: null, url: null,
-        fileName: originalFileName, // Guardo o nome original com ID único.
-        isExisting: false, statusText: null
+        id,
+        file,
+        preview: blobURL,
+        uploading: false,
+        uploaded: false,
+        error: null,
+        url: null,
+        fileName: originalFileName,
+        isExisting: false,
+        statusText: null,
       };
     });
 
-    setImageFiles(prev => [...prev, ...newImageFilesInitialState]);
-
-    // Defino a primeira imagem como principal se for a primeira que adicionei.
-    if (imageFiles.length === 0 && newImageFilesInitialState.length > 0) {
-        setMainImageIndex(0);
-    }
+    setImageFiles(prevFiles => {
+      const updatedFiles = [...prevFiles, ...newImageObjects];
+      if (prevFiles.length === 0 && newImageObjects.length > 0 && updatedFiles.length > 0) {        setMainImageIndex(0); // Define a primeira imagem como principal se a lista estava vazia
+      }
+      return updatedFiles;
+    });
 
     event.target.value = ''; // Limpo o input de arquivo.
   };
@@ -99,30 +110,30 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
   // Handler para remover uma imagem da lista.
   const handleRemoveImage = (idToRemove) => {
     const imageToRemove = imageFiles.find(img => img.id === idToRemove);
-    if (!imageToRemove) return;
+    if (!imageToRemove) {
+      console.warn(`Tentativa de remover imagem com ID não encontrado: ${idToRemove}`);
+      return;
+    }
 
-    // Revogo a URL de preview se for um blob, para liberar memória.
-    if (imageToRemove.preview?.startsWith('blob:')) {
+    if (imageToRemove.preview && imageToRemove.preview.startsWith('blob:')) {
       URL.revokeObjectURL(imageToRemove.preview);
+      console.log(`Blob URL revogada para imagem ID ${idToRemove}: ${imageToRemove.preview}`);
     }
 
-    // Removo do estado.
-    const updatedImageFiles = imageFiles.filter(img => img.id !== idToRemove);
-    setImageFiles(updatedImageFiles);
-
-    // Ajusto o índice da imagem principal.
-    if (updatedImageFiles.length === 0) {
-        setMainImageIndex(0); // Reseto se não houver mais imagens.
-    } else if (idToRemove === imageFiles[mainImageIndex]?.id) {
-        // Se removi a principal, defino a nova primeira como principal.
+    setImageFiles(prevFiles => {
+      const updatedFiles = prevFiles.filter(img => img.id !== idToRemove);
+      
+      if (updatedFiles.length === 0) {
         setMainImageIndex(0);
-    } else {
-        // Se removi outra, recalculo o índice da principal atual.
-        const currentMainImageId = imageFiles[mainImageIndex]?.id;
-        const newMainIndex = updatedImageFiles.findIndex(img => img.id === currentMainImageId);
-        setMainImageIndex(newMainIndex >= 0 ? newMainIndex : 0); // Mantenho ou volto para o índice 0.
-    }
+      } else {
+        // Se a imagem removida era a principal, ou se o índice da principal ficou fora dos limites
+        const oldMainImageId = prevFiles[mainImageIndex]?.id;
+        const newPotentialMainIndex = updatedFiles.findIndex(img => img.id === oldMainImageId);
 
+        setMainImageIndex(newPotentialMainIndex !== -1 ? newPotentialMainIndex : 0);
+      }
+      return updatedFiles;
+    });
     setSubmitStatus({ message: '', type: '' }); // Limpo o status.
     setUploadError('');
   };
@@ -131,7 +142,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
   const handleSetMainImage = (idToSetMain) => {
     const indexToSetMain = imageFiles.findIndex(img => img.id === idToSetMain);
     // Permito definir como principal mesmo se tiver erro, mas não se estiver carregando.
-    if (indexToSetMain !== -1 && !imageFiles[indexToSetMain].uploading) {
+    if (indexToSetMain !== -1 && !imageFiles[indexToSetMain]?.uploading) {
       setMainImageIndex(indexToSetMain);
       setSubmitStatus({ message: '', type: '' }); // Limpo o status.
     } else if (imageFiles[indexToSetMain]?.uploading) {
@@ -156,13 +167,14 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     const uploadPromises = filesToUpload.map(async (imgState) => {
       const file = imgState.file;
       if (!file) return { id: imgState.id, success: false, error: 'Arquivo inválido' }; // Checagem de segurança.
-
-      // Defino o nome final como .webp.
+      
       const webpFileName = `${imgState.fileName?.replace(/\.[^/.]+$/, '') || uuidv4()}.webp`;
       const filePath = `public/${userId}/${webpFileName}`; // Caminho no bucket do Supabase.
 
-      // Atualizo o estado da imagem para mostrar "Otimizando...".
-      setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: true, statusText: 'Otimizando...' } : i));
+      setImageFiles(prev => prev.map(i => 
+        i.id === imgState.id ? { ...i, uploading: true, statusText: 'Otimizando...' } : i
+      ));
+      console.log(`Iniciando compressão para: ${webpFileName}`);
 
       try {
         // Minhas opções de compressão.
@@ -176,29 +188,34 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
 
         console.log(`Comprimindo ${file.name} para ${webpFileName}...`);
         const compressedFile = await imageCompression(file, options);
-        console.log(`Compressão de ${webpFileName} concluída. Tamanho: ${(compressedFile.size / 1024).toFixed(0)} KB`);
+        console.log(`Compressão de ${webpFileName} concluída. Tamanho: ${(compressedFile.size / (1024*1024)).toFixed(2)} MB`);
 
-        // Atualizo o estado da imagem para mostrar "Enviando...".
-        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, statusText: 'Enviando...' } : i));
+        setImageFiles(prev => prev.map(i => 
+          i.id === imgState.id ? { ...i, statusText: 'Enviando...' } : i
+        ));
+        console.log(`Enviando ${webpFileName} para Supabase Storage...`);
 
-        // Faço o upload para o Supabase Storage.
         const { error: uploadError } = await supabase.storage
           .from('imagens') // Meu bucket correto.
           .upload(filePath, compressedFile, { contentType: 'image/webp', upsert: false }); // Não quero sobrescrever se já existir.
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Erro no upload para Supabase (${webpFileName}):`, uploadError);
+          throw uploadError;
+        }
 
-        // Pego a URL pública da imagem.
         const { data: { publicUrl } } = supabase.storage
           .from('imagens') // Meu bucket correto.
           .getPublicUrl(filePath);
 
-        if (!publicUrl) throw new Error('Não foi possível obter URL pública.');
+        if (!publicUrl) {
+          console.error(`Não foi possível obter URL pública para ${webpFileName}`);
+          throw new Error('URL pública não encontrada.');
+        }
 
         console.log(`Upload de ${webpFileName} concluído. URL: ${publicUrl}`);
         uploadedUrlsMap.set(imgState.id, publicUrl);
 
-        // Atualizo o estado da imagem específica para sucesso.
         setImageFiles(prev => prev.map(i => i.id === imgState.id ? {
             ...i, uploading: false, uploaded: true, url: publicUrl, fileName: filePath, error: null, statusText: null
           } : i));
@@ -208,7 +225,6 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       } catch (error) {
         console.error(`Erro no processo de ${file.name} -> ${webpFileName}:`, error);
         localUploadErrors.push({ id: imgState.id, fileName: file.name, message: error.message });
-        // Atualizo o estado da imagem específica para erro.
         setImageFiles(prev => prev.map(i => i.id === imgState.id ? {
             ...i, uploading: false, uploaded: false, error: error.message || 'Falha', statusText: null
           } : i));
@@ -216,10 +232,8 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       }
     });
 
-    // Espero todas as promessas de upload.
     await Promise.all(uploadPromises);
 
-    // Se houver erros, atualizo o estado geral de erro e lanço uma exceção.
     if (localUploadErrors.length > 0) {
       const errorMsg = `Falha ao enviar ${localUploadErrors.length} imagem(ns).`;
       setUploadError(errorMsg);
@@ -239,11 +253,16 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
 
     // Validações básicas.
     if (!userId) { setSubmitStatus({ message: 'Usuário não identificado.', type: 'error' }); setIsSubmitting(false); return; }
-    if (imageFiles.length === 0) { setSubmitStatus({ message: 'Adicione pelo menos uma imagem.', type: 'error' }); setIsSubmitting(false); return; }
+    
+    const validImagesForUpload = imageFiles.filter(img => !img.error);
+    if (validImagesForUpload.length === 0) { 
+      setSubmitStatus({ message: 'Adicione pelo menos uma imagem válida.', type: 'error' }); 
+      setIsSubmitting(false); return; 
+    }
 
     // Verifico se a imagem principal definida é válida (não tem erro e não está carregando).
     let currentMainIndex = mainImageIndex;
-    if (imageFiles[currentMainIndex]?.error || imageFiles[currentMainIndex]?.uploading) {
+    if (validImagesForUpload[currentMainIndex]?.error || validImagesForUpload[currentMainIndex]?.uploading) {
         // Se a principal atual for inválida, tento achar a primeira válida.
         const firstValidIndex = imageFiles.findIndex(img => !img.error && !img.uploading);
         if (firstValidIndex === -1) {
@@ -253,7 +272,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
             return;
         }
         // Se achei uma válida, aviso e atualizo o índice.
-        setSubmitStatus({ message: 'Imagem principal inválida, selecionando a primeira válida.', type: 'warning' });
+        // setSubmitStatus({ message: 'Imagem principal inválida, selecionando a primeira válida.', type: 'warning' }); // Pode ser verboso
         setMainImageIndex(firstValidIndex);
         currentMainIndex = firstValidIndex;
     }
@@ -261,7 +280,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     let finalImageUrls = [];
     try {
       // 1. Faço upload das imagens que ainda não foram enviadas.
-      const imagesParaUpload = imageFiles.filter(img => !img.uploaded && img.file && !img.error);
+      const imagesParaUpload = validImagesForUpload.filter(img => !img.uploaded && img.file);
       let uploadedUrlsMap = new Map();
 
       if (imagesParaUpload.length > 0) {
@@ -270,25 +289,29 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       }
 
       // 2. Consolido todas as URLs válidas (as que acabaram de ser upadas e as que já estavam).
-      const updatedImageFilesState = imageFiles.map(img => {
+      // E também filtro as que tiveram erro no processo
+      const successfullyProcessedImages = imageFiles.map(img => {
           if (uploadedUrlsMap.has(img.id)) {
-              // Se esta imagem foi upada agora, atualizo com a URL.
               return { ...img, url: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null };
           }
           return img; // Senão, mantenho o estado existente.
-      });
-      setImageFiles(updatedImageFilesState); // Atualizo o estado geral das imagens.
+      }).filter(img => !img.error && img.url); // Apenas imagens sem erro e com URL
 
-      // Pego a URL da imagem principal (já validada).
-      const mainImageUrl = updatedImageFilesState[currentMainIndex]?.url;
+      if (successfullyProcessedImages.length === 0) {
+        throw new Error("Nenhuma imagem foi processada com sucesso.");
+      }
+      setImageFiles(successfullyProcessedImages); // Atualizo o estado com as imagens processadas com sucesso.
+
+      // Revalido o índice da imagem principal com base nas imagens que restaram
+      const finalMainImageCandidate = successfullyProcessedImages[currentMainIndex] || successfullyProcessedImages[0];
+      const mainImageUrl = finalMainImageCandidate?.url;
+
       if (!mainImageUrl) {
-          // Segurança extra, embora a validação inicial deva pegar isso.
           throw new Error("Erro crítico ao obter URL da imagem principal.");
       }
 
-      // Pego as URLs das imagens adicionais (excluindo a principal).
-      const additionalImageUrls = updatedImageFilesState
-        .filter((img, index) => index !== currentMainIndex && img.url && !img.error)
+      const additionalImageUrls = successfullyProcessedImages
+        .filter(img => img.url !== mainImageUrl) // Exclui a principal
         .map(img => img.url);
 
       // Monto o array final de imagens para o banco: [principal, ...adicionais].
@@ -342,7 +365,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       if (onCadastroSucesso) {
         onCadastroSucesso(insertedNegocio); // Chamo a callback do componente pai.
       }
-
+      console.log("Cadastro de negócio concluído com sucesso:", insertedNegocio);
     } catch (err) {
       console.error("Erro no processo de cadastro:", err);
       // Mostro o erro de upload específico se houver, senão o erro geral.
@@ -356,8 +379,9 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
   useEffect(() => {
     return () => {
         imageFiles.forEach(img => {
-            if (img.preview && img.preview.startsWith('blob:')) {
+            if (img.preview?.startsWith('blob:')) {
                 URL.revokeObjectURL(img.preview);
+                console.log(`Blob URL revogada (desmontagem/limpeza) para imagem ID ${img.id}: ${img.preview}`);
             }
         });
     };
@@ -448,39 +472,49 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
           {/* Previews das imagens com status e botões. */}
           {imageFiles.length > 0 && (
             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-              {imageFiles.map((img, index) => (
-                <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
+              {imageFiles.map((imgState, index) => (
+                <div key={imgState.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-slate-100">
                   <img
-                    src={img.preview} alt={`Preview ${index + 1}`}
-                    className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=Erro'; }}
+                    src={imgState.preview} alt={`Preview ${index + 1}`}
+                    className="w-full h-full object-contain" // object-contain para ver a imagem inteira, mesmo que com barras. object-cover cortaria.
+                    onError={(e) => {
+                      console.error(`Falha ao carregar imagem no SRC (MeuNegocioForm). SRC: ${img.preview}`, e.target.error); // LOG MAIS DETALHADO
+                      e.target.onerror = null; // Previne loop de erro
+                      e.target.src = 'https://via.placeholder.com/150?text=ERRO_IMG_FORM'; // Placeholder diferente
+                    }}
                   />
                   {/* Overlay para Ações, Erros, Loading e Status. */}
-                  <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
+                  <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${imgState.uploading || imgState.error ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
                     {/* Indicador de Uploading. */}
-                    {img.uploading && (
+                    {imgState.uploading && (
                         <div className="flex flex-col items-center">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={img.statusText || 'Processando...'}></div>
-                            <p className="text-xs">{img.statusText || 'Processando...'}</p>
+                            {/* Adicionado: Texto de status/nome do arquivo */}
+                            <div className="absolute bottom-1 left-1 right-1 text-xs text-gray-300 truncate">
+                               {imgState.fileName ? imgState.fileName.substring(0, 20) + '...' : 'Arquivo'}
+                               {imgState.uploading && ` (${imgState.statusText || 'Processando...'})`}
+                               {imgState.error && ` (Erro)`}
+                            </div>
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={imgState.statusText || 'Processando...'}></div>
+                            <p className="text-xs">{imgState.statusText || 'Processando...'}</p>
                         </div>
                     )}
                     {/* Indicador de Erro. */}
-                    {img.error && !img.uploading && (
-                        <div className="p-1" title={typeof img.error === 'string' ? img.error : 'Erro'}>
+                    {imgState.error && !imgState.uploading && (
+                        <div className="p-1" title={typeof imgState.error === 'string' ? imgState.error : 'Erro'}>
                             <svg className="h-6 w-6 text-red-500 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <p className="text-xs text-red-300 truncate">{typeof img.error === 'string' ? img.error.substring(0, 30) : 'Erro'}</p>
+                            <p className="text-xs text-red-300 truncate">{typeof imgState.error === 'string' ? imgState.error.substring(0, 30) : 'Erro'}</p>
                         </div>
                     )}
                     {/* Botões (Aparecem no Hover se não estiver carregando/erro). */}
-                    {!img.uploading && !img.error && (
+                    {!imgState.uploading && !imgState.error && (
                       <div className={`absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                           {/* Botão Remover. */}
-                          <button type="button" onClick={() => handleRemoveImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 z-10" aria-label="Remover imagem">
+                          <button type="button" onClick={() => handleRemoveImage(imgState.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 z-10" aria-label="Remover imagem">
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
                           {/* Botão Definir Principal (só aparece se não for a principal). */}
                           {mainImageIndex !== index && (
-                            <button type="button" onClick={() => handleSetMainImage(img.id)} className="text-white text-xs bg-green-600 px-2 py-1 rounded shadow-md hover:bg-green-700 z-10">
+                            <button type="button" onClick={() => handleSetMainImage(imgState.id)} className="text-white text-xs bg-green-600 px-2 py-1 rounded shadow-md hover:bg-green-700 z-10">
                                 Principal
                             </button>
                           )}
@@ -488,7 +522,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
                     )}
                   </div>
                   {/* Badge "Principal". */}
-                  {mainImageIndex === index && !img.uploading && !img.error && <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">Principal</div>}
+                  {mainImageIndex === index && !imgState.uploading && !imgState.error && <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">Principal</div>}
                 </div>
               ))}
             </div>
@@ -517,7 +551,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         <div className="pt-6">
           <button
             type="submit"
-            disabled={isSubmitting || loadingCategories || loadingCaracteristicas || !!errorCategories || !!errorCaracteristicas || imageFiles.some(img => img.uploading)} // Desabilito se alguma imagem estiver carregando.
+            disabled={isSubmitting || loadingCategories || loadingCaracteristicas || !!errorCategories || !!errorCaracteristicas || imageFiles.some(img => img.uploading) || imageFiles.filter(img => !img.error).length === 0}
             className="w-full button-primary flex items-center justify-center py-3"
           >
             {isSubmitting ? (

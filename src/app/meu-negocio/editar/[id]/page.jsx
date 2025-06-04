@@ -215,6 +215,7 @@ export default function EditarNegocioPage() {
     const filesToProcess = files.slice(0, availableSlots);
     setUploadError('');
     setSubmitStatus({ message: '', type: '' });
+    console.log('Arquivos selecionados (EditarNegocioPage):', filesToProcess);
 
     const newImageFilesInitialState = filesToProcess.map(file => {
       const id = uuidv4();
@@ -222,6 +223,7 @@ export default function EditarNegocioPage() {
       // Aqui 'preview' é uma URL de blob para o arquivo local.
       return { id, file, preview: URL.createObjectURL(file), uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null };
     });
+    console.log(`Criadas ${newImageFilesInitialState.length} Blob URLs para preview (EditarNegocioPage).`);
 
     setImageFiles(prev => {
       const combined = [...prev, ...newImageFilesInitialState];
@@ -236,7 +238,10 @@ export default function EditarNegocioPage() {
   };
   const handleRemoveImage = (idToRemove) => { // Quando clico para remover uma imagem.
     const imageToRemove = imageFiles.find(img => img.id === idToRemove); if (!imageToRemove) return;
+    console.log(`Removendo imagem ID ${idToRemove} (EditarNegocioPage). É existente? ${imageToRemove.isExisting}`);
     // Se a imagem a ser removida é uma que já existia no banco (isExisting = true),
+    // eu adiciono o path dela ao array `imagesToDelete` para deletar do Storage depois.
+    // Adicionado log aqui também.
     // eu adiciono o path dela ao array `imagesToDelete` para deletar do Storage depois.
     if (imageToRemove.isExisting && imageToRemove.url) { try { const urlParts = new URL(imageToRemove.url); const pathStartIndex = urlParts.pathname.indexOf('/imagens/') + '/imagens/'.length; const filePath = urlParts.pathname.substring(pathStartIndex); if (filePath) { setImagesToDelete(prev => [...prev, filePath]); console.log("Marcado para deletar do Storage:", filePath); } } catch (e) { console.warn("Erro ao parsear URL para deletar:", e); } }
     if (imageToRemove.preview?.startsWith('blob:')) { URL.revokeObjectURL(imageToRemove.preview); } // Libero memória do blob se for um preview local.
@@ -260,20 +265,51 @@ export default function EditarNegocioPage() {
       const webpFileName = `${imgState.fileName?.replace(/\.[^/.]+$/, '') || uuidv4()}.webp`; // Meu nome final será .webp.
       const filePath = `public/${user.id}/${webpFileName}`; // Meu caminho no Storage.
       setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: true, statusText: 'Otimizando...' } : i));
+      console.log(`Iniciando compressão para: ${webpFileName} (EditarNegocioPage)`);
       try {
         const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.85 }; // Minhas opções de compressão.
         const compressedFile = await imageCompression(file, options);
+        console.log(`Compressão de ${webpFileName} concluída. Tamanho: ${(compressedFile.size / (1024*1024)).toFixed(2)} MB (EditarNegocioPage)`);
         setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, statusText: 'Enviando...' } : i));
+        console.log(`Enviando ${webpFileName} para Supabase Storage... (EditarNegocioPage)`);
         const { error: uploadError } = await supabase.storage.from('imagens').upload(filePath, compressedFile, { contentType: 'image/webp', upsert: false }); // upsert: false para não sobrescrever.
         if (uploadError) throw uploadError;
         const { data: { publicUrl } } = supabase.storage.from('imagens').getPublicUrl(filePath);
         if (!publicUrl) throw new Error('Não foi possível obter URL pública.');
         uploadedUrlsMap.set(imgState.id, publicUrl);
         // Após o upload, 'url' é a URL pública e 'isExisting' se torna true. 'preview' pode ser mantido como a URL pública também.
-        setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: true, url: publicUrl, preview: publicUrl, fileName: filePath, error: null, statusText: null, isExisting: true } : i));
+        console.log(`Upload bem-sucedido para ${webpFileName}. URL pública obtida: ${publicUrl} (EditarNegocioPage)`);
+        
+        // Revoga a Blob URL (seja a original ou a comprimida) agora que temos a URL pública
+        setImageFiles(prev => prev.map(i => {
+            if (i.id === imgState.id) {
+                if (i.preview?.startsWith('blob:')) {
+                    URL.revokeObjectURL(i.preview);
+                    console.log(`Blob URL revogada após upload bem-sucedido: ${i.preview} (EditarNegocioPage)`);
+                }
+                return { ...i, uploading: false, uploaded: true, url: publicUrl, preview: publicUrl, fileName: filePath, error: null, statusText: null, isExisting: true, file: null /* Limpa o objeto File */ };
+            }
+            return i;
+        }));
+        console.log(`Upload de ${webpFileName} concluído. URL: ${publicUrl} (EditarNegocioPage)`);
         return { id: imgState.id, success: true, url: publicUrl };
-      } catch (error) { console.error(`Erro no processo de ${file.name} -> ${webpFileName}:`, error); localUploadErrors.push({ id: imgState.id, fileName: file.name, message: error.message }); setImageFiles(prev => prev.map(i => i.id === imgState.id ? { ...i, uploading: false, uploaded: false, error: error.message || 'Falha', statusText: null } : i)); return { id: imgState.id, success: false, error: error.message }; }
-    });
+      } catch (error) { // Este é o único catch para o try acima
+        console.error(`Erro no processo de ${file.name} -> ${webpFileName}:`, error); 
+        localUploadErrors.push({ id: imgState.id, fileName: file.name, message: error.message }); 
+        
+        setImageFiles(prev => prev.map(i => {
+            if (i.id === imgState.id) { 
+                if (i.preview?.startsWith('blob:')) {
+                    URL.revokeObjectURL(i.preview);
+                    console.log(`Blob URL revogada em caso de erro (uploadAndCompressImages): ${i.preview} para ID ${imgState.id} (EditarNegocioPage)`);
+                }
+                return { ...i, uploading: false, uploaded: false, error: error.message || 'Falha', statusText: null, file: null /* Limpa o objeto File */ };
+            }
+            return i; 
+        }));
+        return { id: imgState.id, success: false, error: error.message }; 
+      }
+    }); // Fim do .map() para uploadPromises
     await Promise.all(uploadPromises);
     if (localUploadErrors.length > 0) { const errorMsg = `Falha ao enviar ${localUploadErrors.length} imagem(ns).`; setUploadError(errorMsg); throw new Error(errorMsg); }
     return uploadedUrlsMap; // Retorno o mapa de IDs para URLs.
@@ -324,6 +360,7 @@ export default function EditarNegocioPage() {
       const imagesParaUpload = imageFiles.filter(img => !img.isExisting && img.file && !img.error && !img.uploaded);
       let uploadedUrlsMap = new Map();
       if (imagesParaUpload.length > 0) {
+        console.log(`Iniciando upload para ${imagesParaUpload.length} novas imagens... (EditarNegocioPage)`);
         setSubmitStatus({ message: `Enviando ${imagesParaUpload.length} novas imagens...`, type: 'loading' });
         uploadedUrlsMap = await uploadAndCompressImages(imagesParaUpload);
       }
@@ -333,13 +370,14 @@ export default function EditarNegocioPage() {
         .map(img => { // Para cada imagem no estado atual...
             if (uploadedUrlsMap.has(img.id)) { // Se ela foi uma das que acabaram de ser upadas...
                 // Atualizo com a URL, marco como existente e defino preview como a URL pública.
-                return { ...img, url: uploadedUrlsMap.get(img.id), preview: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null, isExisting: true };
+                return { ...img, url: uploadedUrlsMap.get(img.id), preview: uploadedUrlsMap.get(img.id), uploaded: true, uploading: false, error: null, statusText: null, isExisting: true, file: null }; // Garante que file seja null aqui e preview seja a URL pública
             }
             return img; // Senão, mantenho como estava (pode ser uma existente antiga ou uma com erro).
         })
         .filter(img => !img.error); // Removo do estado final qualquer imagem que tenha tido erro no upload.
 
       setImageFiles(updatedImageFilesState); // Atualizo o estado `imageFiles` com as URLs e sem os erros.
+      console.log(`Imagens processadas com sucesso e com URL: ${updatedImageFilesState.length} (EditarNegocioPage)`);
 
       // Recalculo o índice da imagem principal, pois a original pode ter sido removida por erro.
       const mainImageIdAfterUpload = imageFiles[currentMainIndex]?.id; // Pego o ID da que *era* a principal.
@@ -352,6 +390,7 @@ export default function EditarNegocioPage() {
 
       const mainImageUrl = updatedImageFilesState[currentMainIndex]?.url; // Pego a URL da imagem principal final.
       if (!mainImageUrl) { throw new Error("Erro crítico: URL da imagem principal não encontrada após processamento."); }
+      console.log(`URL da imagem principal final: ${mainImageUrl} (EditarNegocioPage)`);
 
       const additionalImageUrls = updatedImageFilesState // Pego as URLs das outras imagens.
         .filter((img, index) => index !== currentMainIndex && img.url)
@@ -457,16 +496,19 @@ export default function EditarNegocioPage() {
   useEffect(() => {
     // Limpo as Object URLs quando o componente desmonta ou quando `imageFiles` muda,
     // para evitar memory leaks. Só faço isso para as imagens que são novas (não `isExisting`)
-    // e que têm um preview que é um blob.
+    // e que têm um preview que é um blob. As revogações pontuais já são tratadas.
+    // Este useEffect agora cuidará da limpeza final no desmonte do componente.
+    const filesToClean = [...imageFiles]; // Captura o estado atual para o cleanup
     return () => {
-      imageFiles.forEach(img => {
+      filesToClean.forEach(img => {
         if (img.preview && !img.isExisting && img.preview.startsWith('blob:')) {
           URL.revokeObjectURL(img.preview);
+          console.log(`Blob URL revogada (desmontagem/limpeza EditarNegocioPage) para imagem ID ${img.id}: ${img.preview}`);
         }
       });
     };
-  }, [imageFiles]); // Minha dependência correta para este efeito.
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Array de dependências vazio para rodar apenas no mount (retornando a função de cleanup para o unmount)
   // --- Meu FILTRO DINÂMICO DAS CARACTERÍSTICAS usando useMemo ---
   const filteredCharacteristics = useMemo(() => {
     const selectedCategoryId = formState.categoria_id; // Pego a categoria que está selecionada no formulário.
@@ -598,10 +640,25 @@ export default function EditarNegocioPage() {
                     <img
                       src={img.preview || img.url} // Se tiver preview (local ou já existente), usa. Senão, usa a URL pública.
                       alt={`Preview ${index + 1}`}
-                      className={`object-cover w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'}`}
+                      // Re-adicionado onError e bg-transparent (mantendo object-contain do teste anterior)
+                      className={`object-contain w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'} bg-transparent`}
                       onError={(e) => {
-                        e.target.onerror = null; // Previne loop de erro se o placeholder também falhar
-                        e.target.src = 'https://via.placeholder.com/150?text=Erro';
+                        console.error(`DEBUG: Falha ao carregar imagem no SRC (EditarNegocioPage). SRC: ${e.target.currentSrc || e.target.src}`, e.target.error);
+                        e.target.onerror = null; // Previne loop de erro
+                        
+                        const parentDiv = e.target.parentElement;
+                        if (parentDiv) {
+                          parentDiv.style.backgroundColor = 'lime';
+                          parentDiv.style.border = '3px solid red'; // Borda vermelha para destaque
+                        }
+                        
+                        e.target.style.display = 'none'; // Esconde a tag <img> quebrada
+                        
+                        const overlayDiv = e.target.nextElementSibling; // O overlay é o próximo irmão
+                        if (overlayDiv && overlayDiv.classList.contains('absolute')) { // Checagem básica se é o overlay
+                          overlayDiv.style.display = 'none'; // Esconde o overlay também
+                          console.log('DEBUG: Overlay escondido devido a erro na imagem (EditarNegocioPage).');
+                        }
                       }} />
                     {/* Meus Overlays de status e botões de ação para cada imagem. */}
                     <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
