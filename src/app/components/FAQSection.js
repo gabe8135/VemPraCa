@@ -56,7 +56,7 @@ export default function FAQSection() {
           <h3 className="text-2xl font-bold text-center text-white my-8 md:mb-12">
             Ficou com alguma duvida? entre em contato! 
           </h3>
-          <a href="/contato" className="font-bold bg-amber-300 rounded-md hover:bg-white text-green-600 p-2">Contato</a>
+          <a href="/contato" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-md hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</a>
         </div>
       </div>
     </section>

@@ -196,13 +196,13 @@ export default function AdminNegociosPage() {
       {/* Aqui vai a tabela ou lista dos negócios. */}
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gradient-to-r from-yellow-300 to-amber-400">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Proprietário</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Nome</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Cidade</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Nome Proprietário</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Status</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -214,7 +214,7 @@ export default function AdminNegociosPage() {
             {businesses.map((business) => (
               <tr
                 key={business.id}
-                className="hover:bg-gray-100 cursor-pointer"
+                className="hover:bg-green-100 cursor-pointer"
                 onClick={() => router.push(`/negocio/${business.id}`)} // Navega ao clicar na linha
               >
                 <td className="px-6 py-4 whitespace-nowrap">

@@ -47,7 +47,7 @@ export default function HowItWorksSection() {
               <p className="text-gray-600 text-sm mb-4 flex-grow">{step.description}</p>
               {/* Só mostro o botão "Saiba mais" se o passo tiver um link definido. */}
               {step.link && (
-                <Link href={step.link} className="mt-auto bg-yellow-400 px-4 py-1 rounded text-sm text-green-800 hover:bg-yellow-500 font-medium">
+                <Link href={step.link} className="mt-auto bg-gradient-to-r from-yellow-300 to-amber-400 px-4 py-1 rounded text-sm text-green-800 hover:bg-yellow-500 font-medium">
                   Saiba mais
                 </Link>
               )}
