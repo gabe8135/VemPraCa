@@ -16,6 +16,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import AcessosChart from '@/app/components/AcessosChart'; // 1. Importar o componente do gráfico
 
 // --- Meu Componente Estrelas Display (Reutilizado de outros lugares) ---
 function EstrelasDisplay({ media = 0, total = 0 }) {
@@ -60,10 +61,38 @@ export default function DetalhesNegocioPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); // Meu estado para controlar o loading da exclusão.
+  const [cliqueStats, setCliqueStats] = useState(null);
+  const [loadingCliques, setLoadingCliques] = useState(false);
 
   // --- Minha função para verificar Role (Admin) ---
   const checkUserRole = async (userId) => {
     if (!userId) return false; try { const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } return data?.role === 'admin'; } catch (err) { console.error("Erro ao verificar role:", err); return false; }
+  };
+
+  // --- Minha função para registrar o acesso a esta página de negócio ---
+  const registrarAcessoNegocio = async (idDoNegocio, idDoProprietario, idUsuarioLogado) => {
+    if (!idDoNegocio || !idDoProprietario) { // Adicionada verificação para idDoProprietario
+      console.warn('ID do negócio não fornecido para registrar acesso.');
+      return;
+    }
+
+    // Se não houver usuário logado, ou se o usuário logado FOR o proprietário, não registra o acesso.
+    if (!idUsuarioLogado || idUsuarioLogado === idDoProprietario) {
+      // console.log('Acesso do proprietário ou usuário não logado. Não registrando.'); // Log opcional para debug
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cliques_negocios') // Usando a mesma tabela, 'clique' aqui significa 'acesso'
+        .insert({ negocio_id: idDoNegocio }); // data_clique será preenchida pelo default 'now()'
+
+      if (error) {
+        console.error('Erro ao registrar acesso ao negócio no Supabase:', error);
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao tentar registrar acesso ao negócio:', err);
+    }
   };
 
   // --- Meu efeito para buscar todos os dados da página ---
@@ -75,10 +104,12 @@ export default function DetalhesNegocioPage() {
       // 1. Pego o usuário atual e verifico se é admin.
       const { data: { session } } = await supabase.auth.getSession();
       setCurrentUser(session?.user ?? null);
+      let localIsAdmin = false; // Variável local para o resultado de checkUserRole
       if (session?.user) {
-        const isAdminUser = await checkUserRole(session.user.id);
-        setIsAdmin(isAdminUser);
+        localIsAdmin = await checkUserRole(session.user.id);
+        setIsAdmin(localIsAdmin); // Atualiza o estado para o resto da UI (botões, etc.)
       }
+      // console.log('[DEBUG Admin Check] User ID:', session?.user?.id, 'localIsAdmin:', localIsAdmin);
 
       // 2. Busco os dados do Negócio (usando minha view `negocios_com_media`).
       try {
@@ -92,9 +123,17 @@ export default function DetalhesNegocioPage() {
         if (!negocioData) { setError(`Estabelecimento com ID ${negocioId} não encontrado.`); setLoading(false); return; }
         setNegocio(negocioData);
 
+        // 2.1. Registro o acesso a este negócio (não precisa de await se não quiser bloquear)
+        // Agora passamos o ID do proprietário e do usuário logado para a função
+        registrarAcessoNegocio(
+          negocioData.id,
+          negocioData.usuario_id, // ID do proprietário do negócio
+          session?.user?.id       // ID do usuário atualmente logado
+        );
+
         // 3. Busco as Características associadas a este negócio.
         const { data: caracData, error: caracErr } = await supabase
-          .from('negocio_caracteristicas')
+          .from('negocio_caracteristicas') // Corrigido para nome da tabela correto
           .select('caracteristicas ( id, nome )') // Pego o ID e nome da característica.
           .eq('negocio_id', negocioId);
         if (caracErr) throw caracErr;
@@ -108,6 +147,44 @@ export default function DetalhesNegocioPage() {
           .order('data_avaliacao', { ascending: false }); // Mais recentes primeiro.
         if (avalErr) throw avalErr;
         setAvaliacoesNegocio(avalData || []);
+
+        // 5. Se for o dono ou admin, busco as estatísticas de cliques/acessos
+        // Fazemos isso depois de registrar o acesso atual, para que ele possa ser incluído (dependendo do timing)
+        // ou para que as estatísticas reflitam o estado *antes* deste acesso, se preferir.
+        // Para incluir o acesso atual imediatamente, a função SQL precisaria ser chamada após um pequeno delay
+        // ou o registro do acesso ser feito com 'await'. Por simplicidade, vamos buscar como está.
+        const isUserOwnerOfThisNegocio = session?.user?.id === negocioData.usuario_id;
+        // console.log('[DEBUG Stats Condition] negocioData.id:', negocioData?.id, 'isUserOwnerOfThisNegocio:', isUserOwnerOfThisNegocio, 'localIsAdmin (for stats):', localIsAdmin);
+
+        // Usamos localIsAdmin aqui para garantir que estamos usando o valor de admin
+        // determinado NESTA execução do fetchData.
+        if (negocioData && (isUserOwnerOfThisNegocio || localIsAdmin)) {
+          setLoadingCliques(true);
+          // console.log('[DEBUG Stats Fetch] Attempting to fetch stats for negocio_id:', negocioData.id);
+          try {
+            const { data: statsData, error: statsError } = await supabase
+              .rpc('get_negocio_acessos_stats', { p_negocio_id: negocioData.id });
+
+            // Logs detalhados da resposta da RPC
+            console.log('[Stats RPC Response] negocio_id:', negocioData.id);
+            console.log('[Stats RPC Response] statsData:', JSON.stringify(statsData, null, 2));
+            console.log('[Stats RPC Response] statsError:', JSON.stringify(statsError, null, 2));
+
+            if (statsError) {
+              console.error('ERRO DETALHADO ao buscar estatísticas de cliques via RPC:', statsError);
+              setCliqueStats(null);
+            } else if (statsData && statsData.length > 0) {
+              setCliqueStats(statsData[0]);
+            } else {
+              console.warn('[Stats RPC Response] Dados de estatísticas retornados vazios ou em formato inesperado. Definindo cliqueStats como null.');
+              setCliqueStats(null); // Garante que se não houver dados, não mostre números antigos.
+            }
+
+          } catch (rpcError) {
+            console.error('ERRO INESPERADO (catch) ao chamar RPC de estatísticas:', rpcError);
+            setCliqueStats(null);
+          } finally { setLoadingCliques(false); }
+        }
 
       } catch (err) {
         console.error("Erro COMPLETO ao buscar dados do negócio:", err); // Meu log completo para debug.
@@ -247,6 +324,7 @@ export default function DetalhesNegocioPage() {
         </div>
       )}
 
+      
       {/* Título, Categoria e Avaliação do Negócio. */}
       <div className="mb-6 text-center md:text-left">
         <h1 className="text-3xl md:text-4xl font-bold mb-1 text-gray-900">{negocio.nome}</h1>
@@ -317,7 +395,7 @@ export default function DetalhesNegocioPage() {
             </div>
           )}
           {!negocio.endereco && negocio.cidade && ( // Se não tiver endereço, mas tiver cidade, mostro só a cidade.
-             <div className="flex items-start gap-2 text-gray-700">
+            <div className="flex items-start gap-2 text-gray-700">
                 <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
                 <span>{negocio.cidade}</span>
             </div>
@@ -326,8 +404,8 @@ export default function DetalhesNegocioPage() {
           {/* Telefone. */}
           {negocio.telefone && (
             <div className="flex items-center gap-2 text-gray-700">
-               <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-               <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">{negocio.telefone}</a>
+              <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">{negocio.telefone}</a>
             </div>
           )}
 
@@ -355,10 +433,10 @@ export default function DetalhesNegocioPage() {
               </a>
            ) : negocio.endereco && ( // Senão, se tiver endereço, uso o endereço para o link.
               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(negocio.endereco + ', ' + negocio.cidade)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition duration-200 w-full">
-                 <FaMapMarkerAlt className="h-5 w-5" />
-                 Ver Localização Aproximada
+                <FaMapMarkerAlt className="h-5 w-5" />
+                Ver Localização Aproximada
               </a>
-           )}
+          )}
         </div>
       </div>
 
@@ -390,6 +468,50 @@ export default function DetalhesNegocioPage() {
           )}
           {/* Lembrete: TODO: Adicionar formulário para nova avaliação aqui. */}
       </div>
+
+      {/* --- Minha Seção de Estatísticas de Acessos (só para o proprietário/admin) --- */}
+      {canEditOrDelete && (
+        <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-lg shadow-md border border-slate-200">
+          <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
+          {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
+          {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
+          {!loadingCliques && cliqueStats && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white rounded-lg">
+                <thead className="bg-green-600">
+                  <tr>
+                    <th className="text-left py-3 px-4 rounded-tl-lg uppercase font-semibold text-sm text-white">Período</th>
+                    <th className="text-right py-3 px-4 rounded-tr-lg uppercase font-semibold text-sm text-white">Acessos</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-700">
+                  <tr className="border-gray-300 border-b">
+                    <td className="text-left py-3 px-4">Total de Acessos</td>
+                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.total_acessos ?? 0}</td>
+                  </tr>
+                  <tr className="border-gray-300 border-b">
+                    <td className="text-left py-3 px-4">Acessos Hoje</td>
+                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_hoje ?? 0}</td>
+                  </tr>
+                  <tr className="border-gray-300 border-b">
+                    <td className="text-left py-3 px-4">Acessos nos Últimos 7 Dias</td>
+                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_7_dias ?? 0}</td>
+                  </tr>
+                  <tr>
+                    <td className="text-left py-3 px-4">Acessos nos Últimos 30 Dias</td>
+                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_30_dias ?? 0}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          {/* 2. Adicionar o componente do gráfico aqui, se houver dados de estatísticas */}
+          {!loadingCliques && cliqueStats && negocio && (
+            <AcessosChart negocioId={negocio.id} />
+          )}
+        </div>
+      )}
+
 
     </div>
   );

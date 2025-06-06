@@ -212,7 +212,11 @@ export default function AdminNegociosPage() {
               </tr>
             )}
             {businesses.map((business) => (
-              <tr key={business.id} className="hover:bg-gray-50">
+              <tr
+                key={business.id}
+                className="hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push(`/negocio/${business.id}`)} // Navega ao clicar na linha
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{business.nome}</div>
                 </td>
@@ -230,7 +234,10 @@ export default function AdminNegociosPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                   {/* Botão para Ativar/Desativar */}
                   <button
-                    onClick={() => handleToggleAtivo(business.id, business.ativo)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique na linha seja acionado
+                      handleToggleAtivo(business.id, business.ativo);
+                    }}
                     disabled={togglingId === business.id} // Desabilito se já estiver alterando este.
                     className={`p-1 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
                       business.ativo
@@ -252,6 +259,9 @@ export default function AdminNegociosPage() {
                   <Link
                     href={`/meu-negocio/editar/${business.id}`} // Leva para a página de edição do negócio específico.
                     className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-1 rounded inline-block"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique na linha seja acionado
+                    }}
                     title="Editar"
                   >
                     <FaEdit className="h-5 w-5" />
@@ -260,7 +270,10 @@ export default function AdminNegociosPage() {
                   {/* Botão para Excluir */}
                   <button
                     // Chamo a função de deletar, passando o ID e as imagens (caso precise deletar do storage).
-                    onClick={() => handleDeleteNegocio(business.id, business.imagens)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique na linha seja acionado
+                      handleDeleteNegocio(business.id, business.imagens);
+                    }}
                     disabled={deletingId === business.id} // Desabilito se já estiver deletando este.
                     className="text-red-600 hover:text-red-900 hover:bg-red-100 p-1 rounded disabled:opacity-50"
                     title="Excluir"

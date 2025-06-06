@@ -78,8 +78,8 @@ export default function BusinessCard({ business }) {
 
             // Preciso tratar o erro de violação de chave única (usuário já avaliou este negócio antes).
             if (error && error.code === '23505') { // 23505 é o código de erro para unique violation no PostgreSQL.
-                 console.warn("Usuário já avaliou este estabelecimento anteriormente.");
-                 alert("Você já avaliou este estabelecimento.");
+                console.warn("Usuário já avaliou este estabelecimento anteriormente.");
+                alert("Você já avaliou este estabelecimento.");
                  setJaAvaliou(true); // Marco como já avaliado mesmo se a tentativa de inserir falhou por duplicidade.
             } else if (error) {
                 console.error("Erro ao salvar avaliação:", error);

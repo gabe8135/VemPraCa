@@ -8,14 +8,20 @@ import Link from 'next/link';
 
 // Um componente simples para exibir cada negócio (você pode estilizar melhor)
 function NegocioCard({ negocio, onDelete }) {
+  const router = useRouter(); // Adicionamos o router aqui
+
+  const handleCardClick = () => {
+    router.push(`/negocio/${negocio.id}`);
+  };
+
   return (
-    <div className="p-4 rounded-lg shadow-md bg-neutral-50 hover:bg-neutral-100 hover:shadow-lg transition-shadow">
+    <div className="p-4 rounded-lg shadow-md bg-white hover:bg-neutral-100 hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-xl font-semibold text-gray-800">{negocio.nome}</h3>
-          <p className="text-sm text-gray-600">{negocio.cidade}</p>
+          <h3 className="text-xl font-semibold text-green-900">{negocio.nome}</h3>
+          <p className="text-sm text-green-700">{negocio.cidade}</p>
           {negocio.categorias?.nome && ( // Verifica se negocio.categorias existe e tem nome
-            <p className="text-sm text-gray-500 mt-1">Categoria: {negocio.categorias.nome}</p>
+            <p className="text-sm text-green-600 mt-1">Categoria: {negocio.categorias.nome}</p>
           )}
         </div>
         <img 
@@ -29,18 +35,22 @@ function NegocioCard({ negocio, onDelete }) {
         />
       </div>
       <div className="mt-4 flex space-x-2">
-        <Link href={`/meu-negocio/editar/${negocio.id}`} className="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md transition-colors">
+        <Link
+          href={`/meu-negocio/editar/${negocio.id}`}
+          className="text-sm bg-green-600 hover:bg-emerald-600 text-white py-1 px-3 rounded-md transition-colors z-10 relative" // z-10 para garantir que esteja acima
+          onClick={(e) => e.stopPropagation()} // Impede que o clique no link propague para o card
+        >
           Editar
         </Link>
         <button
-          onClick={() => onDelete(negocio.id, negocio.nome)}
-          className="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition-colors"
+          onClick={(e) => {
+            e.stopPropagation(); // Impede que o clique no botão propague para o card
+            onDelete(negocio.id, negocio.nome);
+          }}
+          className="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition-colors z-10 relative" // z-10 para garantir que esteja acima
         >
           Excluir
         </button>
-        <Link href={`/negocio/${negocio.id}`} className="text-sm bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-md transition-colors">
-          Ver Página
-        </Link>
       </div>
       {!negocio.ativo && (
         <p className="mt-3 text-xs text-orange-600 bg-orange-100 p-2 rounded-md">
