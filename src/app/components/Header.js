@@ -179,7 +179,7 @@ export default function Header() {
             {/* Link do Painel Admin: só se estiver logado E for admin. */}
             {!loadingAuth && session && isAdmin && (
               <li>
-                <Link href="/admin/negocios" className="bg-gradient-to-r from-yellow-300 to-amber-400 hover:bg-yellow-400 px-4 rounded transition duration-250 block py-1" onClick={handleLinkClick}>
+                <Link href="/admin/negocios" className="text-green-800 bg-gradient-to-r from-yellow-300 to-amber-400 hover:bg-yellow-400 px-4 rounded transition duration-250 block py-1" onClick={handleLinkClick}>
                   Painel Admin
                 </Link>
               </li>
