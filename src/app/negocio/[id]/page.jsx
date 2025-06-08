@@ -466,7 +466,7 @@ export default function DetalhesNegocioPage() {
           ) : (
               <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
           )}
-          {/* Lembrete: TODO: Adicionar formulário para nova avaliação aqui. */}
+          {/* Lembrete: Adicionar formulário para nova avaliação aqui. */}
       </div>
 
       {/* --- Minha Seção de Estatísticas de Acessos (só para o proprietário/admin) --- */}
@@ -505,7 +505,7 @@ export default function DetalhesNegocioPage() {
               </table>
             </div>
           )}
-          {/* 2. Adicionar o componente do gráfico aqui, se houver dados de estatísticas */}
+          {/* Adicionar o componente do gráfico aqui, se houver dados de estatísticas */}
           {!loadingCliques && cliqueStats && negocio && (
             <AcessosChart negocioId={negocio.id} />
           )}

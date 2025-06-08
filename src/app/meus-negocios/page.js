@@ -200,13 +200,3 @@ export default function MeusNegociosPage() {
     </div>
   );
 }
-
-// Adicione este estilo global se não tiver um .button-primary definido globalmente
-// ou importe de onde estiver definido.
-/*
-<style jsx global>{`
-  .button-primary { background-color: #059669; color: white; font-weight: bold; padding: 0.65rem 1rem; border-radius: 0.375rem; transition: background-color 0.3s; text-decoration: none; display: inline-block; }
-  .button-primary:hover:not(:disabled) { background-color: #047857; }
-  .button-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-`}</style>
-*/

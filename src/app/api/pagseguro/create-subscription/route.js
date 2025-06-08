@@ -41,7 +41,8 @@ export async function POST(request) {
       customerPhones,  // Array de telefones [{ country: "55", area: "XX", number: "XXXXXXXXX" }]
       // customerAddress, // Objeto de endereço, se necessário
       // Dados do método de pagamento (cartão tokenizado)
-      cardToken,       // O TOKE_UUID obtido no frontend
+      cardToken,       // O TOKE_UUID obtido no frontend (obrigatório)
+      // cardHolderName, // Nome do titular do cartão (obrigatório) - Adicionado abaixo
       cardSecurityCode // CVV do cartão
       // trialEndDate, // Opcional: se você quiser tentar definir um fim para o trial via API
     } = await request.json();
@@ -51,7 +52,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Dados para criação da assinatura incompletos.' }, { status: 400 });
     }
     if (!customerName || !customerEmail || !customerTaxId || !customerPhones || customerPhones.length === 0) {
-        // Simplificando: sempre exigindo dados do cliente para criar/atualizar no PagSeguro
+        // Exigindo dados do cliente para criar/atualizar no PagSeguro
         return NextResponse.json({ error: 'Dados do cliente para assinatura incompletos.' }, { status: 400 });
     }
 
@@ -66,12 +67,12 @@ export async function POST(request) {
       plan: {
         id: planIdPagSeguro,
       },
+      // A documentação de "Criar Assinatura" especifica os campos obrigatórios para `customer`
+      // se um `customer.id` não for fornecido.
       customer: {
-        // Se você já tiver um CUST_ID do PagSeguro para este usuário, pode enviar apenas o ID.
-        // Caso contrário, envie os dados para criar/associar o cliente:
-        // reference_id: `VEMPRACA_CUST_${user.id}`, // Sua referência para o cliente
+        reference_id: `VMPC_CUST_${user.id}_${negocioId}`, // Sua referência para o cliente no PagSeguro
         name: customerName,
-        email: customerEmail, // Pode ser user.email
+        email: customerEmail,
         tax_id: customerTaxId.replace(/\D/g, ''), // Apenas números
         phones: customerPhones.map(phone => ({
             country: phone.country || "55",
@@ -79,33 +80,20 @@ export async function POST(request) {
             number: phone.number
         })),
         // address: customerAddress, // Se necessário
+        // birth_date: "YYYY-MM-DD" // Se necessário, conforme documentação
       },
-      payment_method: [ // A documentação diz "Array of objects", mas geralmente é um método por vez.
+      payment_method: [
         {
           type: 'CREDIT_CARD',
           card: {
             token: cardToken, // TOKE_UUID do frontend
-            // A documentação diz para enviar security_code aqui, mas também no customer.billing_info.
-            // É preciso verificar qual o local correto ou se ambos são necessários.
-            // A documentação que você passou indica que o security_code é informado no momento da criação da assinatura.
-            // E se estiver criando o assinante, os dados complementares do cartão vão em customer.billing_info.
-            // Vamos assumir que o token já contém a maioria dos dados e o CVV é o principal aqui.
-            // Se o PagSeguro exigir mais dados do cartão aqui (como exp_month, exp_year, holder.name),
-            // eles também precisariam vir do frontend ou serem associados ao token.
-            // A documentação do objeto "card" dentro de "payment_method" não lista o security_code.
-            // O objeto "card" dentro de "customer.billing_info.card" (que não está no seu trecho) poderia ter.
-            // Por ora, vamos seguir o que a documentação do objeto "Objeto Assinatura" sugere para payment_method.card
-            // que é token, brand, first_digits, last_digits, exp_month, exp_year, holder.
-            // Esses dados (exceto token) geralmente são retornados pela tokenização e podem ser enviados.
-            // Se o token sozinho não bastar, o PagSeguro retornará erro.
-            // A frase "você irá informar apenas o código de segurança (security_code) do cartão" é um pouco ambígua
-            // sobre ONDE informar.
-            // Vamos simplificar por agora e assumir que o token é o principal.
-            // Se o CVV for obrigatório no request de criação de assinatura, ele precisa ser enviado.
-            // A documentação que você passou não mostra `security_code` no objeto `payment_method.card`.
-            // Ela mostra `token`, `brand`, `first_digits`, `last_digits`, `exp_month`, `exp_year`, `holder`.
-            // Se o PagSeguro exigir o CVV aqui, a estrutura do `card` precisaria ser:
-            // card: { token: cardToken, security_code: cardSecurityCode, ...outros dados se vierem da tokenização }
+            // A documentação de "Criar Assinatura" diz:
+            // "Caso o seu cliente selecione a opção de pagamento com cartão de crédito, no momento de criação da assinatura
+            // você irá informar apenas o código de segurança (security_code) do cartão. Isso, porque o cartão foi previamente tokenizado."
+            // Isso sugere que o security_code é enviado aqui.
+            // O objeto `card` dentro de `customer.billing_info` é para quando se está criando o assinante
+            // e fornecendo dados complementares do cartão.
+            security_code: cardSecurityCode, // CVV
           },
         },
       ],
@@ -120,13 +108,6 @@ export async function POST(request) {
       // next_invoice_at: trialEndDate, // Se o frontend calcular e enviar
       // pro_rata: false, // Geralmente para trials
     };
-
-    // Se o CVV for realmente necessário no objeto card principal:
-    // requestBody.payment_method[0].card.security_code = cardSecurityCode;
-    // É mais provável que o CVV seja usado na etapa de TOKENIZAÇÃO no frontend
-    // e não enviado diretamente aqui, a menos que a API de criação de assinatura o exija explicitamente.
-    // A documentação que você passou para "Objeto Assinatura" (a resposta) mostra um objeto card
-    // com token, brand, etc., mas não o CVV. Isso sugere que o CVV não é armazenado nem retornado.
 
     // 7. Salvar a tentativa de criação de assinatura no seu banco de dados (Supabase)
     // Tabela: `negocio_assinaturas` (ou similar)
@@ -155,6 +136,7 @@ export async function POST(request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json', // Adicionado conforme o exemplo de fetch
         'Authorization': `Bearer ${PAGSEGURO_AUTH_TOKEN}`,
         'x-idempotency-key': idempotencyKey,
       },

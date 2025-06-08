@@ -24,7 +24,7 @@ export default function AcessosChart({ negocioId }) {
   const [chartData, setChartData] = useState([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [errorChart, setErrorChart] = useState(null);
-  const [periodoSelecionado, setPeriodoSelecionado] = useState(periodosDisponiveis[1].value); // Padrão 30 dias
+  const [periodoSelecionado, setPeriodoSelecionado] = useState(periodosDisponiveis[0].value); // Padrão 7 dias
 
   const fetchChartData = useCallback(async (id, dias) => {
     if (!id) return;
