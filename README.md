@@ -37,3 +37,11 @@ public/: Arquivos estáticos como imagens e fontes.
 styles/: Arquivos de estilo, incluindo configurações do Tailwind CSS.
 
 O VemPraCáApp está hospedado na Vercel, aproveitando integração contínua e escalabilidade. O site está disponível em vempracaapp.com
+
+© 2025 Gabriel Ramos. Todos os direitos reservados.
+
+Todo o conteúdo, identidade visual, estrutura de navegação, conceito de uso e organização da plataforma VemPraCáApp são protegidos por direitos autorais e pertencem exclusivamente a Gabriel Ramos.
+
+O código-fonte pode ser acessado para fins educacionais e experimentais, mas qualquer reprodução comercial, cópia do modelo de negócio, design, marca ou funcionalidade de forma não autorizada será considerada infração de direitos.
+
+O uso deste site implica na aceitação destes termos.
