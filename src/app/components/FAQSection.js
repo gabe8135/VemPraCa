@@ -1,11 +1,11 @@
 // src/app/components/FAQSection.js
-'use client'; // Lembrete: 'use client' é opcional aqui se eu usar só <details> nativo, mas bom manter se eu quiser adicionar JS para interatividade depois.
+'use client'; 
 
 // Meu array com as perguntas e respostas para o FAQ.
 const faqData = [
   {
     question: 'Como encontro o que preciso no VemPraCá↗?',
-    answer: 'É simples! Você pode navegar pela lista na página inicial, usar a barra de busca (em breve!) para procurar por nome ou cidade, ou clicar nas categorias para filtrar por tipo de estabelecimento ou negocio que procura.',
+    answer: 'É simples! Você pode navegar pela lista na página inicial, usar a barra de busca para procurar por nome ou cidade, ou clicar nas categorias para filtrar por tipo de estabelecimento ou negocio que procura.',
   },
   {
     question: 'Preciso pagar alguma taxa para usar a plataforma como alguem em busca de um serviço?',
@@ -17,15 +17,15 @@ const faqData = [
   },
   {
     question: 'Tenho meu empreendimento, como cadastro meu negocio?',
-    answer: 'Primeiro, crie uma conta e faça login na plataforma. Depois, acesse a seção "Meu Negócio" no menu. Se você ainda não tiver um estabelecimento cadastrado, verá um formulário para preencher com todas as informações e fotos.',
+    answer: 'Primeiro, crie uma conta e faça login na plataforma. Depois, acesse a seção "Meus Negócios" no menu. Se você ainda não tiver um estabelecimento cadastrado, verá um formulário para preencher com todas as informações e fotos.',
   },
   {
     question: 'Qual o custo para cadastrar meu estabelecimento?',
-    answer: 'Oferecemos diferentes planos de assinatura para manter seu estabelecimento ativo e visível em nossa plataforma. Atualmente temos planos mensais e anuais. Entre em contato ou visite nossa seção de planos para proprietários para mais detalhes.',
+    answer: 'Oferecemos diferentes planos de assinatura para manter seu estabelecimento ativo e visível em nossa plataforma. Atualmente temos planos mensais e anuais ambos com trinta dias gratuitos!. Entre em contato ou visite nossa seção de planos para proprietários para mais detalhes.',
   },
   {
     question: 'Como posso editar as informações do meu negocio?',
-    answer: 'Após fazer login, vá até "Meu Negócio". Se seu estabelecimento já estiver cadastrado, você será direcionado para a página de detalhes dele, onde encontrará opções para editar as informações, fotos e facilidades.',
+    answer: 'Após fazer login, vá até "Meus Negócios". Se seu estabelecimento já estiver cadastrado, você será direcionado para a página de detalhes dele, onde encontrará opções para editar as informações, fotos e facilidades.',
   }
 ];
 
@@ -54,7 +54,7 @@ export default function FAQSection() {
         </div>
         <div className="text-center mt-8">
           <h3 className="text-2xl font-bold text-center text-white my-8 md:mb-12">
-            Ficou com alguma duvida? entre em contato! 
+            Ficou com alguma duvida? não deixe de perguntar! 
           </h3>
           <a href="/contato" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-md hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</a>
         </div>
