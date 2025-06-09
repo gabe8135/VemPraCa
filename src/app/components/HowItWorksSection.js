@@ -2,29 +2,30 @@
 'use client';
 
 import Link from 'next/link'; // Preciso do Link para o botão "Saiba mais".
+import { FaSearch, FaHotel, FaWhatsapp, FaEdit } from 'react-icons/fa'; // Importando ícones do react-icons para substituir os emojis.
 
 // Meus passos de "Como Funciona".
 const steps = [
   {
-    icon: '🔍', // Lembrete: Posso trocar por um ícone do react-icons, tipo <FaSearch />.
+    icon: <FaSearch className='text-green-700'/>, // Lembrete: Posso trocar por um ícone do react-icons, tipo <FaSearch />.
     title: 'Busque seu Destino',
     description: 'Use a busca ou explore as categorias para encontrar o lugar perfeito.',
     target: 'viajante',
   },
   {
-    icon: '🏨', // Lembrete: <FaHotel />
-    title: 'Escolha a Hospedagem',
+    icon: <FaHotel className='text-green-700'/>, // Lembrete: <FaHotel />
+    title: 'Escolha o Serviço Desejado',
     description: 'Veja fotos, detalhes, facilidades e avaliações dos nossos parceiros locais.',
     target: 'viajante',
   },
   {
-    icon: '💬', // Lembrete: <FaWhatsapp /> ou <FaPhone />
+    icon: <FaWhatsapp className='text-green-700'/>, // Lembrete: <FaWhatsapp /> ou <FaPhone />
     title: 'Conecte-se Direto',
     description: 'Entre em contato diretamente com o estabelecimento para tirar dúvidas ou reservar.',
     target: 'viajante',
   },
   {
-    icon: '✍️', // Lembrete: <FaEdit />
+    icon: <FaEdit className='text-green-700'/>, // Lembrete: <FaEdit />
     title: 'Cadastre seu Negócio',
     description: 'É proprietário? Faça login e adicione seu estabelecimento em poucos passos.',
     target: 'proprietario',
