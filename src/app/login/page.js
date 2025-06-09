@@ -203,7 +203,13 @@ export default function Login() {
         {/* Área para exibir mensagens de erro. */}
         {error && <p className="text-red-600 text-sm text-center font-medium">{error}</p>}
 
-        
+        {/* Link "Esqueci Minha Senha", só aparece no modo de Login. */}
+        {!isSignUp && (
+        <div className="text-sm text-right">
+            <Link href="/esqueci-senha" // Link para minha página de redefinição de senha.
+                className="font-medium text-blue-700 hover:text-green-500">
+            Esqueceu sua senha?
+            </Link>
         </div>
         )}
 
@@ -217,14 +223,6 @@ export default function Login() {
             {loading ? 'Processando...' : (isSignUp ? 'Criar Conta' : 'Entrar')}
         </button>
         </div>
-
-{/* Link "Esqueci Minha Senha", só aparece no modo de Login. */}
-        {!isSignUp && (
-        <div className="text-sm text-right">
-            <Link href="/esqueci-senha" // Link para minha página de redefinição de senha.
-                className="font-medium text-blue-700 hover:text-green-500">
-            Esqueceu sua senha?
-            </Link>
 
         {/* Divisor "OU", só aparece no modo de Login. */}
         {!isSignUp && (
