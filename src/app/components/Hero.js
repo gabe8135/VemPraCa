@@ -1,6 +1,7 @@
 // src/app/components/Hero.js
 import Link from 'next/link';
 import Marquee from "react-fast-marquee";
+import Image from "next/image"
 
 // Minha lista de categorias para o carrossel da Hero.
 const categories = [
@@ -29,7 +30,7 @@ export default function Hero() {
     <div className="relative w-full h-screen mb-5">
 
         {/* Imagem de fundo da Hero. */}
-        <img src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp" alt="hero" className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
+        <image src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp" alt="hero" fill priority className="brightness-95 absolute inset-0 w-full h-full object-cover"/>
 
         {/* Conteúdo centralizado sobre a imagem. */}
         {/* Este div também contém o carrossel de categorias. */}

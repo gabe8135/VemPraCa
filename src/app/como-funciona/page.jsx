@@ -72,7 +72,7 @@ export default function ComoFuncionaPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-green-500 mr-3 mt-1">&#10004;</span>
-                  <span className="text-gray-700"><strong className="font-semibold">Marketing Inteligente:</strong> Tenha seu negócio promovido em campanhas locais e regionais (em breve!).</span>
+                  <span className="text-gray-700"><strong className="font-semibold">Marketing Inteligente:</strong> Tenha seu negócio promovido em campanhas locais e regionais.</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-green-500 mr-3 mt-1">&#10004;</span>
@@ -127,9 +127,10 @@ export default function ComoFuncionaPage() {
               <span className="bg-gray-50 px-4 py-2 ">Passeios</span>
               <span className="bg-gray-50 px-4 py-2 ">Eventos</span>
               <span className="bg-gray-50 px-4 py-2 ">Serviços de Beleza</span>
-              <span className="bg-gray-50 px-4 py-2 ">E muito mais!</span>
+
           </div>
           {/* Poderia usar um grid de imagens aqui também para representar os negócios. */}
+          <span className="block mt-6 text-gray-900">E muito mais!</span>
         </div>
       </section>
 
