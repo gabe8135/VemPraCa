@@ -1,7 +1,7 @@
 // src/app/negocio/[id]/page.jsx
 'use client';
-
-import { useEffect, useState, useMemo } from 'react';
+ 
+import { useEffect, useState, useMemo, useLayoutEffect } from 'react'; // Import useLayoutEffect
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
