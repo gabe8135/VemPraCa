@@ -1,7 +1,7 @@
 // src/app/negocio/[id]/page.jsx
 'use client';
  
-import { useEffect, useState, useMemo, useLayoutEffect } from 'react'; // Import useLayoutEffect
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -63,12 +63,6 @@ export default function DetalhesNegocioPage() {
   const [isDeleting, setIsDeleting] = useState(false); // Meu estado para controlar o loading da exclusão.
   const [cliqueStats, setCliqueStats] = useState(null);
   const [loadingCliques, setLoadingCliques] = useState(false);
-
-  // Efeito para rolar a página para o topo ao montar
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
 
   // --- Minha função para verificar Role (Admin) ---
   const checkUserRole = async (userId) => {

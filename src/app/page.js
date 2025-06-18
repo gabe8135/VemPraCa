@@ -1,8 +1,8 @@
 // src/app/page.js
 'use client';
  
-import Link from "next/link"; 
-import { useEffect, useState, Suspense, useLayoutEffect } from 'react'; // Lembrete: Adicionei o Suspense aqui. // Import useLayoutEffect
+import Link from "next/link";
+import { useEffect, useState, Suspense } from 'react'; // Lembrete: Adicionei o Suspense aqui.
 import { supabase } from '@/app/lib/supabaseClient';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation'; // Preciso disso para ler os parâmetros da URL.
@@ -146,24 +146,6 @@ function BusinessList() {
 
 // Meu componente principal da página Home.
 export default function Home() {
-  // Efeito para rolar a página para o topo ao montar e ao ser restaurada do bfcache
-  useEffect(() => {
-    // Rola para o topo no mount inicial
-    window.scrollTo(0, 0);
-
-    // Adiciona um listener para o evento 'pageshow'
-    const handlePageShow = (event) => {
-      if (event.persisted) {
-        // Se a página foi restaurada do bfcache, rola para o topo
-        window.scrollTo(0, 0);
-      }
-    };
-    window.addEventListener('pageshow', handlePageShow);
-    // Limpa o event listener quando o componente é desmontado
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-    };
-  }, []); // Array de dependências vazio para executar apenas no mount
 
   return (
     <div>
