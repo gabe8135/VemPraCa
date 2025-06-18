@@ -563,13 +563,14 @@ export default function EditarNegocioPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-3 gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Editar Estabelecimento</h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              {/* Botão de Cancelar Adicionado */}
+              <button type="button" onClick={() => router.back()} disabled={isSubmitting} className="button-secondary bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                Cancelar
+              </button>
               {/* Meu Botão para a página de Gerenciar Assinatura. */}
               <Link href={`/pagamento-assinatura?negocioId=${negocioId}`} className="button-secondary bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm">
                   Gerenciar Assinatura
               </Link>
-              <Link href="/meus-negocios" className="text-sm bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors shadow-sm">
-              &larr; Voltar para Meus Negócios
-          </Link>
           </div>
       </div>
 
