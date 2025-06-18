@@ -64,6 +64,12 @@ export default function DetalhesNegocioPage() {
   const [cliqueStats, setCliqueStats] = useState(null);
   const [loadingCliques, setLoadingCliques] = useState(false);
 
+  // Efeito para rolar a página para o topo ao montar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+
   // --- Minha função para verificar Role (Admin) ---
   const checkUserRole = async (userId) => {
     if (!userId) return false; try { const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).single(); if (error && error.code !== 'PGRST116') { throw error; } return data?.role === 'admin'; } catch (err) { console.error("Erro ao verificar role:", err); return false; }
