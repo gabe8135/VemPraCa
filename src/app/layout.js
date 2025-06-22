@@ -4,6 +4,7 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { inter } from '@/app/ui/fonts';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import AOSInit from "./components/AOSInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
+      <AOSInit />
   <body className={`${inter.className} scroll-smooth antialiased geistSans.variable geistMono.variable`}>
     <div className="min-h-screen bg-white text-black">
       <Header />
