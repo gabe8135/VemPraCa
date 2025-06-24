@@ -8,8 +8,8 @@ import 'aos/dist/aos.css';
 export default function AOSInit() {
 useEffect(() => {
     AOS.init({
-      duration: 750, // Duração da animação em ms
-      once: true, // Se a animação deve acontecer apenas uma vez
+      duration: 800,
+      once: false, 
     });
 }, []);
 
