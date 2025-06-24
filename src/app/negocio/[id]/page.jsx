@@ -1,6 +1,6 @@
 // src/app/negocio/[id]/page.jsx
 'use client';
- 
+
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -189,7 +189,7 @@ export default function DetalhesNegocioPage() {
       } catch (err) {
         console.error("Erro COMPLETO ao buscar dados do negócio:", err); // Meu log completo para debug.
         if (err.code === 'PGRST116' || (err.message && err.message.includes('not found'))) {
-             setError(`Estabelecimento com ID ${negocioId} não encontrado.`);
+            setError(`Estabelecimento com ID ${negocioId} não encontrado.`);
         } else {
             setError((err && err.message) || 'Ocorreu um erro ao buscar os dados.');
         }
