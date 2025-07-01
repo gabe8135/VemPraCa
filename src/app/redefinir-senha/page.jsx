@@ -22,60 +22,23 @@ export default function RedefinirSenhaPage() {
     let isMounted = true;
     setTokenChecked(false); // Inicia a verificação
 
-    const handleTokenCheck = async () => {
-      if (typeof window !== 'undefined') {
-        const hash = window.location.hash;
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const type = params.get('type');
-
-        if (type === 'recovery' && accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (isMounted) {
-            if (sessionError) {
-              console.error("Erro ao validar token:", sessionError);
-              setError('Link de redefinição inválido ou expirado. Solicite um novo.');
-              setIsValidToken(false);
-            } else {
-              setIsValidToken(true);
-              setMessage('Token validado. Por favor, defina sua nova senha abaixo.'); // Mensagem inicial
-              window.history.replaceState(null, '', window.location.pathname);
-            }
-          }
-        } else if (hash) {
-          if (isMounted) {
-              setError('Link de redefinição inválido ou expirado.');
-              setIsValidToken(false);
-          }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (isMounted) {
+        if (session) {
+          setIsValidToken(true);
+          setMessage('Por favor, defina sua nova senha abaixo.');
         } else {
-            if (isMounted) {
-                setError('Acesso inválido. Use o link enviado para o seu email.');
-                setIsValidToken(false);
-            }
+          setError('Link de redefinição inválido ou expirado. Solicite um novo.');
+          setIsValidToken(false);
         }
-        if (isMounted) {
-            setTokenChecked(true); // Marca que a verificação terminou
-        }
-      } else {
-          // Se window não estiver definido (SSR inicial talvez), marca como verificado
-          if (isMounted) setTokenChecked(true);
+        setTokenChecked(true);
       }
     };
 
-    // Pequeno delay para garantir que o hash esteja disponível no cliente
-    const timer = setTimeout(() => {
-        handleTokenCheck();
-    }, 100); // 100ms pode ser suficiente
+    checkSession();
 
-    return () => {
-      isMounted = false;
-      clearTimeout(timer); // Limpa o timer se o componente desmontar
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const handlePasswordUpdate = async (e) => {
