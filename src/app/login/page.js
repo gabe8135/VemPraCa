@@ -20,8 +20,11 @@ export default function Login() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/');
+      // Só redireciona se NÃO estiver na página de redefinição de senha
+      if (session && typeof window !== 'undefined') {
+        if (!window.location.pathname.startsWith('/redefinir-senha')) {
+          router.push('/');
+        }
       }
     };
     checkUser();
