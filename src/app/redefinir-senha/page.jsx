@@ -216,7 +216,7 @@ export default function RedefinirSenhaPage() {
 // Função para solicitar redefinição de senha (pode ser chamada em outro lugar, como uma página de login)
 export async function solicitarRedefinicaoSenha(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://seusite.com.br/redefinir-senha'
+    redirectTo: 'https://www.vempracaapp.com/redefinir-senha'
   });
 
   if (error) {
