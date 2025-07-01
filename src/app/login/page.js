@@ -125,6 +125,33 @@ export default function Login() {
     setError('');
   };
 
+  // Função para recuperação de senha
+  const handlePasswordReset = async () => {
+    setError('');
+    setLoading(true);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Email inválido.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Chama a função de redefinição de senha do Supabase
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://www.vempracaapp.com/redefinir-senha'
+      });
+
+      alert('Verifique seu email para redefinir a senha.');
+    } catch (err) {
+      console.error("Erro na recuperação de senha:", err);
+      setError('Ocorreu um erro ao tentar redefinir a senha. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col bg-gray-50 items-center justify-center min-h-[calc(100vh-200px)] px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-lg shadow-md">
