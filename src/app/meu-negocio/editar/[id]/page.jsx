@@ -635,34 +635,52 @@ export default function EditarNegocioPage() {
             {imageFiles.length === 0 && !isSubmitting && ( // Mostro esta mensagem se não houver imagens e não estiver submetendo.
                 <p className="text-sm text-red-600 text-center">É necessário adicionar pelo menos uma imagem.</p>
             )}
-            {imageFiles.length > 0 && ( // Meus Previews das imagens.
+            {imageFiles.length > 0 && (
               <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {imageFiles.map((img, index) => (
-                  <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
+                  <div
+                    key={img.id}
+                    className="relative group rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100"
+                    style={{ border: 'none' }}
+                  >
                     <img
-                      src={img.preview || img.url}
-                      alt={`Preview ${index + 1}`}
-                      className="object-contain w-full h-full bg-white"
+                      src={img.url || img.preview}
+                      alt={`Imagem ${index + 1}`}
+                      className="object-cover w-full h-full bg-white"
                       onError={e => {
                         e.target.onerror = null;
                         e.target.src = 'https://via.placeholder.com/150?text=Erro+na+imagem';
                       }}
                     />
-                    {/* Meus Overlays de status e botões de ação para cada imagem. */}
-                    <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
-                      {img.uploading && ( <div className="flex flex-col items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={img.statusText || 'Processando...'}></div><p className="text-xs">{img.statusText || 'Processando...'}</p></div> )}
-                      {img.error && !img.uploading && ( <div className="p-1" title={typeof img.error === 'string' ? img.error : 'Erro'}><svg className="h-6 w-6 text-red-500 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><p className="text-xs text-red-300 truncate">{typeof img.error === 'string' ? img.error.substring(0, 30) : 'Erro'}</p></div> )}
-                      {/* Meus Botões só aparecem no hover se não houver erro/upload. */}
-                      {!img.uploading && !img.error && (
-                        <div className={`absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-                            <button type="button" onClick={() => handleRemoveImage(img.id)} disabled={isSubmitting} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed z-10" aria-label="Remover imagem"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                            {mainImageIndex !== index && ( <button type="button" onClick={() => handleSetMainImage(img.id)} disabled={isSubmitting} className="text-white text-xs bg-green-600 px-2 py-1 rounded shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed z-10"> Tornar Principal </button> )}
-                        </div>
-                      )}
-                    </div>
-                    {/* Meu Badge "Principal". */}
+                    {/* Botões de ação */}
+                    {!img.uploading && !img.error && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(img.id)}
+                          disabled={isSubmitting}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                          aria-label="Remover imagem"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        {mainImageIndex !== index && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetMainImage(img.id)}
+                            disabled={isSubmitting}
+                            className="text-white text-xs bg-green-600 px-2 py-1 rounded shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                          >
+                            Tornar Principal
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {/* Badge Principal */}
                     {mainImageIndex === index && !img.uploading && !img.error && (
-                      <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">Principal</div>
+                      <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">
+                        Principal
+                      </div>
                     )}
                   </div>
                 ))}
