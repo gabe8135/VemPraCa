@@ -1,5 +1,6 @@
 // src/app/components/FAQSection.js
 'use client'; 
+import Link from 'next/link';
 
 // Meu array com as perguntas e respostas para o FAQ.
 const faqData = [
@@ -56,7 +57,7 @@ export default function FAQSection() {
           <h3 className="text-2xl font-bold text-center text-white my-8 md:mb-12">
             Ficou com alguma duvida? não deixe de perguntar! 
           </h3>
-          <a href="/contato" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-md hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</a>
+          <Link href="/contato/" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-md hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</Link>
         </div>
       </div>
     </section>
