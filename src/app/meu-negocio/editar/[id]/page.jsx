@@ -221,7 +221,8 @@ export default function EditarNegocioPage() {
       const id = uuidv4();
       const originalFileName = generateUniqueFileName(file);
       // Aqui 'preview' é uma URL de blob para o arquivo local.
-      return { id, file, preview: URL.createObjectURL(file), uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null };
+      const blobURL = URL.createObjectURL(file);
+      return { id, file, preview: blobURL, uploading: false, uploaded: false, error: null, url: null, fileName: originalFileName, isExisting: false, statusText: null };
     });
     console.log(`Criadas ${newImageFilesInitialState.length} Blob URLs para preview (EditarNegocioPage).`);
 
@@ -639,28 +640,14 @@ export default function EditarNegocioPage() {
                 {imageFiles.map((img, index) => (
                   <div key={img.id} className="relative group border rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100">
                     <img
-                      src={img.preview || img.url} // Se tiver preview (local ou já existente), usa. Senão, usa a URL pública.
+                      src={img.preview || img.url}
                       alt={`Preview ${index + 1}`}
-                      // Re-adicionado onError e bg-transparent (mantendo object-contain do teste anterior)
-                      className={`object-contain w-full h-full transition-opacity duration-300 ${mainImageIndex === index ? 'ring-4 ring-offset-2 ring-green-500' : 'ring-1 ring-gray-300'} ${img.uploading || img.error ? 'opacity-50' : 'opacity-100'} bg-transparent`}
-                      onError={(e) => {
-                        console.error(`DEBUG: Falha ao carregar imagem no SRC (EditarNegocioPage). SRC: ${e.target.currentSrc || e.target.src}`, e.target.error);
-                        e.target.onerror = null; // Previne loop de erro
-                        
-                        const parentDiv = e.target.parentElement;
-                        if (parentDiv) {
-                          parentDiv.style.backgroundColor = 'lime';
-                          parentDiv.style.border = '3px solid red'; // Borda vermelha para destaque
-                        }
-                        
-                        e.target.style.display = 'none'; // Esconde a tag <img> quebrada
-                        
-                        const overlayDiv = e.target.nextElementSibling; // O overlay é o próximo irmão
-                        if (overlayDiv && overlayDiv.classList.contains('absolute')) { // Checagem básica se é o overlay
-                          overlayDiv.style.display = 'none'; // Esconde o overlay também
-                          console.log('DEBUG: Overlay escondido devido a erro na imagem (EditarNegocioPage).');
-                        }
-                      }} />
+                      className="object-contain w-full h-full bg-white"
+                      onError={e => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/150?text=Erro+na+imagem';
+                      }}
+                    />
                     {/* Meus Overlays de status e botões de ação para cada imagem. */}
                     <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 p-1 text-white text-center ${img.uploading || img.error ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-0 group-hover:bg-opacity-60'}`}>
                       {img.uploading && ( <div className="flex flex-col items-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-1" title={img.statusText || 'Processando...'}></div><p className="text-xs">{img.statusText || 'Processando...'}</p></div> )}
@@ -674,7 +661,9 @@ export default function EditarNegocioPage() {
                       )}
                     </div>
                     {/* Meu Badge "Principal". */}
-                    {mainImageIndex === index && !img.uploading && !img.error && <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">Principal</div>}
+                    {mainImageIndex === index && !img.uploading && !img.error && (
+                      <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">Principal</div>
+                    )}
                   </div>
                 ))}
               </div>

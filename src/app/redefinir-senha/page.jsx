@@ -44,7 +44,6 @@ export default function RedefinirSenhaPage() {
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
     setFormError(''); // Limpa erro do formulário
-    // Não limpa a mensagem inicial de validação aqui
     setLoading(true);
 
     if (newPassword.length < 6) {
@@ -91,7 +90,6 @@ export default function RedefinirSenhaPage() {
     return (
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
             <p className="text-gray-600">Verificando link...</p>
-            {/* Pode adicionar um spinner aqui */}
         </div>
     );
   }
@@ -104,14 +102,14 @@ export default function RedefinirSenhaPage() {
         </h2>
 
         {/* Mensagem de validação inicial ou sucesso final */}
-        {message && <p className={`text-sm text-center font-medium ${passwordUpdated ? 'text-green-600' : 'text-blue-600'}`}>{message}</p>}
+        {message && <p className={`text-sm text-center font-medium ${passwordUpdated ? 'text-green-600' : 'text-green-700'}`}>{message}</p>}
 
         {/* Erro geral (token inválido/expirado) */}
         {error && <p className="text-red-600 text-sm text-center font-medium">{error}</p>}
 
         {/* Mostra o formulário se o token for válido E a senha ainda não foi atualizada */}
         {isValidToken && !passwordUpdated && (
-          <form onSubmit={handlePasswordUpdate} className="space-y-4 mt-4"> {/* Adicionado mt-4 */}
+          <form onSubmit={handlePasswordUpdate} className="space-y-4 mt-4">
             <div>
               <label htmlFor="newPassword"className="block text-sm font-medium text-gray-700">
                 Nova Senha
@@ -122,7 +120,7 @@ export default function RedefinirSenhaPage() {
                 type="password"
                 required
                 minLength="6"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
@@ -140,7 +138,7 @@ export default function RedefinirSenhaPage() {
                 type="password"
                 required
                 minLength="6"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
@@ -155,7 +153,7 @@ export default function RedefinirSenhaPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
               >
                 {loading ? 'Salvando...' : 'Salvar Nova Senha'}
               </button>
@@ -166,7 +164,7 @@ export default function RedefinirSenhaPage() {
         {/* Link para Login (mostra se deu erro no token ou após sucesso) */}
         {(error || passwordUpdated) && (
             <p className="text-center text-sm text-gray-600 mt-4">
-              <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link href="/login" className="font-medium text-green-700 hover:text-green-500">
                 Voltar para o Login
               </Link>
             </p>
