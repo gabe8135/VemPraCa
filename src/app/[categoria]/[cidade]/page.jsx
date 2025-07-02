@@ -13,9 +13,36 @@ function normalize(str) {
 
 export async function generateMetadata({ params }) {
   const { categoria, cidade } = params;
+
+  // Buscar nome da categoria no banco para exibir corretamente no título
+  const { data: categoriaData } = await supabase
+    .from('categorias')
+    .select('nome')
+    .eq('slug', categoria)
+    .maybeSingle();
+
+  const categoriaNome = categoriaData?.nome || categoria;
+  const cidadeNome = cidade.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  const title = `Melhores ${categoriaNome} em ${cidadeNome} | VemPraCa`;
+  const description = `Veja os melhores ${categoriaNome} em ${cidadeNome} cadastrados no VemPraCa. Encontre hotéis, pousadas, restaurantes e mais!`;
+
   return {
-    title: `Melhores ${categoria} em ${cidade.replace('-', ' ')} | VemPraCa`,
-    description: `Veja os melhores ${categoria} em ${cidade.replace('-', ' ')} cadastrados no VemPraCa.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://vempracaapp.com/${categoria}/${cidade}`,
+      siteName: 'VemPraCa',
+      type: 'website',
+      locale: 'pt_BR',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   };
 }
 
