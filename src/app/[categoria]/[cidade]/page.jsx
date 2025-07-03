@@ -52,8 +52,8 @@ export default async function CategoriaCidadePage({ params }) {
   // 1. Buscar o ID da categoria pelo slug
   const { data: categoriaData, error: categoriaError } = await supabase
     .from('categorias')
-    .select('id, nome')
-    .eq('slug', categoria)
+    .select('id, nome, slug, aliases')
+    .or(`slug.eq.${categoria},aliases.cs.{${categoria}}`)
     .maybeSingle();
 
   if (categoriaError) {

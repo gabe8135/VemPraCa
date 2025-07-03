@@ -20,6 +20,16 @@ function generateSlug(text) {
     .replace(/-+$/, ''); // E do fim.
 }
 
+// Esta função para gerar variações do slug para checar duplicatas.
+function getSlugVariations(slug) {
+  if (slug.endsWith('l')) return [slug, slug.slice(0, -1) + 'is']; // hotel -> hoteis
+  if (slug.endsWith('m')) return [slug, slug.slice(0, -1) + 'ns']; // album -> albuns
+  if (slug.endsWith('r')) return [slug, slug + 'es']; // bar -> bares
+  if (slug.endsWith('a')) return [slug, slug + 's']; // pousada -> pousadas
+  if (slug.endsWith('e')) return [slug, slug + 's']; // restaurante -> restaurantes
+  return [slug, slug + 's'];
+}
+
 // Este é o modal para editar uma categoria.
 function EditCategoryModal({ isOpen, onClose, category, onSave }) {
   const [editedName, setEditedName] = useState('');
@@ -146,6 +156,7 @@ export default function AdminCategoriasPage() {
 
     // Gero o slug a partir do nome que o usuário digitou.
     const slug = generateSlug(newCategoryName.trim());
+    const aliases = getSlugVariations(slug);
 
     if (!slug) {
         // Se o slug não puder ser gerado (nome muito estranho?), mostro um erro.
@@ -159,7 +170,8 @@ export default function AdminCategoriasPage() {
         .from('categorias')
         .insert([{
             nome: newCategoryName.trim(),
-            slug: slug // <<< Salvo o slug gerado no banco.
+            slug: slug, // <<< Salvo o slug gerado no banco.
+            aliases: aliases // Salvo as variações de slug (aliases) no banco.
         }])
         .select() // Preciso do objeto inserido para atualizar o estado local.
         .single();

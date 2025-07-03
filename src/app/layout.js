@@ -30,16 +30,30 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <AOSInit />
-  <body className={`${inter.className} scroll-smooth antialiased geistSans.variable geistMono.variable`}>
-    <div className="min-h-screen bg-white text-black">
-      <Header />
-      <main className="flex-grow">
-        {children}
-      </main>
-      <Footer />
-    </div>
-  </body>
-</html>
+      <head>
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-792WGGT77D"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-XXXXXXXXXX');
+            `,
+          }}
+        />
+      </head>
+      <body className={`${inter.className} scroll-smooth antialiased geistSans.variable geistMono.variable`}>
+        <div className="min-h-screen bg-white text-black">
+          <Header />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </body>
+    </html>
 
   );
 }
