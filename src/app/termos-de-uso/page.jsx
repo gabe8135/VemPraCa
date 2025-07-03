@@ -9,7 +9,7 @@ export default function TermosDeUso() {
           </h1>
   
           <p className="text-sm text-gray-500 mb-8">
-            <strong>Última atualização:</strong> 29 de Abril de 2025 
+            <strong>Última atualização:</strong> 3 de Julho de 2025 
           </p>
   
           <div className="space-y-6 text-gray-700 leading-relaxed">
@@ -69,10 +69,49 @@ export default function TermosDeUso() {
   
             <h2 className="text-xl font-semibold text-gray-800 pt-4 border-t mt-6">10. Contato</h2>
             <p>Se você tiver alguma dúvida sobre estes Termos de Uso, entre em contato conosco através da nossa página de <a href="/contato" className="text-blue-600 hover:underline">Contato</a>.</p>
+
+            <h2 className="text-xl font-semibold text-gray-800 pt-4 border-t mt-6">11. Privacidade e Proteção de Dados</h2>
+            <p>
+              Ao utilizar a Plataforma, você concorda com a coleta e uso de informações pessoais conforme necessário para o funcionamento dos serviços. A VemPraCá↗ compromete-se a respeitar a privacidade dos Usuários e Estabelecimentos, armazenando dados com segurança e em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 - LGPD).
+            </p>
+            <p>
+              As informações fornecidas voluntariamente (como nome, contato, descrição do estabelecimento, imagens, localização, etc.) serão utilizadas exclusivamente para os fins de divulgação na Plataforma, sendo possível sua remoção ou alteração mediante solicitação formal do titular dos dados.
+            </p>
+  
+            <h2 className="text-xl font-semibold text-gray-800 pt-4 border-t mt-6">12. Planos e Condições Comerciais</h2>
+            <p>
+              A Plataforma pode oferecer, agora ou futuramente, <strong>planos pagos para Estabelecimentos</strong>, com funcionalidades adicionais ou maior visibilidade. O acesso gratuito, atualmente disponível, poderá ser alterado ou descontinuado no futuro, passando a ser oferecido apenas por meio de planos pagos, sempre com aviso prévio aos usuários e estabelecimentos.
+            </p>
+            <p>
+              O uso gratuito por tempo determinado (ex: período de avaliação) poderá ser revogado, limitado ou alterado a qualquer momento, mediante aviso prévio.
+            </p>
+            <p>
+              As regras específicas de cobrança, formas de pagamento, cancelamento e reembolsos serão descritas nos Termos Comerciais da Plataforma, disponíveis no momento da contratação do plano.
+            </p>
+            <p>
+              O não pagamento de um plano após o vencimento pode implicar na <strong>suspensão ou remoção do cadastro do Estabelecimento.</strong>
+            </p>
+  
+            <h2 className="text-xl font-semibold text-gray-800 pt-4 border-t mt-6">13. Remoção e Encerramento de Cadastro</h2>
+            <p>
+              A VemPraCá↗ se reserva o direito de suspender, editar ou excluir cadastros de Estabelecimentos que:
+            </p>
+            <ul className="list-disc list-inside pl-4 space-y-1">
+              <li>Contenham informações falsas, desatualizadas ou enganosas;</li>
+              <li>Apresentem conteúdo impróprio, ofensivo ou ilegal;</li>
+              <li>Não estejam em conformidade com os presentes Termos de Uso;</li>
+              <li>Sejam inativos por longos períodos ou deixem de atender aos critérios da Plataforma.</li>
+            </ul>
+            <p>
+              Estabelecimentos poderão solicitar a remoção de seus próprios dados a qualquer momento por meio do nosso canal de contato.<br />
+              O uso da Plataforma, mesmo sem a criação de conta, implica na aceitação plena destes Termos de Uso.
+            </p>
   
             <hr className="my-8" />
   
-            <p className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-lg  text-center font-semibold text-white">Ao utilizar a plataforma VemPraCá↗, você declara que leu, compreendeu e concorda integralmente com estes Termos de Uso.</p>
+            <p className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-lg  text-center font-semibold text-white">
+              Ao utilizar a plataforma VemPraCá↗, você declara que leu, compreendeu e concorda integralmente com estes Termos de Uso.
+            </p>
           </div>
         </div>
       </div>
