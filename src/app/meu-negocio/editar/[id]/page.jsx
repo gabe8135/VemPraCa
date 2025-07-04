@@ -654,7 +654,7 @@ export default function EditarNegocioPage() {
                     />
                     {/* Botões de ação */}
                     {!img.uploading && !img.error && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-100 transition-opacity duration-300">
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(img.id)}
