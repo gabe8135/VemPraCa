@@ -4,23 +4,22 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
-import { FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa'; // Ícones adicionados pra mostrar/ocultar senha
+import { FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [nomeProprietario, setNomeProprietario] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Meu estado pra controlar visibilidade da senha
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Se já estou logado, redireciona pra home
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      // Só redireciona se NÃO estiver na página de redefinição de senha
       if (session && typeof window !== 'undefined') {
         if (!window.location.pathname.startsWith('/redefinir-senha')) {
           router.push('/');
@@ -30,12 +29,10 @@ export default function Login() {
     checkUser();
   }, [router]);
 
-  // Alterna exibição da senha
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
   };
 
-  // Autenticação (login ou cadastro)
   const handleAuth = async () => {
     setError('');
     setLoading(true);
@@ -55,7 +52,6 @@ export default function Login() {
 
     try {
       if (isSignUp) {
-        // Cadastro
         if (password !== confirmPassword) {
           setError('As senhas não coincidem.');
           setLoading(false);
@@ -65,18 +61,29 @@ export default function Login() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          // options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
         });
 
         if (signUpError) throw signUpError;
+
+        const userId = data.user?.id;
+
+        if (userId) {
+          await supabase.from('profiles').insert([
+            {
+              id: userId,
+              email,
+              nome_proprietario: nomeProprietario || 'Nome não informado'
+            }
+          ]);
+        }
 
         alert('Cadastro realizado! Verifique seu email para confirmar.');
         setIsSignUp(false);
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setNomeProprietario('');
       } else {
-        // Login
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -102,30 +109,60 @@ export default function Login() {
     }
   };
 
-  // Login com Google
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
-    const { error: googleError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (googleError) {
-      console.error('Erro no login com Google:', googleError.message);
+
+    try {
+      const { data, error: googleError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (googleError) throw googleError;
+
+      // Após o login via OAuth, esperamos um pouco para garantir a sessão
+      setTimeout(async () => {
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { id, email, user_metadata } = user;
+
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', id)
+            .single();
+
+          if (!existingProfile) {
+            await supabase.from('profiles').insert([
+              {
+                id,
+                email,
+                nome_proprietario: user_metadata?.name || 'Nome não informado'
+              }
+            ]);
+          }
+        }
+      }, 2000);
+
+    } catch (err) {
+      console.error('Erro no login com Google:', err.message);
       setError('Falha ao tentar login com Google. Tente novamente.');
+    } finally {
       setLoading(false);
     }
   };
 
-  // Alterna entre login e cadastro
   const toggleAuthMode = () => {
     setIsSignUp(!isSignUp);
     setError('');
   };
 
-  // Função para recuperação de senha
   const handlePasswordReset = async () => {
     setError('');
     setLoading(true);
@@ -138,7 +175,6 @@ export default function Login() {
     }
 
     try {
-      // Chama a função de redefinição de senha do Supabase
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://www.vempracaapp.com/redefinir-senha'
       });
@@ -160,25 +196,38 @@ export default function Login() {
         </h2>
 
         <div className="space-y-4">
-          {/* Campo de email padrão */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <input
               id="email"
-              name="email"
               type="email"
-              autoComplete="email"
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
               placeholder="seu@email.com"
             />
           </div>
 
-          {/* Campo de senha com botão para exibir/ocultar */}
+          {isSignUp && (
+            <div>
+              <label htmlFor="nomeProprietario" className="block text-sm font-medium text-gray-700">
+                Seu Nome
+              </label>
+              <input
+                id="nomeProprietario"
+                type="text"
+                required
+                value={nomeProprietario}
+                onChange={e => setNomeProprietario(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
+                placeholder="João da Silva"
+              />
+            </div>
+          )}
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Senha
@@ -186,17 +235,14 @@ export default function Login() {
             <div className="relative">
               <input
                 id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'} // Aqui troco a visibilidade da senha
-                autoComplete={isSignUp ? "new-password" : "current-password"}
+                type={showPassword ? 'text' : 'password'}
                 required
                 minLength="6"
-                className="mt-1 block w-full pr-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                className="mt-1 block w-full pr-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 placeholder="••••••••"
               />
-              {/* Botão de visibilidade da senha */}
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
@@ -205,8 +251,6 @@ export default function Login() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-
-            {/* Link "Esqueci minha senha?" AGORA aparece abaixo do campo */}
             {!isSignUp && (
               <div className="text-right mt-1">
                 <Link
@@ -219,7 +263,6 @@ export default function Login() {
             )}
           </div>
 
-          {/* Campo de confirmação de senha (apenas no cadastro) */}
           {isSignUp && (
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
@@ -227,24 +270,20 @@ export default function Login() {
               </label>
               <input
                 id="confirmPassword"
-                name="confirmPassword"
                 type="password"
-                autoComplete="new-password"
                 required
                 minLength="6"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
                 placeholder="••••••••"
               />
             </div>
           )}
         </div>
 
-        {/* Mensagem de erro */}
         {error && <p className="text-red-600 text-sm text-center font-medium">{error}</p>}
 
-        {/* Botão principal de login/cadastro */}
         <div>
           <button
             onClick={handleAuth}
@@ -255,33 +294,30 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Divisor "OU" (apenas no login) */}
         {!isSignUp && (
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+          <>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">OU</span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">OU</span>
+
+            <div>
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                <FaGoogle className="text-red-500 text-lg" />
+                Entrar com Google
+              </button>
             </div>
-          </div>
+          </>
         )}
 
-        {/* Botão de login com Google (apenas no login) */}
-        {!isSignUp && (
-          <div>
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              <FaGoogle className="text-red-500 text-lg" />
-              Entrar com Google
-            </button>
-          </div>
-        )}
-
-        {/* Alternador entre login/cadastro */}
         <p className="text-center text-sm text-gray-600 mt-6">
           {isSignUp ? 'Já tem uma conta?' : 'Ainda não tem conta?'}{' '}
           <button
