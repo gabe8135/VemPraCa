@@ -16,7 +16,7 @@ serve(async (req) => {
   const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
 
-  const mensagem = `📢 Novo usuário cadastrado!\n\n🆔 ID: ${userId}\n✉️ Email: ${email}`;
+  const mensagem = `🚀 Um novo usuário se cadastrou na plataforma VemPraCa!`;
 
   const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
