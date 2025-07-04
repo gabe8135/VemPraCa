@@ -9,13 +9,14 @@ import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 serve(async (req) => {
   const { record } = await req.json();
 
-  const nome = record.nome_proprietario ?? "Nome não informado";
+  // record vai conter os dados do usuário recém-criado na tabela auth.users
+  const userId = record.id;
   const email = record.email ?? "Email não informado";
 
   const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
 
-  const mensagem = `\n👤 Novo usuário cadastrado!\n\n📛 Nome: ${nome}\n\n✉️ Email: ${email}\n`;
+  const mensagem = `📢 Novo usuário cadastrado!\n\n🆔 ID: ${userId}\n✉️ Email: ${email}`;
 
   const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
@@ -33,6 +34,7 @@ serve(async (req) => {
 
   return new Response("Notificação enviada com sucesso!", { status: 200 });
 });
+
 
 /* To invoke locally:
 
