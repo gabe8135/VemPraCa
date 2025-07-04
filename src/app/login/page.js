@@ -66,15 +66,24 @@ export default function Login() {
         if (signUpError) throw signUpError;
 
         const userId = data.user?.id;
+        if (!userId) {
+          throw new Error('Usuário não criado corretamente.');
+        }
 
-        if (userId) {
-          await supabase.from('profiles').insert([
-            {
-              id: userId,
-              email,
-              nome_proprietario: nomeProprietario || 'Nome não informado'
-            }
-          ]);
+        // Insere email e nome_proprietario no perfil
+        const { error: profileError } = await supabase.from('profiles').insert([
+          {
+            id: userId,
+            email,
+            nome_proprietario: nomeProprietario.trim() || 'Nome não informado',
+          }
+        ]);
+
+        if (profileError) {
+          console.error('Erro ao inserir perfil:', profileError);
+          setError('Erro ao salvar dados do perfil. Tente novamente.');
+          setLoading(false);
+          return;
         }
 
         alert('Cadastro realizado! Verifique seu email para confirmar.');
@@ -100,7 +109,7 @@ export default function Login() {
         }
       }
     } catch (err) {
-      console.error("Erro na autenticação:", err);
+      console.error('Erro na autenticação:', err);
       if (!error) {
         setError(err.message || 'Ocorreu um erro. Tente novamente.');
       }
@@ -123,40 +132,58 @@ export default function Login() {
 
       if (googleError) throw googleError;
 
-      // Após o login via OAuth, esperamos um pouco para garantir a sessão
-      setTimeout(async () => {
-        const {
-          data: { user }
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          const { id, email, user_metadata } = user;
-
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', id)
-            .single();
-
-          if (!existingProfile) {
-            await supabase.from('profiles').insert([
-              {
-                id,
-                email,
-                nome_proprietario: user_metadata?.name || 'Nome não informado'
-              }
-            ]);
-          }
-        }
-      }, 2000);
+      // Não faz insert aqui, pois ocorre redirecionamento imediato
 
     } catch (err) {
       console.error('Erro no login com Google:', err.message);
       setError('Falha ao tentar login com Google. Tente novamente.');
-    } finally {
       setLoading(false);
     }
   };
+
+  // Acompanhar sessão para inserir perfil pós login Google
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { id, email, user_metadata } = session.user;
+
+        // Verifica se já existe perfil
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', id)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          // Código 116 significa perfil não encontrado, esperado aqui
+          console.error('Erro ao buscar perfil:', fetchError);
+          return;
+        }
+
+        if (!existingProfile) {
+          const { error: insertError } = await supabase.from('profiles').insert([
+            {
+              id,
+              email,
+              nome_proprietario: user_metadata?.name || 'Nome não informado',
+            },
+          ]);
+
+          if (insertError) {
+            console.error('Erro ao inserir perfil Google:', insertError);
+          }
+        }
+
+        router.push('/');
+      }
+    };
+
+    checkUserProfile();
+  }, [router]);
 
   const toggleAuthMode = () => {
     setIsSignUp(!isSignUp);
@@ -176,12 +203,12 @@ export default function Login() {
 
     try {
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://www.vempracaapp.com/redefinir-senha'
+        redirectTo: 'https://www.vempracaapp.com/redefinir-senha',
       });
 
       alert('Verifique seu email para redefinir a senha.');
     } catch (err) {
-      console.error("Erro na recuperação de senha:", err);
+      console.error('Erro na recuperação de senha:', err);
       setError('Ocorreu um erro ao tentar redefinir a senha. Tente novamente.');
     } finally {
       setLoading(false);
