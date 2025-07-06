@@ -1,4 +1,3 @@
-// page.js
 'use client';
 
 import Link from "next/link";
@@ -12,15 +11,11 @@ import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from '@/app/components/HowItWorksSection';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-// Carregamento dinâmico (lazy loading) do BusinessCard para otimizar a página.
 const BusinessCard = dynamic(() => import('@/app/components/BusinessCard'), {
   ssr: false,
 });
 
-// Componente que carrega e filtra a lista de negócios.
-// Precisa ser um componente separado para usar o `useSearchParams` dentro do Suspense.
 function BusinessList() {
-  // Hook para ler os parâmetros da URL (ex: ?categoria=...).
   const searchParams = useSearchParams();
   const categorySlug = searchParams.get('categoria');
 
@@ -30,13 +25,11 @@ function BusinessList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [allCategories, setAllCategories] = useState([]);
 
-  // Busca os dados iniciais (negócios e categorias) no Supabase.
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Busca todos os negócios ativos da view que já calcula a média de avaliações.
         const { data: businessesData, error: businessesDbError } = await supabase
           .from('negocios_com_media')
           .select('*')
@@ -45,15 +38,13 @@ function BusinessList() {
         if (businessesDbError) throw businessesDbError;
         setBusinesses(businessesData || []);
 
-        // Busca todas as categorias para obter nomes e slugs para a UI.
         const { data: categoriesData, error: categoriesDbError } = await supabase
           .from('categorias')
           .select('id, nome, slug')
           .order('nome', { ascending: true });
-        
+
         if (categoriesDbError) throw categoriesDbError;
         setAllCategories(categoriesData || []);
-
       } catch (err) {
         console.error("Erro ao buscar dados iniciais:", err);
         setError("Erro ao carregar os dados. Tente novamente mais tarde.");
@@ -64,7 +55,6 @@ function BusinessList() {
     fetchInitialData();
   }, []);
 
-  // Filtra os negócios com base na categoria da URL e no termo de busca.
   const filteredBusinesses = businesses.filter(business => {
     const matchesCategory = !categorySlug || (business.slug_categoria === categorySlug);
     const matchesSearchTerm = searchTerm === '' ||
@@ -73,17 +63,18 @@ function BusinessList() {
     return matchesCategory && matchesSearchTerm;
   });
 
-  // Pega o nome da categoria selecionada para mostrar na UI.
   const categoryDetailsFromAll = categorySlug
     ? allCategories.find(cat => cat.slug === categorySlug)
     : null;
-  const displayCategoryName = categoryDetailsFromAll?.nome || (categorySlug ? categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null);
+
+  const displayCategoryName = categoryDetailsFromAll?.nome ||
+    (categorySlug ? categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null);
 
   return (
     <>
-      {/* Minha Barra de Busca */}
-      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="fade-in">
-        <h1 className="text-3xl font-bold mb-6 text-center md:text-center">Encontre o que você precisa</h1>
+      {/* Barra de Busca com fade-down suave */}
+      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="fade-down" data-aos-delay="200">
+        <h1 className="text-3xl font-bold mb-6 text-center">Encontre o que você precisa</h1>
         <input
           type="text"
           placeholder="Buscar por nome ou cidade..."
@@ -92,35 +83,49 @@ function BusinessList() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {categorySlug && displayCategoryName && (
-            <p className="text-center text-sm text-gray-600 mt-2">
-                Filtrando por: <span className="font-semibold">{displayCategoryName}</span>
-                <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(LIMPAR FILTRO)</Link>
-            </p>
+          <p className="text-center text-sm text-gray-600 mt-2" data-aos="zoom-in" data-aos-delay="300">
+            Filtrando por: <span className="font-semibold">{displayCategoryName}</span>
+            <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(LIMPAR FILTRO)</Link>
+          </p>
         )}
       </div>
 
-      {/* Minha Seção de Categorias */}
-      <div data-aos="fade-left">
+      {/* Seção de Categorias com fade-right */}
+      <div data-aos="fade-right" data-aos-delay="100">
         <CategoriesSection />
       </div>
 
-      {/* Minha Lista Principal de Negócios */}
-      <div id="businesses-list" className="container bg-gray-50 mx-auto p-4">
-        {loading && <p className="text-center text-gray-600 py-8">Carregando estabelecimentos...</p>}
-        {error && <p className="text-center text-red-500">{error}</p>}
+      {/* Lista de Negócios */}
+      <div id="businesses-list" className="container bg-gray-50 mx-auto p-4" data-aos="fade-up" data-aos-delay="150">
+        {loading && (
+          <p className="text-center text-gray-600 py-8" data-aos="fade-up">Carregando estabelecimentos...</p>
+        )}
+        {error && (
+          <p className="text-center text-red-500" data-aos="fade-up">{error}</p>
+        )}
 
         {!loading && !error && filteredBusinesses.length === 0 && (
-            <p className="text-center text-gray-600 py-8">
-                {searchTerm || categorySlug
-                    ? `Nenhum estabelecimento encontrado ${categorySlug && displayCategoryName ? `na categoria "${displayCategoryName}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
-                    : 'Ainda não há estabelecimentos cadastrados.'}
-            </p>
+          <p className="text-center text-gray-600 py-8" data-aos="fade-up">
+            {searchTerm || categorySlug
+              ? `Nenhum estabelecimento encontrado ${categorySlug && displayCategoryName ? `na categoria "${displayCategoryName}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
+              : 'Ainda não há estabelecimentos cadastrados.'}
+          </p>
         )}
 
         {!loading && !error && filteredBusinesses.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" data-aos="fade-right" data-aos-delay="200">
-            {filteredBusinesses.map(business => (
-              <BusinessCard key={business.id} business={business} />
+          <div
+            className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            data-aos="fade-up"
+            data-aos-delay="250"
+          >
+            {filteredBusinesses.map((business, index) => (
+              <div
+                key={business.id}
+                data-aos="zoom-in"
+                data-aos-delay={index * 50} // animação em cascata
+              >
+                <BusinessCard business={business} />
+              </div>
             ))}
           </div>
         )}
@@ -131,18 +136,18 @@ function BusinessList() {
 
 export default function Home() {
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <Hero />
-      
-      {/* O Suspense é necessário para o useSearchParams funcionar no BusinessList. */}
-      <Suspense fallback={<div className="text-center p-10">Carregando...</div>}>
+
+      {/* Suspense com fade-up suave */}
+      <Suspense fallback={<div className="text-center p-10" data-aos="fade-up">Carregando...</div>}>
         <BusinessList />
       </Suspense>
 
       <div data-aos="fade-up" data-aos-delay="100">
         <HowItWorksSection />
       </div>
-      
+
       <div data-aos="fade-up" data-aos-delay="200">
         <FAQSection />
       </div>
