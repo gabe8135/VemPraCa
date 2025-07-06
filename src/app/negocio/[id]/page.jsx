@@ -16,6 +16,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import RatingForm from '@/app/components/RatingForm'; // Importar o formulário de avaliação
 import AcessosChart from '@/app/components/AcessosChart'; // 1. Importar o componente do gráfico
 
 // --- Meu Componente Estrelas Display (Reutilizado de outros lugares) ---
@@ -62,6 +63,7 @@ export default function DetalhesNegocioPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); // Meu estado para controlar o loading da exclusão.
   const [cliqueStats, setCliqueStats] = useState(null);
+  const [dataVersion, setDataVersion] = useState(0); // Estado para forçar re-fetch
   const [loadingCliques, setLoadingCliques] = useState(false);
 
   // --- Minha função para verificar Role (Admin) ---
@@ -200,7 +202,7 @@ export default function DetalhesNegocioPage() {
 
     if (negocioId) { fetchData(); } // Só busco se tiver um ID.
     else { setError("ID do estabelecimento inválido."); setLoading(false); }
-  }, [negocioId]); // Roda de novo se o ID do negócio mudar.
+  }, [negocioId, dataVersion]); // Roda de novo se o ID ou a versão dos dados mudar.
 
   // --- Minha função para Deletar o Negócio ---
   const handleDeleteNegocio = async () => {
@@ -283,6 +285,9 @@ export default function DetalhesNegocioPage() {
   // Verifico se o usuário logado é o dono do negócio ou se é admin.
   const isOwner = currentUser && negocio && currentUser.id === negocio.usuario_id;
   const canEditOrDelete = isOwner || isAdmin; // Só pode editar/deletar se for dono OU admin.
+
+  // Função para ser chamada pelo componente filho para recarregar os dados
+  const handleRatingSuccess = () => setDataVersion(v => v + 1);
 
   // --- Minha Renderização ---
   if (loading) return <div className="text-center p-10">Carregando detalhes do estabelecimento...</div>;
@@ -466,7 +471,14 @@ export default function DetalhesNegocioPage() {
           ) : (
               <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
           )}
-          {/* Lembrete: Adicionar formulário para nova avaliação aqui. */}
+          {/* Formulário para nova avaliação (não mostra para o dono) */}
+          {!isOwner && (
+            <RatingForm
+              negocioId={negocio.id}
+              currentUser={currentUser}
+              onRatingSuccess={handleRatingSuccess}
+            />
+          )}
       </div>
 
       {/* --- Minha Seção de Estatísticas de Acessos (só para o proprietário/admin) --- */}

@@ -28,25 +28,24 @@ return (
 
         {/* Selo de Avaliação */}
         {rating && (
-        <div className="absolute top-2 right-2 flex items-center bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+        <div className="absolute top-2 right-2 flex items-center bg-yellow-400 text-gray-900 text-xs md:text-sm font-bold px-2 py-1 rounded-full shadow-lg">
             <FaStar className="mr-1 text-gray-800" />
             <span>{rating}</span>
         </div>
         )}
 
         {/* Conteúdo de Texto */}
-        <div className="absolute bottom-0 left-0 p-3 text-white w-full">
-        <h3 className="font-bold text-sm leading-tight group-hover:text-yellow-300 transition-colors">
+        <div className="absolute bottom-0 left-0 p-2 md:p-3 text-white w-full">
+        <h3 className="font-bold text-sm md:text-base lg:text-lg leading-tight group-hover:text-yellow-300 transition-colors line-clamp-2">
             {nome}
         </h3>
           {/* Container para categoria e cidade, com quebra de linha automática */}
-        <div className="flex flex-wrap items-baseline text-xs text-gray-200 leading-tight">
+        <div className="flex flex-wrap items-baseline text-xs md:text-sm text-gray-200 leading-tight">
             <span>{nome_categoria}</span>
             <span className="mx-1.5">&bull;</span>
             {cidade && (
-              // Este span agrupa o '•' e a cidade para que quebrem a linha juntos.
+              // Este span mostra a cidade do negocio em questao 
             <span className="inline-flex items-baseline whitespace-nowrap">
-                
                 <span>{cidade}</span>
             </span>
             )}
