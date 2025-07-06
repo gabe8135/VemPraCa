@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
+/* globals.css */
+/* * {
+  outline: 1px solid rgba(255, 0, 0, 0.1); 
+} */
+
+
 html {
+  overflow-x: hidden;
   stroke-width: none; 
   ::-webkit-scrollbar {
     display: none;
