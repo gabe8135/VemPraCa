@@ -73,7 +73,7 @@ function BusinessList() {
   return (
     <>
       {/* Barra de Busca com flip-down suave */}
-      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="flip-down" data-aos-delay="200">
+      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="fade-left" data-aos-delay="200">
         <h1 className="text-3xl font-bold mb-6 text-center">Encontre o que você precisa</h1>
         <input
           type="text"
