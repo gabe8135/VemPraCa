@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import AOSInit from "./components/AOSInit";
+// import AOSInit from "./components/AOSInit";
 
 // Declare as fontes aqui, todas juntas
 const inter = Inter({
