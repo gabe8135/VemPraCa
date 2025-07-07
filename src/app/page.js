@@ -72,7 +72,7 @@ function BusinessList() {
 
   return (
     <>
-      {/* Barra de Busca com fade-down suave */}
+      {/* Barra de Busca com flip-down suave */}
       <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="flip-down" data-aos-delay="200">
         <h1 className="text-3xl font-bold mb-6 text-center">Encontre o que você precisa</h1>
         <input
@@ -121,7 +121,7 @@ function BusinessList() {
             {filteredBusinesses.map((business, index) => (
               <div
                 key={business.id}
-                data-aos="zoom-in"
+                data-aos="fade-up"
                 data-aos-delay={index * 50} // animação em cascata
               >
                 <BusinessCard business={business} />
