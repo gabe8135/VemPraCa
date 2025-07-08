@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import AOSInit from "./components/AOSInit";
+// import AOSInit from "./components/AOSInit";
 
 // Declare as fontes aqui, todas juntas
 const inter = Inter({
@@ -54,7 +54,7 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${montserrat.variable}`}
     >
       <head>
-        <AOSInit />
+        {/* <AOSInit /> */}
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-792WGGT77D"></script>
         <script
