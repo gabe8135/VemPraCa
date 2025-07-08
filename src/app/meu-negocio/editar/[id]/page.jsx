@@ -568,10 +568,10 @@ export default function EditarNegocioPage() {
               <button type="button" onClick={() => router.back()} disabled={isSubmitting} className="button-secondary bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 Cancelar
               </button>
-              {/* Meu Botão para a página de Gerenciar Assinatura. */}
+              {/* Meu Botão para a página de Gerenciar Assinatura.
               <Link href={`/pagamento-assinatura?negocioId=${negocioId}`} className="button-secondary bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm">
                   Gerenciar Assinatura
-              </Link>
+              </Link> */}
           </div>
       </div>
 

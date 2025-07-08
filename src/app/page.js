@@ -9,7 +9,6 @@ import Hero from '@/app/components/Hero';
 import FAQSection from '@/app/components/FAQSection';
 import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from '@/app/components/HowItWorksSection';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const BusinessCard = dynamic(() => import('@/app/components/BusinessCard'), {
   ssr: false,
@@ -73,7 +72,7 @@ function BusinessList() {
   return (
     <>
       {/* Barra de Busca com flip-down suave */}
-      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10" data-aos="fade-left" data-aos-delay="200">
+      <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10">
         <h1 className="text-3xl font-bold mb-6 text-center">Encontre o que você precisa</h1>
         <input
           type="text"
@@ -83,7 +82,7 @@ function BusinessList() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {categorySlug && displayCategoryName && (
-          <p className="text-center text-sm text-gray-600 mt-2" data-aos="zoom-in" data-aos-delay="300">
+          <p className="text-center text-sm text-gray-600 mt-2">
             Filtrando por: <span className="font-semibold">{displayCategoryName}</span>
             <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(LIMPAR FILTRO)</Link>
           </p>
@@ -91,21 +90,21 @@ function BusinessList() {
       </div>
 
       {/* Seção de Categorias com fade-right */}
-      <div data-aos="fade-right" data-aos-delay="100">
+      <div>
         <CategoriesSection />
       </div>
 
       {/* Lista de Negócios */}
-      <div id="businesses-list" className="container bg-gray-50 mx-auto p-4" data-aos="fade-up" data-aos-delay="150">
+      <div id="businesses-list" className="container bg-gray-50 mx-auto p-4">
         {loading && (
-          <p className="text-center text-gray-600 py-8" data-aos="fade-up">Carregando estabelecimentos...</p>
+          <p className="text-center text-gray-600 py-8">Carregando estabelecimentos...</p>
         )}
         {error && (
-          <p className="text-center text-red-500" data-aos="fade-up">{error}</p>
+          <p className="text-center text-red-500">{error}</p>
         )}
 
         {!loading && !error && filteredBusinesses.length === 0 && (
-          <p className="text-center text-gray-600 py-8" data-aos="fade-up">
+          <p className="text-center text-gray-600 py-8">
             {searchTerm || categorySlug
               ? `Nenhum estabelecimento encontrado ${categorySlug && displayCategoryName ? `na categoria "${displayCategoryName}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
               : 'Ainda não há estabelecimentos cadastrados.'}
@@ -115,15 +114,10 @@ function BusinessList() {
         {!loading && !error && filteredBusinesses.length > 0 && (
           <div
             className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            data-aos="fade-up"
-            data-aos-delay="250"
+            data-aos="fade-up" // Animação aplicada aqui, no container dos cards
           >
-            {filteredBusinesses.map((business, index) => (
-              <div
-                key={business.id}
-                data-aos="fade-up"
-                data-aos-delay={index * 50} // animação em cascata
-              >
+            {filteredBusinesses.map((business) => (
+              <div key={business.id}>
                 <BusinessCard business={business} />
               </div>
             ))}
@@ -140,15 +134,15 @@ export default function Home() {
       <Hero />
 
       {/* Suspense com fade-up suave */}
-      <Suspense fallback={<div className="text-center p-10" data-aos="fade-up">Carregando...</div>}>
+      <Suspense fallback={<div className="text-center p-10">Carregando...</div>}>
         <BusinessList />
       </Suspense>
 
-      <div data-aos="fade-up" data-aos-delay="100">
+      <div>
         <HowItWorksSection />
       </div>
 
-      <div data-aos="fade-up" data-aos-delay="200">
+      <div data-aos="fade-up" data-aos-delay="100"> {/* Animação aplicada aqui, na seção de FAQ */}
         <FAQSection />
       </div>
     </div>

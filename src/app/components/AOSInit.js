@@ -10,8 +10,9 @@ useEffect(() => {
     // Adicionamos um setTimeout para garantir que a hidratação do React termine antes de a AOS modificar o DOM.
     const timer = setTimeout(() => {
       AOS.init({
-        duration: 750, // Duração da animação em ms
-        once: false,    // Se a animação deve acontecer sempre que o elemento entra na tela.
+        duration: 600, // Duração da animação um pouco mais curta para ser mais rápido.
+        once: true,    // ESSENCIAL: A animação acontece apenas UMA VEZ. Isso corrige os travamentos ao rolar.
+        // disable: 'mobile' 
       });
     }, 100); // Um pequeno delay é suficiente.
 

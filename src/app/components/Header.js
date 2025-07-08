@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react'; // 1. Importar useRef
+import { useEffect, useState, useRef } from 'react'; 
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabaseClient';
 
@@ -13,7 +13,7 @@ export default function Header() {
   const [loadingAuth, setLoadingAuth] = useState(true); // Para mostrar um feedback enquanto verifico a autenticação.
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Controla o menu mobile.
   const menuRef = useRef(null); // Referência para o conteúdo do menu (nav)
-  const menuButtonRef = useRef(null); // 1. Criar uma referência para o BOTÃO do menu
+  const menuButtonRef = useRef(null); // Criar uma referência para o BOTÃO do menu
 
   // Função para verificar se o usuário tem a role 'admin'.
   const checkUserRole = async (userId) => {
@@ -131,7 +131,7 @@ export default function Header() {
 
         {/* Botão Sanduíche para mobile */}
         <div className="md:hidden">
-          <button onClick={toggleMenu} aria-label="Abrir menu" ref={menuButtonRef}> {/* 2. Atribuir a referência ao botão */}
+          <button onClick={toggleMenu} aria-label="Abrir menu" ref={menuButtonRef}> {/* Atribuir a referência ao botão */}
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
@@ -142,16 +142,18 @@ export default function Header() {
         <nav className={`
           md:flex md:items-center md:space-x-4
           ${isMenuOpen ? 'block' : 'hidden'}
-          
+
+          // Estilos para o menu mobile
+
           absolute md:relative
           top-full left-0 w-full md:w-auto
           bg-green-950 md:bg-transparent  // Fundo escuro no mobile para contraste.
           p-4 md:p-0
           z-20 // Para o menu mobile ficar sobre outros elementos.
         `}
-        ref={menuRef} // 3. Atribuir a referência ao elemento nav (conteúdo do menu)
+        ref={menuRef} // Atribuir a referência ao elemento nav (conteúdo do menu)
         >
-          <ul className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-start md:items-center">
+          <ul className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-end md:items-center">
             <li>
               <Link href="/" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
                 Início

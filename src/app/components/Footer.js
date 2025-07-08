@@ -11,7 +11,7 @@ export default function Footer() {
             &copy;{anoCriacao}{anoAtual > anoCriacao ? `-${anoAtual}` : ''} - VemPraCá↗. Todos os direitos reservados.
           </p>
           {/* Link para a página de Termos de Uso. */}
-          <Link href="/termos-de-uso" className="hover:underline hover:text-gray-300 transition">
+          <Link href="/termos-de-uso" className="hover:underline text-yellow-400 hover:text-gray-300 transition">
             Termos de Uso
           </Link>
         </div>
