@@ -144,24 +144,24 @@ export default function Header() {
         </div>
         {/* Menu desktop */}
         <div className="hidden lg:flex flex-1 justify-center gap-x-8">
-          <Link href="/" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Início</Link>
-          <Link href="/sobre" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Sobre</Link>
-          <Link href="/contato" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Contato</Link>
+          <Link href="/" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Início</Link>
+          <Link href="/sobre" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Sobre</Link>
+          <Link href="/contato" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Contato</Link>
           {session && (
-            <Link href="/meus-negocios" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Meus Negócios</Link>
+            <Link href="/meus-negocios" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Meus Negócios</Link>
           )}
           {!loadingAuth && session && isAdmin && (
-            <Link href="/admin/negocios" className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Painel Admin</Link>
+            <Link href="/admin/negocios" className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Painel Admin</Link>
           )}
         </div>
         {/* Botão login à direita no desktop */}
         <div className="hidden lg:flex flex-1 justify-end">
           {loadingAuth ? (
-            <span className="text-white text-base px-4 py-2">Verificando...</span>
+            <span className="text-white text-base px-4 py-1 whitespace-nowrap">Verificando...</span>
           ) : session ? (
-            <button onClick={handleLogout} className="bg-[#F0B100] hover:bg-yellow-400 text-green-800 px-4 py-2 rounded-full font-semibold w-auto transition">Sair</button>
+            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-400 text-white px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap">Sair</button>
           ) : (
-            <Link href="/login" className="bg-white hover:bg-[#F0B100] text-green-800 px-4 py-2 rounded-full font-semibold w-auto transition" onClick={handleLinkClick}>Login</Link>
+            <Link href="/login" className="bg-white hover:bg-[#F0B100] text-green-800 px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Login</Link>
           )}
         </div>
       </nav>
@@ -194,24 +194,24 @@ export default function Header() {
         </div>
         <ul className="flex flex-col gap-2 p-6 items-center">
           <li>
-            <Link href="/" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Início</Link>
+            <Link href="/" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Início</Link>
           </li>
           <li>
-            <Link href="/sobre" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Sobre</Link>
+            <Link href="/sobre" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Sobre</Link>
           </li>
           <li>
-            <Link href="/contato" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Contato</Link>
+            <Link href="/contato" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Contato</Link>
           </li>
           {session && (
             <li>
-              <Link href="/meus-negocios" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Meus Negócios</Link>
+              <Link href="/meus-negocios" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Meus Negócios</Link>
             </li>
           )}
           {!loadingAuth && session && isAdmin && (
             <li>
               <Link
                 href="/admin/negocios"
-                className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-3 rounded-lg transition"
+                className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
                 onClick={handleLinkClick}
               >
                 Painel Admin
@@ -219,14 +219,14 @@ export default function Header() {
             </li>
           )}
           {loadingAuth ? (
-            <li><span className="text-white text-lg px-4 py-3 text-center">Verificando...</span></li>
+            <li><span className="text-white text-lg px-4 py-2 text-center whitespace-nowrap">Verificando...</span></li>
           ) : session ? (
             <li>
-              <button onClick={handleLogout} className="block w-full text-center text-lg font-semibold bg-red-700 text-white px-4 py-3 rounded-lg transition">Sair</button>
+              <button onClick={handleLogout} className="block w-full text-center text-lg font-semibold bg-red-700 text-white px-4 py-2 rounded-lg transition whitespace-nowrap">Sair</button>
             </li>
           ) : (
             <li>
-              <Link href="/login" className="block w-full text-center text-lg font-semibold bg-white hover:bg-[#F0B100] text-green-800 px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Login</Link>
+              <Link href="/login" className="block w-full text-center text-lg font-semibold bg-white hover:bg-[#F0B100] text-green-800 px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Login</Link>
             </li>
           )}
         </ul>

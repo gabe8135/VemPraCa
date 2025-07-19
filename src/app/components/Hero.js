@@ -26,7 +26,7 @@ const CategoryList = () => (
 
 export default function Hero() {
   return (
-    <section className="relative isolate pt-5 h-full bg-white ">
+    <section className="relative isolate h-screen bg-white flex flex-col justify-center">
       {/* Fundo decorativo superior */}
       <div
         aria-hidden="true"
@@ -40,9 +40,9 @@ export default function Hero() {
           className="aspect-[1155/678] w-full max-w-screen-xl mx-auto bg-gradient-to-tr from-green-600 to-emerald-700 opacity-40"
         />
       </div>
-      <div className="mx-auto w-full max-w-2xl px-4 py-32 sm:py-48 lg:py-56">
-        <div className="text-center">
-          <div className="w-full overflow-x-hidden">
+      <div className="flex-1 flex flex-col justify-center items-center mx-auto w-full max-w-2xl px-4">
+        <div className="text-center w-full">
+          <div className="w-full overflow-x-hidden pb-8">
             <Marquee gradient={false} speed={40}>
               <CategoryList />
             </Marquee>
@@ -72,6 +72,7 @@ export default function Hero() {
               Saiba mais <span aria-hidden="true">→</span>
             </Link>
           </div>
+          
         </div>
       </div>
       {/* Fundo decorativo inferior, mais forte e ultrapassando a Hero */}
