@@ -295,183 +295,196 @@ export default function DetalhesNegocioPage() {
   if (!negocio) return <div className="text-center p-10">Estabelecimento não encontrado.</div>; // Segurança extra.
 
   return (
-    <div className="container mx-auto p-4 max-w-5xl"> {/* Aumentei o max-width para a página de detalhes. */}
-
-      {/* --- Meus botões de Editar/Excluir (só aparecem se o usuário puder editar/deletar) --- */}
-      {canEditOrDelete && (
-        <div className="mb-6 flex justify-end gap-4">
-          <Link
-            href={`/meu-negocio/editar/${negocio.id}`} // <<< Link CORRETO para a página de edição.
-            className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-200 disabled:opacity-50"
-            aria-disabled={isDeleting} // Desabilito visualmente se estiver deletando.
-            onClick={(e) => { if (isDeleting) e.preventDefault(); }} // Previne o clique se estiver deletando.
-          >
-            <FaEdit className="h-4 w-4" />
-            Editar
-          </Link>
-          <button
-            onClick={handleDeleteNegocio}
-            disabled={isDeleting} // Desabilito o botão se estiver deletando.
-            className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-200 disabled:opacity-50"
-          >
-            {isDeleting ? ( // Mostro um spinner e texto de "Excluindo..."
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Excluindo...
-              </>
-            ) : (
-              <>
-                <FaTrash className="h-4 w-4" />
-                Excluir
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
-      
-      {/* Título, Categoria e Avaliação do Negócio. */}
-      <div className="mb-6 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-bold mb-1 text-gray-900">{negocio.nome}</h1>
-        <p className="text-lg text-green-700 font-semibold mb-3">{negocio.nome_categoria}</p>
-        <div className="flex justify-center md:justify-start">
-          <EstrelasDisplay media={negocio.media_avaliacoes} total={negocio.total_avaliacoes} />
-        </div>
+    <div className="relative min-h-screen bg-gray-50">
+      {/* Fundo esfumaçado decorativo superior */}
+      <div
+        aria-hidden="true"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[350px] -z-10 pointer-events-none overflow-visible blur-[80px]"
+        style={{ maxWidth: 'none' }}
+      >
+        <div
+          style={{
+            clipPath:
+              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+          }}
+          className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-60"
+        />
+      </div>
+      {/* Fundo esfumaçado decorativo inferior */}
+      <div
+        aria-hidden="true"
+        className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[120vw] h-[250px] -z-10 pointer-events-none overflow-visible blur-[80px]"
+        style={{ maxWidth: 'none' }}
+      >
+        <div
+          style={{
+            clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 40%)',
+          }}
+          className="w-full h-full bg-gradient-to-tr from-emerald-700 to-green-600 opacity-50"
+        />
       </div>
 
-      {/* Meu Carrossel de Imagens. */}
-      {todasImagens.length > 0 ? (
-        <Swiper
-          modules={[Navigation, Pagination, Scrollbar, A11y, Autoplay]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }} // Autoplay com delay de 5s.
-          spaceBetween={10} slidesPerView={1} navigation // Navegação (setas).
-          pagination={{ clickable: true }} // Paginação (bolinhas clicáveis).
-          loop={todasImagens.length > 1} // Loop se tiver mais de uma imagem.
-          className="mb-8 rounded-lg shadow-xl overflow-hidden bg-gray-200 aspect-video" // Estilo e aspect ratio para consistência.
-        >
-          {todasImagens.map((imgUrl, index) => (
-            <SwiperSlide key={index}>
-              <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      ) : (
-        // Fallback se não houver imagens.
-        <div className="mb-8 bg-gray-200 aspect-video flex items-center justify-center rounded-lg shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
-      )}
-
-      {/* Grid de Informações (Descrição, Características, Contato, Localização). */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Coluna Principal (Descrição e Características). */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Descrição do Negócio. */}
-          <div>
-            <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-gray-800">Sobre o Local</h2>
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{negocio.descricao || 'Nenhuma descrição fornecida.'}</p>
+      <div className="container mx-auto p-4 max-w-5xl">
+        {/* Botões de Editar/Excluir */}
+        {canEditOrDelete && (
+          <div className="mb-6 flex justify-end gap-4">
+            <Link
+              href={`/meu-negocio/editar/${negocio.id}`}
+              className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+              aria-disabled={isDeleting}
+              onClick={(e) => { if (isDeleting) e.preventDefault(); }}
+            >
+              <FaEdit className="h-4 w-4" />
+              Editar
+            </Link>
+            <button
+              onClick={handleDeleteNegocio}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <FaTrash className="h-4 w-4" />
+                  Excluir
+                </>
+              )}
+            </button>
           </div>
+        )}
 
-          {/* Características do Negócio. */}
-          {caracteristicasNegocio.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-gray-800">Comodidades e Serviços</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
-                {caracteristicasNegocio.map((caracteristica) => {
-                  const Icon = caracteristicaIconMap[caracteristica.nome] || MdOutlineStar; // Uso um ícone padrão se não encontrar no mapa.
-                  return (
-                    <div key={caracteristica.id} className="flex items-center gap-2 text-gray-800">
-                      <Icon className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      <span>{caracteristica.nome}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        {/* Título, Categoria e Avaliação */}
+        <div className="mb-6 text-center md:text-left">
+          <h1 className="text-3xl md:text-4xl font-bold mb-1 text-green-800 drop-shadow">{negocio.nome}</h1>
+          <p className="text-lg text-emerald-700 font-semibold mb-3">{negocio.nome_categoria}</p>
+          <div className="flex justify-center md:justify-start">
+            <EstrelasDisplay media={negocio.media_avaliacoes} total={negocio.total_avaliacoes} />
+          </div>
         </div>
 
-        {/* Coluna Lateral (Contato e Localização). */}
-        <div className="space-y-5 bg-gray-50 p-5 rounded-lg shadow-md border border-gray-200 h-fit"> {/* h-fit para a coluna lateral ajustar sua altura ao conteúdo. */}
-          <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-gray-800">Contato e Localização</h2>
-          {/* Endereço e Cidade. */}
-          {negocio.endereco && (
-            <div className="flex items-start gap-2 text-gray-700">
+        {/* Carrossel de Imagens */}
+        {todasImagens.length > 0 ? (
+          <Swiper
+            modules={[Navigation, Pagination, Scrollbar, A11y, Autoplay]}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            spaceBetween={10} slidesPerView={1} navigation
+            pagination={{ clickable: true }}
+            loop={todasImagens.length > 1}
+            className="mb-8 rounded-2xl shadow-xl overflow-hidden bg-gray-100 aspect-video"
+          >
+            {todasImagens.map((imgUrl, index) => (
+              <SwiperSlide key={index}>
+                <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="mb-8 bg-gray-100 aspect-video flex items-center justify-center rounded-2xl shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
+        )}
+
+        {/* Grid de Informações */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Coluna Principal */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Descrição */}
+            <div>
+              <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Sobre o Local</h2>
+              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{negocio.descricao || 'Nenhuma descrição fornecida.'}</p>
+            </div>
+            {/* Características */}
+            {caracteristicasNegocio.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Comodidades e Serviços</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
+                  {caracteristicasNegocio.map((caracteristica) => {
+                    const Icon = caracteristicaIconMap[caracteristica.nome] || MdOutlineStar;
+                    return (
+                      <div key={caracteristica.id} className="flex items-center gap-2 text-emerald-700">
+                        <Icon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <span>{caracteristica.nome}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Coluna Lateral */}
+          <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
+            <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-green-800">Contato e Localização</h2>
+            {negocio.endereco && (
+              <div className="flex items-start gap-2 text-gray-700">
                 <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
                 <span>{negocio.endereco}, {negocio.cidade}</span>
-            </div>
-          )}
-          {!negocio.endereco && negocio.cidade && ( // Se não tiver endereço, mas tiver cidade, mostro só a cidade.
-            <div className="flex items-start gap-2 text-gray-700">
+              </div>
+            )}
+            {!negocio.endereco && negocio.cidade && (
+              <div className="flex items-start gap-2 text-gray-700">
                 <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
                 <span>{negocio.cidade}</span>
-            </div>
-          )}
-
-          {/* Telefone. */}
-          {negocio.telefone && (
-            <div className="flex items-center gap-2 text-gray-700">
-              <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">{negocio.telefone}</a>
-            </div>
-          )}
-
-          {/* Website/Rede Social. */}
-          {negocio.website && (
-            <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
-              <FaGlobe className="w-4 h-4 flex-shrink-0" />
-              <span>{negocio.website}</span>
-            </a>
-          )}
-
-           {/* Meu Botão de WhatsApp. */}
-          {whatsappLink && (
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition duration-200 w-full">
-              <FaWhatsapp className="text-xl" />
-              Conversar no WhatsApp
-            </a>
-          )}
-
-           {/* Meu Link para o Google Maps. */}
-           {(negocio.latitude && negocio.longitude) ? ( // Se tiver lat/long, uso para o link.
-              <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition duration-200 w-full">
+              </div>
+            )}
+            {negocio.telefone && (
+              <div className="flex items-center gap-2 text-gray-700">
+                <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">{negocio.telefone}</a>
+              </div>
+            )}
+            {negocio.website && (
+              <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
+                <FaGlobe className="w-4 h-4 flex-shrink-0" />
+                <span>{negocio.website}</span>
+              </a>
+            )}
+            {whatsappLink && (
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
+                <FaWhatsapp className="text-xl" />
+                Conversar no WhatsApp
+              </a>
+            )}
+            {(negocio.latitude && negocio.longitude) ? (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
                 <FaMapMarkerAlt className="h-5 w-5" />
                 Ver Localização no Mapa
               </a>
-           ) : negocio.endereco && ( // Senão, se tiver endereço, uso o endereço para o link.
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(negocio.endereco + ', ' + negocio.cidade)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition duration-200 w-full">
+            ) : negocio.endereco && (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(negocio.endereco + ', ' + negocio.cidade)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
                 <FaMapMarkerAlt className="h-5 w-5" />
                 Ver Localização Aproximada
               </a>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Minha Seção de Avaliações. */}
-      <div className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-gray-800">Avaliações</h2>
+        {/* Avaliações */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-green-800">Avaliações</h2>
           {avaliacoesNegocio.length > 0 ? (
-              <div className="space-y-5">
-                  {avaliacoesNegocio.map((avaliacao) => (
-                      <div key={avaliacao.id} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                          <div className="flex items-center justify-between mb-2">
-                              {/* Lembrete: Exibo "Usuário" por enquanto, pois não estou buscando o nome do perfil na avaliação. */}
-                              <span className="font-semibold text-gray-800">Usuário</span>
-                              <span className="text-xs text-gray-500">{new Date(avaliacao.data_avaliacao).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex items-center mb-2">
-                              {[...Array(5)].map((_, i) => ( // Crio 5 estrelas.
-                                  i < avaliacao.nota // Preencho de acordo com a nota.
-                                      ? <MdOutlineStar key={i} className="text-yellow-500 h-5 w-5" />
-                                      : <MdOutlineStarBorder key={i} className="text-yellow-500 h-5 w-5" />
-                              ))}
-                          </div>
-                          <p className="text-gray-700 text-sm leading-relaxed">{avaliacao.comentario || 'Sem comentário.'}</p>
-                      </div>
-                  ))}
-              </div>
+            <div className="space-y-5">
+              {avaliacoesNegocio.map((avaliacao) => (
+                <div key={avaliacao.id} className="bg-white/90 p-4 rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-gray-800">Usuário</span>
+                    <span className="text-xs text-gray-500">{new Date(avaliacao.data_avaliacao).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center mb-2">
+                    {[...Array(5)].map((_, i) =>
+                      i < avaliacao.nota
+                        ? <MdOutlineStar key={i} className="text-yellow-500 h-5 w-5" />
+                        : <MdOutlineStarBorder key={i} className="text-yellow-500 h-5 w-5" />
+                    )}
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed">{avaliacao.comentario || 'Sem comentário.'}</p>
+                </div>
+              ))}
+            </div>
           ) : (
-              <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
+            <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
           )}
-          {/* Formulário para nova avaliação (não mostra para o dono) */}
           {!isOwner && (
             <RatingForm
               negocioId={negocio.id}
@@ -479,52 +492,50 @@ export default function DetalhesNegocioPage() {
               onRatingSuccess={handleRatingSuccess}
             />
           )}
-      </div>
-
-      {/* --- Minha Seção de Estatísticas de Acessos (só para o proprietário/admin) --- */}
-      {canEditOrDelete && (
-        <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-lg shadow-md border border-slate-200">
-          <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
-          {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
-          {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
-          {!loadingCliques && cliqueStats && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg">
-                <thead className="bg-green-600">
-                  <tr>
-                    <th className="text-left py-3 px-4 rounded-tl-lg uppercase font-semibold text-sm text-white">Período</th>
-                    <th className="text-right py-3 px-4 rounded-tr-lg uppercase font-semibold text-sm text-white">Acessos</th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-700">
-                  <tr className="border-gray-300 border-b">
-                    <td className="text-left py-3 px-4">Total de Acessos</td>
-                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.total_acessos ?? 0}</td>
-                  </tr>
-                  <tr className="border-gray-300 border-b">
-                    <td className="text-left py-3 px-4">Acessos Hoje</td>
-                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_hoje ?? 0}</td>
-                  </tr>
-                  <tr className="border-gray-300 border-b">
-                    <td className="text-left py-3 px-4">Acessos nos Últimos 7 Dias</td>
-                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_7_dias ?? 0}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-left py-3 px-4">Acessos nos Últimos 30 Dias</td>
-                    <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_30_dias ?? 0}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-          {/* Adicionar o componente do gráfico aqui, se houver dados de estatísticas */}
-          {!loadingCliques && cliqueStats && negocio && (
-            <AcessosChart negocioId={negocio.id} />
-          )}
         </div>
-      )}
 
-
+        {/* Estatísticas de Acessos */}
+        {canEditOrDelete && (
+          <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-2xl shadow-md border border-slate-100">
+            <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
+            {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
+            {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
+            {!loadingCliques && cliqueStats && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white rounded-lg">
+                  <thead className="bg-green-600">
+                    <tr>
+                      <th className="text-left py-3 px-4 rounded-tl-lg uppercase font-semibold text-sm text-white">Período</th>
+                      <th className="text-right py-3 px-4 rounded-tr-lg uppercase font-semibold text-sm text-white">Acessos</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-700">
+                    <tr className="border-gray-300 border-b">
+                      <td className="text-left py-3 px-4">Total de Acessos</td>
+                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.total_acessos ?? 0}</td>
+                    </tr>
+                    <tr className="border-gray-300 border-b">
+                      <td className="text-left py-3 px-4">Acessos Hoje</td>
+                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_hoje ?? 0}</td>
+                    </tr>
+                    <tr className="border-gray-300 border-b">
+                      <td className="text-left py-3 px-4">Acessos nos Últimos 7 Dias</td>
+                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_7_dias ?? 0}</td>
+                    </tr>
+                    <tr>
+                      <td className="text-left py-3 px-4">Acessos nos Últimos 30 Dias</td>
+                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_30_dias ?? 0}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {!loadingCliques && cliqueStats && negocio && (
+              <AcessosChart negocioId={negocio.id} />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

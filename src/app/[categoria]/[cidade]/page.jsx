@@ -12,7 +12,8 @@ function normalize(str) {
 }
 
 export async function generateMetadata({ params }) {
-  const { categoria, cidade } = params;
+  const paramsData = await params;
+  const { categoria, cidade } = paramsData;
 
   // Buscar nome da categoria no banco para exibir corretamente no título
   const { data: categoriaData } = await supabase
@@ -47,7 +48,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CategoriaCidadePage({ params }) {
-  const { categoria, cidade } = params;
+  const paramsData = await params;
+  const { categoria, cidade } = paramsData;
 
   // 1. Buscar o ID da categoria pelo slug
   const { data: categoriaData, error: categoriaError } = await supabase

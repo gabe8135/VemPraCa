@@ -73,7 +73,7 @@ function BusinessList() {
     <>
       {/* Barra de Busca com flip-down suave */}
       <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10">
-        <h1 className="text-3xl font-bold mb-6 text-center">Encontre o que você precisa</h1>
+        <h1 className="text-3xl text-green-700 font-bold mb-6 text-center">Encontre o que você precisa</h1>
         <input
           type="text"
           placeholder="Buscar por nome ou cidade..."
@@ -81,12 +81,7 @@ function BusinessList() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        {categorySlug && displayCategoryName && (
-          <p className="text-center text-sm text-gray-600 mt-2">
-            Filtrando por: <span className="font-semibold">{displayCategoryName}</span>
-            <Link href="/#search-section" className="ml-2 text-xs text-blue-500 hover:text-red-500">(LIMPAR FILTRO)</Link>
-          </p>
-        )}
+        
       </div>
 
       {/* Seção de Categorias com fade-right */}
@@ -95,7 +90,7 @@ function BusinessList() {
       </div>
 
       {/* Lista de Negócios */}
-      <div id="businesses-list" className="container bg-gray-50 mx-auto p-4">
+      <div id="businesses-list" className="container  mx-auto p-4">
         {loading && (
           <p className="text-center text-gray-600 py-8">Carregando estabelecimentos...</p>
         )}

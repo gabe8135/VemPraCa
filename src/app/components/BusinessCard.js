@@ -14,7 +14,7 @@ export default function BusinessCard({ business }) {
   return (
     <Link
       href={`/negocio/${id}`}
-      className="group block overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 bg-white w-full max-w-full"
+      className="group block overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 w-full max-w-full"
     >
       <div className="relative w-full aspect-square overflow-hidden max-w-full">
         <Image

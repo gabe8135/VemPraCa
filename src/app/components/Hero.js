@@ -1,5 +1,5 @@
 // src/app/components/Hero.js
-import Link from 'next/link';
+import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import Image from "next/image"
 
@@ -16,7 +16,7 @@ const CategoryList = () => (
     {categories.map((category, index) => (
       <span
         key={index}
-        className=" px-4 py-2 rounded-full  mx-2 text-sm font-medium whitespace-nowrap text-white cursor-default"
+        className=" px-4 py-2 rounded-full mx-2 text-sm font-medium whitespace-nowrap text-emerald-700 cursor-default"
       >
         {category}
       </span>
@@ -25,46 +25,69 @@ const CategoryList = () => (
 );
 
 export default function Hero() {
-    return (
-    // Container principal da Hero section, ocupa a tela toda.
-    <div className="relative w-full h-screen mb-5">
-
-        {/* Imagem de fundo da Hero. */}
-        <Image src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp" alt="hero" fill priority className="brightness-95 inset-0 w-full h-full object-cover z-0 quality={80}"/>
-
-        {/* Conteúdo centralizado sobre a imagem. */}
-        {/* Este div também contém o carrossel de categorias. */}
-        <div className="pb-20 relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
-            <h1 className="text-4xl md:text-6xl font-bold font-[var(--font-playfair)] mb-4 drop-shadow-md">Bem-vindo ao VemPraCá↗</h1>
-            <p className="text-lg md:text-xl mb-8 drop-shadow-md">Encontre tudo que precisa em um só lugar!</p>
-            {/* Botão para rolar até a seção de busca. */}
-            <button onClick={() => {
-                const section = document.getElementById('search-section');
-                section?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="bg-green-500 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-300">
-                Ver Mais
-            </button>
-
-            {/* --- Minha Seção do Carrossel de Categorias --- */}
-            {/* Container externo do carrossel, com margem superior e estilização. */}
-            <div className="w-full max-w-4xl mt-10 py-3 bg-gradient-to-r from-green-600 to-emerald-700 text-white bg-opacity-90 backdrop-blur-sm overflow-hidden rounded-lg shadow-md"> {/* Adicionei max-w, rounded, shadow aqui. */}
-                <Marquee
-                    gradient={false} // Sem gradiente nas bordas do Marquee.
-                    speed={50}       // Velocidade do carrossel.
-                    pauseOnHover={true} // Pausa quando o mouse está sobre ele.
-                >
-                    {/* Renderizo a lista de categorias duas vezes para o efeito de loop contínuo. */}
-                    <div className="flex items-center justify-around px-2">
-                        <CategoryList />
-                    </div>
-                    {/* Este div vazio ajuda na transição suave do Marquee. */}
-                    <div className="w-4 flex-shrink-0"></div>
-                </Marquee>
-            </div>
-            {/* --- Fim da Seção do Carrossel --- */}
-
+  return (
+    <section className="relative isolate pt-5 h-full bg-white ">
+      {/* Fundo decorativo superior */}
+      <div
+        aria-hidden="true"
+        className="absolute left-0 right-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl w-full"
+      >
+        <div
+          style={{
+            clipPath:
+              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+          }}
+          className="aspect-[1155/678] w-full max-w-screen-xl mx-auto bg-gradient-to-tr from-green-600 to-emerald-700 opacity-40"
+        />
+      </div>
+      <div className="mx-auto w-full max-w-2xl px-4 py-32 sm:py-48 lg:py-56">
+        <div className="text-center">
+          <div className="w-full overflow-x-hidden">
+            <Marquee gradient={false} speed={40}>
+              <CategoryList />
+            </Marquee>
+          </div>
+          <div className="flex items-center justify-center mx-auto mb-8 mt-8 w-48 sm:w-64 lg:w-72 h-auto">
+            <span className="text-4xl sm:text-5xl font-bold text-green-700 font-montserrat flex items-center gap-2">
+              VemPraCá
+            </span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-700 font-montserrat sm:text-7xl mb-6 break-words">
+            Ofertas exclusivas perto de você
+          </h1>
+          <p className="mt-4 text-base sm:text-lg font-medium text-green-700 font-inter sm:text-xl break-words">
+            Descubra promoções e serviços incríveis na sua região. Aproveite agora e viva experiências únicas!
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 w-full">
+            <Link
+              href="#search-section"
+              className="rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow hover:from-emerald-700 hover:to-green-600 transition max-w-full"
+            >
+              Ver Ofertas
+            </Link>
+            <Link
+              href="/sobre"
+              className="text-lg font-semibold text-[#F0B100] hover:text-green-700 transition max-w-full"
+            >
+              Saiba mais <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
-        {/* O carrossel não está mais aqui embaixo, foi movido para dentro do conteúdo central. */}
-    </div>
-    );
+      </div>
+      {/* Fundo decorativo inferior, mais forte e ultrapassando a Hero */}
+      <div
+        aria-hidden="true"
+        className="absolute left-1/2 bottom-0 -translate-x-1/2 -z-10 transform-gpu overflow-visible blur-[80px] w-[120vw] h-[300px] pointer-events-none"
+        style={{ maxWidth: 'none' }}
+      >
+        <div
+          style={{
+            clipPath:
+              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+          }}
+          className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-50"
+        />
+      </div>
+    </section>
+  );
 }

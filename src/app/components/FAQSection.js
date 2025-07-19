@@ -39,7 +39,7 @@ export default function FAQSection() {
         </h2>
         <div className="max-w-3xl mx-auto space-y-4">
           {faqData.map((item, index) => (
-            <details key={index} className="group bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition duration-300">
+            <details key={index} className="group bg-white p-4 rounded-3xl shadow-sm hover:shadow-md transition duration-300">
               <summary className="flex justify-between items-center font-semibold text-gray-700 cursor-pointer list-none">
                 <span>{item.question}</span>
                 {/* Este ícone de seta gira quando o <details> está aberto. Melhora a UX. */}
@@ -57,7 +57,7 @@ export default function FAQSection() {
           <h3 className="text-2xl font-bold text-center text-white my-8 md:mb-12">
             Ficou com alguma duvida? não deixe de perguntar! 
           </h3>
-          <Link href="/contato/" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-md hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</Link>
+          <Link href="/contato/" className="font-bold bg-gradient-to-r from-yellow-300 to-amber-400 rounded-full hover:bg-gradient-to-r from-amber-300 to-yellow-400 text-green-600 p-2">Contato</Link>
         </div>
       </div>
     </section>

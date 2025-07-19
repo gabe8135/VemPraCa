@@ -117,102 +117,120 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-green-600 to-emerald-700 text-white p-4 relative">
-      <div className="container mx-auto flex justify-between items-center">
-
-        {/* Meu Logo */}
-        <Link href="/" onClick={handleLinkClick}>
+    <header className="bg-gradient-to-r from-green-600 to-emerald-700 shadow-sm sticky top-0 z-50 w-full">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8 w-full" aria-label="Global">
+        {/* Logo */}
+        <div className="flex flex-1">
+          <Link href="/" onClick={handleLinkClick} className="-m-1.5 p-1.5">
             <img
-              className="w-[30vw] md:w-[15vw] lg:w-[10vw] h-auto"
-              src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//LETREIRO.png"
-              alt="Vem Pra Cá ↗"
+              className="h-10 w-auto"
+              src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//VemPraCa.webp"
+              alt="Vem Pra Cá"
             />
-        </Link>
-
-        {/* Botão Sanduíche para mobile */}
-        <div className="md:hidden">
-          <button onClick={toggleMenu} aria-label="Abrir menu" ref={menuButtonRef}> {/* Atribuir a referência ao botão */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          </Link>
+        </div>
+        {/* Botão sanduíche mobile */}
+        <div className="flex lg:hidden">
+          <button
+            onClick={toggleMenu}
+            aria-label="Abrir menu"
+            ref={menuButtonRef}
+            className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:bg-white/10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
           </button>
         </div>
-
-        {/* Navegação Principal */}
-        <nav className={`
-          md:flex md:items-center md:space-x-4
-          ${isMenuOpen ? 'block' : 'hidden'}
-
-          // Estilos para o menu mobile
-
-          absolute md:relative
-          top-full left-0 w-full md:w-auto
-          bg-green-950 md:bg-transparent  // Fundo escuro no mobile para contraste.
-          p-4 md:p-0
-          z-20 // Para o menu mobile ficar sobre outros elementos.
-        `}
-        ref={menuRef} // Atribuir a referência ao elemento nav (conteúdo do menu)
-        >
-          <ul className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-end md:items-center">
+        {/* Menu desktop */}
+        <div className="hidden lg:flex flex-1 justify-center gap-x-8">
+          <Link href="/" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Início</Link>
+          <Link href="/sobre" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Sobre</Link>
+          <Link href="/contato" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Contato</Link>
+          {session && (
+            <Link href="/meus-negocios" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Meus Negócios</Link>
+          )}
+          {!loadingAuth && session && isAdmin && (
+            <Link href="/admin/negocios" className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-2 rounded-full w-auto transition" onClick={handleLinkClick}>Painel Admin</Link>
+          )}
+        </div>
+        {/* Botão login à direita no desktop */}
+        <div className="hidden lg:flex flex-1 justify-end">
+          {loadingAuth ? (
+            <span className="text-white text-base px-4 py-2">Verificando...</span>
+          ) : session ? (
+            <button onClick={handleLogout} className="bg-[#F0B100] hover:bg-yellow-400 text-green-800 px-4 py-2 rounded-full font-semibold w-auto transition">Sair</button>
+          ) : (
+            <Link href="/login" className="bg-white hover:bg-[#F0B100] text-green-800 px-4 py-2 rounded-full font-semibold w-auto transition" onClick={handleLinkClick}>Login</Link>
+          )}
+        </div>
+      </nav>
+      {/* Menu mobile */}
+      {isMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={toggleMenu}></div>
+      )}
+      <nav
+        className={`lg:hidden fixed top-0 right-0 z-50 h-full bg-gradient-to-r from-green-600 to-emerald-700 shadow-lg transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ maxWidth: '20rem', width: '100vw' }}
+        ref={menuRef}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-white/20">
+          <Link href="/" onClick={handleLinkClick} className="-m-1.5 p-1.5">
+            <img
+              className="h-10 w-auto"
+              src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//VemPraCa.webp"
+              alt="Vem Pra Cá"
+            />
+          </Link>
+          <button
+            onClick={toggleMenu}
+            aria-label="Fechar menu"
+            className="rounded-md p-2.5 text-white hover:bg-white/10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <ul className="flex flex-col gap-2 p-6 items-center">
+          <li>
+            <Link href="/" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Início</Link>
+          </li>
+          <li>
+            <Link href="/sobre" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Sobre</Link>
+          </li>
+          <li>
+            <Link href="/contato" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Contato</Link>
+          </li>
+          {session && (
             <li>
-              <Link href="/" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
-                Início
+              <Link href="/meus-negocios" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Meus Negócios</Link>
+            </li>
+          )}
+          {!loadingAuth && session && isAdmin && (
+            <li>
+              <Link
+                href="/admin/negocios"
+                className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-3 rounded-lg transition"
+                onClick={handleLinkClick}
+              >
+                Painel Admin
               </Link>
             </li>
+          )}
+          {loadingAuth ? (
+            <li><span className="text-white text-lg px-4 py-3 text-center">Verificando...</span></li>
+          ) : session ? (
             <li>
-              <Link href="/sobre" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
-                Sobre
-              </Link>
+              <button onClick={handleLogout} className="block w-full text-center text-lg font-semibold bg-red-700 text-white px-4 py-3 rounded-lg transition">Sair</button>
             </li>
+          ) : (
             <li>
-              <Link href="/contato" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
-                Contato
-              </Link>
+              <Link href="/login" className="block w-full text-center text-lg font-semibold bg-white hover:bg-[#F0B100] text-green-800 px-4 py-3 rounded-lg transition" onClick={handleLinkClick}>Login</Link>
             </li>
-            {/* Link para usuários logados */}
-            {session && (
-              <li>
-                <Link href="/meus-negocios" className="hover:bg-green-600 px-4 rounded block py-1 transition duration-250" onClick={handleLinkClick}>
-                  Meus Negócios
-                </Link>
-              </li>
-            )}
-
-            {/* Link do Painel Admin: só se estiver logado E for admin. */}
-            {!loadingAuth && session && isAdmin && (
-              <li>
-                <Link href="/admin/negocios" className="text-green-800 bg-gradient-to-r from-yellow-300 to-amber-400 hover:bg-yellow-400 px-4 rounded transition duration-250 block py-1" onClick={handleLinkClick}>
-                  Painel Admin
-                </Link>
-              </li>
-            )}
-
-            {/* Lógica de Login/Logout */}
-            {loadingAuth ? (
-              <li><span className="text-gray-400 text-sm px-4 py-1">Verificando...</span></li>
-            ) : session ? (
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition duration-250 w-full md:w-auto text-left md:text-center"
-                >
-                  Sair
-                </button>
-              </li>
-            ) : (
-              <li>
-                <Link
-                  href="/login"
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition duration-250 block w-full md:w-auto text-center"
-                  onClick={handleLinkClick}
-                >
-                  Login
-                </Link>
-              </li>
-            )}
-          </ul>
-        </nav>
-      </div>
+          )}
+        </ul>
+      </nav>
     </header>
   );
 }
