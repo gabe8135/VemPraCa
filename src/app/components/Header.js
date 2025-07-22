@@ -117,7 +117,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-green-600 to-emerald-700 shadow-sm sticky top-0 z-50 w-full">
+    <header className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl shadow-sm w-[95%] z-50 max-w-5xl mx-auto mt-2 mb-30 pt-0">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8 w-full" aria-label="Global">
         {/* Logo */}
         <div className="flex flex-1">

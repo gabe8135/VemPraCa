@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import Image from "next/image"
+import Header from "./Header"; // Certifique-se de que o caminho está correto
 
 // Minha lista de categorias para o carrossel da Hero.
 const categories = [
@@ -27,7 +28,7 @@ const CategoryList = () => (
 export default function Hero() {
   return (
     <section
-      className="relative isolate h-screen flex flex-col justify-center items-center"
+      className="relative min-h-screen w-full flex flex-col justify-start items-center overflow-hidden"
       style={{
         backgroundImage: "url('https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp')",
         backgroundSize: "cover",
@@ -37,20 +38,23 @@ export default function Hero() {
       {/* Overlay escuro para contraste */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-emerald-900/30 z-0"></div>
 
+      {/* Header embutido */}
+      <Header />
+
       {/* Conteúdo centralizado */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 pb-8">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full text-center">
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-3xl p-8 w-full text-center">
           <div className="w-full overflow-x-hidden mb-6">
             <Marquee gradient={false} speed={40}>
               <CategoryList />
             </Marquee>
           </div>
           <div className="flex items-center justify-center mx-auto mb-6 mt-2 w-48 sm:w-64 lg:w-72 h-auto">
-            <span className="text-4xl sm:text-5xl font-bold text-white font-montserrat flex items-center gap-2 drop-shadow-lg">
+            <span className="text-4xl sm:text-5xl font-bold text-green-100 font-montserrat flex items-center gap-2 drop-shadow-lg">
               VemPraCá
             </span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-100 font-montserrat sm:text-7xl mb-4 break-words drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-montserrat sm:text-7xl mb-4 break-words drop-shadow-lg">
             Ofertas exclusivas perto de você
           </h1>
           <p className="mt-2 text-base sm:text-lg font-medium text-white font-inter sm:text-xl break-words drop-shadow">
