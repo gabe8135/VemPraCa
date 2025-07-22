@@ -295,11 +295,11 @@ export default function DetalhesNegocioPage() {
   if (!negocio) return <div className="text-center p-10">Estabelecimento não encontrado.</div>; // Segurança extra.
 
   return (
-    <div className="relative min-h-screen mt-25">
+    <div className="relative min-h-screen mt-25 overflow-x-hidden">
       {/* Fundo esfumaçado decorativo superior */}
-      <div
+      {/* <div
         aria-hidden="true"
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[350px] -z-10 pointer-events-none overflow-visible blur-[80px]"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-screen -z-10 pointer-events-none overflow-visible blur-[80px]"
         style={{ maxWidth: 'none' }}
       >
         <div
@@ -309,7 +309,7 @@ export default function DetalhesNegocioPage() {
           }}
           className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-60"
         />
-      </div>
+      </div> */}
       {/* Fundo esfumaçado decorativo inferior */}
       <div
         aria-hidden="true"

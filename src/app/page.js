@@ -144,9 +144,9 @@ function BusinessList() {
   );
 }
 
-export default function Home() {
-  return (
-    <div className="overflow-x-hidden">
+export default function Sobre() {
+    return (
+    <div className="min-h-screen relative overflow-x-hidden">
       <Hero />
 
       {/* Suspense com fade-up suave */}
@@ -162,5 +162,5 @@ export default function Home() {
         <FAQSection />
       </div>
     </div>
-  );
+    );
 }

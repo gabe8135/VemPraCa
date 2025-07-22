@@ -55,64 +55,54 @@ import {
   ];
   
   export default function Sobre() {
-      return (
-      <div className=" min-h-screen py-12 mt-20 md:py-16 relative">
-        {/* Fundo esfumaçado decorativo superior */}
+  return (
+    <div className="min-h-screen overflow-x-hidden relative mt-25">
+      {/* Fundo decorativo superior */}
+      {/* <div
+        aria-hidden="true"
+        className="absolute top-[-80px] left-0 w-full h-[500px] -z-10 pointer-events-none overflow-x-hidden blur-[80px]"
+      >
         <div
-          aria-hidden="true"
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[350px] -z-10 pointer-events-none overflow-visible blur-[80px]"
           style={{
-            maxWidth: 'none'
+            clipPath:
+              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
           }}
-        >
-          <div
-            style={{
-              clipPath:
-                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-            }}
-            className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-60"
-          />
-        </div>
-        {/* Fundo esfumaçado decorativo inferior */}
+          className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-60"
+        />
+      </div> */}
+      {/* Fundo decorativo inferior */}
+      <div
+        aria-hidden="true"
+        className="absolute left-0 bottom-0 w-full h-[250px] -z-10 pointer-events-none overflow-x-hidden blur-[80px]"
+      >
         <div
-          aria-hidden="true"
-          className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[120vw] h-[250px] -z-10 pointer-events-none overflow-visible blur-[80px]"
           style={{
-            maxWidth: 'none'
+            clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 40%)',
           }}
-        >
-          <div
-            style={{
-              clipPath:
-                'polygon(0 100%, 100% 100%, 100% 0, 0 40%)',
-            }}
-            className="w-full h-full bg-gradient-to-tr from-emerald-700 to-green-600 opacity-50"
-          />
+          className="w-full h-full bg-gradient-to-tr from-emerald-700 to-green-600 opacity-50"
+        />
+      </div>
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <h1 className="text-3xl font-bold text-center text-green-800 mb-10 md:mb-14">
+          Entenda um pouco mais sobre a plataforma
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {sections.map((section, index) => {
+            const Icon = section.icon;
+            return (
+              <div key={index} className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <Icon className="text-green-600 w-6 h-6 flex-shrink-0" />
+                  <h2 className="text-xl font-semibold text-gray-800">{section.title}</h2>
+                </div>
+                <p className="text-gray-700 leading-relaxed text-sm flex-grow">
+                  {section.text}
+                </p>
+              </div>
+            );
+          })}
         </div>
-        <div className="container mx-auto px-4">
-            {/* Título principal centralizado */}
-            <h1 className="text-3xl font-bold text-center text-green-800 mb-10 md:mb-14">
-                Entenda um pouco mais sobre a plataforma
-            </h1>
-    
-            {/* Grid para organizar os blocos de conteúdo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                {sections.map((section, index) => {
-                    const Icon = section.icon;
-                    return (
-                        <div key={index} className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Icon className="text-green-600 w-6 h-6 flex-shrink-0" />
-                                <h2 className="text-xl font-semibold text-gray-800">{section.title}</h2>
-                            </div>
-                            <p className="text-gray-700 leading-relaxed text-sm flex-grow">
-                                {section.text}
-                            </p>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+      </div>
     </div>
-      );
-  }
+  );
+}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function ComoFuncionaPage() {
   return (
-    <div className="bg-white text-gray-800">
+    <div className="bg-white text-gray-800 mt-25">
       {/* 1. Cabeçalho Chamativo - Minha primeira seção, bem visual. */}
       <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
