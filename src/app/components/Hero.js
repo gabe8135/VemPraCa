@@ -28,7 +28,7 @@ const CategoryList = () => (
 export default function Hero() {
   return (
     <section
-      className="relative min-h-screen w-full flex flex-col justify-center items-center overflow-hidden"
+      className="relative h-screen w-full flex items-center justify-center overflow-hidden"
       style={{
         backgroundImage: "url('https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp')",
         backgroundSize: "cover",
@@ -46,11 +46,6 @@ export default function Hero() {
               <CategoryList />
             </Marquee>
           </div>
-          {/* <div className="flex items-center justify-center mx-auto mb-6 mt-2 w-48 sm:w-64 lg:w-72 h-auto">
-            <span className="text-4xl sm:text-5xl font-bold text-green-100 font-montserrat flex items-center gap-2 drop-shadow-lg">
-              VemPraCá
-            </span>
-          </div> */}
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-montserrat sm:text-7xl mb-4 break-words drop-shadow-lg">
             O ponto de encontro dos negócios locais
           </h1>
