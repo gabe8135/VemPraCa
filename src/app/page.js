@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -23,6 +23,8 @@ function BusinessList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [allCategories, setAllCategories] = useState([]);
+  const isFirstRender = useRef(true);
+  const prevCategorySlug = useRef(categorySlug);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -55,8 +57,14 @@ function BusinessList() {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      // Scroll para a barra de pesquisa após carregar os negócios
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevCategorySlug.current = categorySlug;
+      return; // Não faz scroll no primeiro carregamento
+    }
+    // Só faz scroll se a categoria mudou (não por loading ou busca)
+    if (!loading && prevCategorySlug.current !== categorySlug) {
+      prevCategorySlug.current = categorySlug;
       const searchSection = document.getElementById('search-section');
       if (searchSection) {
         const header = document.querySelector('header');
