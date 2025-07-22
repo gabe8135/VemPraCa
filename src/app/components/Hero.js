@@ -16,7 +16,7 @@ const CategoryList = () => (
     {categories.map((category, index) => (
       <span
         key={index}
-        className=" px-4 py-2 rounded-full mx-2 text-sm font-medium whitespace-nowrap text-emerald-700 cursor-default"
+        className=" px-4 py-2 rounded-full mx-2 text-sm font-medium whitespace-nowrap text-white cursor-default"
       >
         {category}
       </span>
@@ -26,42 +26,41 @@ const CategoryList = () => (
 
 export default function Hero() {
   return (
-    <section className="relative isolate h-screen bg-white flex flex-col justify-center">
-      {/* Fundo decorativo superior */}
-      <div
-        aria-hidden="true"
-        className="absolute left-0 right-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl w-full"
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="aspect-[1155/678] w-full max-w-screen-xl mx-auto bg-gradient-to-tr from-green-600 to-emerald-700 opacity-40"
-        />
-      </div>
-      <div className="flex-1 flex flex-col justify-center items-center mx-auto w-full max-w-2xl px-4">
-        <div className="text-center w-full">
-          <div className="w-full overflow-x-hidden pb-8">
+    <section
+      className="relative isolate h-screen flex flex-col justify-center items-center"
+      style={{
+        backgroundImage: "url('https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay escuro para contraste */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-emerald-900/30 z-0"></div>
+
+      {/* Conteúdo centralizado */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 pb-8">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full text-center">
+          <div className="w-full overflow-x-hidden mb-6">
             <Marquee gradient={false} speed={40}>
               <CategoryList />
             </Marquee>
           </div>
-          <div className="flex items-center justify-center mx-auto mb-8 mt-8 w-48 sm:w-64 lg:w-72 h-auto">
-            <span className="text-4xl sm:text-5xl font-bold text-green-700 font-montserrat flex items-center gap-2">
+          <div className="flex items-center justify-center mx-auto mb-6 mt-2 w-48 sm:w-64 lg:w-72 h-auto">
+            <span className="text-4xl sm:text-5xl font-bold text-white font-montserrat flex items-center gap-2 drop-shadow-lg">
               VemPraCá
             </span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-700 font-montserrat sm:text-7xl mb-6 break-words">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-100 font-montserrat sm:text-7xl mb-4 break-words drop-shadow-lg">
             Ofertas exclusivas perto de você
           </h1>
-          <p className="mt-4 text-base sm:text-lg font-medium text-green-700 font-inter sm:text-xl break-words">
-            Descubra promoções e serviços incríveis na sua região. Aproveite agora e viva experiências únicas!
+          <p className="mt-2 text-base sm:text-lg font-medium text-white font-inter sm:text-xl break-words drop-shadow">
+            Descubra promoções e serviços incríveis na sua região.<br />
+            Aproveite agora e viva experiências únicas!
           </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 w-full">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 w-full">
             <Link
               href="#search-section"
-              className="rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow hover:from-emerald-700 hover:to-green-600 transition max-w-full"
+              className="rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-emerald-700 hover:to-green-600 transition max-w-full"
             >
               Ver Ofertas
             </Link>
@@ -72,22 +71,7 @@ export default function Hero() {
               Saiba mais <span aria-hidden="true">→</span>
             </Link>
           </div>
-          
         </div>
-      </div>
-      {/* Fundo decorativo inferior, mais forte e ultrapassando a Hero */}
-      <div
-        aria-hidden="true"
-        className="absolute left-1/2 bottom-0 -translate-x-1/2 -z-10 transform-gpu overflow-visible blur-[80px] w-[120vw] h-[300px] pointer-events-none"
-        style={{ maxWidth: 'none' }}
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-50"
-        />
       </div>
     </section>
   );
