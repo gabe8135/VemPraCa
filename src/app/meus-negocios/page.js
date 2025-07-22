@@ -175,19 +175,19 @@ export default function MeusNegociosPage() {
   }
   
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-8">
+    <div className="max-w-5xl mt-25 mx-auto p-6 md:p-8">
       <div className="flex justify-between items-center mb-8 pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Meus Negocios</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-green-800">Meus Negocios</h1>
         <Link href="/meu-negocio" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-2 mx-1 rounded-md transition-colors button-primary">
           + Novo Cadastro
         </Link>
       </div>
 
-      {loading && <p className="text-center text-gray-600">Carregando seus estabelecimentos...</p>}
+      {loading && <p className="text-center text-green-600">Carregando seus estabelecimentos...</p>}
       {error && <p className="text-center text-red-500 bg-red-100 p-3 rounded-md">{error}</p>}
       
       {!loading && !error && negocios.length === 0 && (
-        <p className="text-center text-gray-600 bg-blue-50 p-6 rounded-md">Você ainda não cadastrou nenhum estabelecimento. <Link href="/meu-negocio" className="text-green-600 hover:text-green-700 font-semibold">Clique aqui para cadastrar seu primeiro!</Link></p>
+        <p className="text-center text-green-600 bg-blue-50 p-6 rounded-md">Você ainda não cadastrou nenhum estabelecimento. <Link href="/meu-negocio" className="text-green-600 hover:text-green-700 font-semibold">Clique aqui para cadastrar seu primeiro!</Link></p>
       )}
 
       {!loading && !error && negocios.length > 0 && (

@@ -54,6 +54,19 @@ function BusinessList() {
     fetchInitialData();
   }, []);
 
+  useEffect(() => {
+    if (!loading) {
+      // Scroll para a barra de pesquisa após carregar os negócios
+      const searchSection = document.getElementById('search-section');
+      if (searchSection) {
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.offsetHeight : 0;
+        const top = searchSection.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
+  }, [loading, categorySlug]); // Executa quando loading muda ou categoria muda
+
   const filteredBusinesses = businesses.filter(business => {
     const matchesCategory = !categorySlug || (business.slug_categoria === categorySlug);
     const matchesSearchTerm = searchTerm === '' ||

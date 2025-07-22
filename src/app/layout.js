@@ -69,7 +69,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="scroll-smooth antialiased min-h-screen bg-white text-black flex flex-col">
-        {/* <Header /> */}
+        <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
         <SpeedInsights />

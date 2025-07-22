@@ -56,7 +56,7 @@ import {
   
   export default function Sobre() {
       return (
-      <div className=" min-h-screen py-12 md:py-16 relative">
+      <div className=" min-h-screen py-12 mt-20 md:py-16 relative">
         {/* Fundo esfumaçado decorativo superior */}
         <div
           aria-hidden="true"

@@ -28,7 +28,7 @@ async function handleSubmit(e) {
 }
 
 return (
-    <div className="min-h-screen px-[5vw] md:px-[15vw] lg:px-[15vw] py-12 bg-gray-50 rounded-2xl flex flex-col items-center">
+    <div className="min-h-screen px-[5vw] md:px-[15vw] lg:px-[15vw] py-12 bg-gray-50 rounded-2xl flex flex-col mt-20 items-center">
     <h1 className="text-4xl font-bold text-center text-gray-800 mb-4">
         Fale com a gente
     </h1>

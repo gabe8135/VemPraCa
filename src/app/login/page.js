@@ -153,7 +153,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col bg-gray-50 items-center justify-center min-h-[calc(100vh-200px)] px-4 sm:px-6 lg:px-8 py-12">
+    <div className="flex flex-col bg-gray-50 items-center justify-center min-h-[calc(100vh-200px)] mt-20 px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
           {isSignUp ? 'Criar sua Conta' : 'Acessar sua Conta'}
