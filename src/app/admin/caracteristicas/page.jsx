@@ -415,16 +415,21 @@ export default function AdminCaracteristicasPage() {
                 // Aqui eu monto a string com os nomes das categorias associadas.
                 const associatedCategoryNames = caracteristica.caracteristica_categorias
                   ?.map(cc => allCategories.find(cat => cat.id === cc.categoria_id)?.nome)
-                  // Isso aqui é pra remover `undefined` caso alguma categoria associada não seja encontrada
-                  // na minha lista `allCategories` (não deveria acontecer, mas é uma segurança).
                   .filter(Boolean)
-                  // Se não tiver categorias associadas, mostro 'Global'.
                   .join(', ') || <span className="text-gray-400 italic">Global</span>;
 
                 return (
                   <tr key={caracteristica.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{caracteristica.nome}</td>
-                    <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">{associatedCategoryNames}</td>
+                    <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
+                      {caracteristica.caracteristica_categorias?.length > 0
+                        ? caracteristica.caracteristica_categorias
+                            .map(cc => allCategories.find(cat => cat.id === cc.categoria_id)?.nome)
+                            .filter(Boolean)
+                            .join(', ')
+                        : <span className="text-gray-400 italic">Global</span>
+                      }
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       <button
                         onClick={() => handleEditClick(caracteristica)}

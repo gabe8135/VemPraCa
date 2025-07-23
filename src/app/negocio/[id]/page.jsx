@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
 // Meus Ícones (Posso adicionar mais conforme necessário).
 import { FaWhatsapp, FaWifi, FaParking, FaDog, FaConciergeBell, FaWheelchair, FaCampground, FaMapMarkerAlt, FaEdit, FaGlobe, FaTrash } from 'react-icons/fa';
-import { FiPhone, FiCoffee, FiWind } from 'react-icons/fi';
+import { FiPhone, FiCoffee, FiWind, FiMail } from 'react-icons/fi';
 import { MdRestaurant, MdAcUnit, MdPool, MdRoomService, MdOutlineStar, MdOutlineStarBorder } from 'react-icons/md';
 // Swiper para o carrossel de imagens.
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -386,30 +386,46 @@ export default function DetalhesNegocioPage() {
           {/* Coluna Lateral */}
           <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
             <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-green-800">Contato e Localização</h2>
+            
             {negocio.endereco && (
               <div className="flex items-start gap-2 text-gray-700">
                 <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
                 <span>{negocio.endereco}, {negocio.cidade}</span>
               </div>
             )}
+            
             {!negocio.endereco && negocio.cidade && (
               <div className="flex items-start gap-2 text-gray-700">
                 <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
                 <span>{negocio.cidade}</span>
               </div>
             )}
+            
+            {negocio.email_contato && (
+              <div className="flex items-center gap-2 text-gray-700">
+                <FiMail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <a href={`mailto:${negocio.email_contato}`} className="hover:text-green-700 break-all">
+                  {negocio.email_contato}
+                </a>
+              </div>
+            )}
+            
             {negocio.telefone && (
               <div className="flex items-center gap-2 text-gray-700">
                 <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">{negocio.telefone}</a>
+                <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">
+                  {negocio.telefone}
+                </a>
               </div>
             )}
+            
             {negocio.website && (
               <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
                 <FaGlobe className="w-4 h-4 flex-shrink-0" />
                 <span>{negocio.website}</span>
               </a>
             )}
+            
             {whatsappLink && (
               <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
                 <FaWhatsapp className="text-xl" />

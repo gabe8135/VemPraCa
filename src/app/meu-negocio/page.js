@@ -56,8 +56,8 @@ export default function MeuNegocioPage() {
   
   // --- Meus Estados para o Formulário de Cadastro ---
   const [formState, setFormState] = useState({
-    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', // Adicionado proprietario
-    telefone: '', whatsapp: '', website: '',
+    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
+    telefone: '', whatsapp: '', website: '', email_contato: '' // NOVO CAMPO ADICIONADO
   });
   const [categorias, setCategorias] = useState([]);
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
@@ -390,7 +390,8 @@ export default function MeuNegocioPage() {
       const negocioData = {
         nome: formState.nome, proprietario: formState.proprietario, categoria_id: formState.categoria_id, descricao: formState.descricao || null, // Adicionado proprietario
         endereco: formState.endereco || null, cidade: formState.cidade, telefone: formState.telefone || null,
-        whatsapp: formState.whatsapp || null, website: formState.website || null, imagens: finalImageUrls,
+        whatsapp: formState.whatsapp || null, website: formState.website || null, email_contato: formState.email_contato || null, // NOVO CAMPO
+        imagens: finalImageUrls,
         usuario_id: user.id, ativo: false // Negócios começam inativos.
       };
 
@@ -426,7 +427,18 @@ export default function MeuNegocioPage() {
       // Sucesso!
       setSubmitStatus({ message: 'Cadastro realizado com sucesso! Redirecionando...', type: 'success' });
       // Limpo o formulário.
-      setFormState({ nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', telefone: '', whatsapp: '', website: '' }); // Limpando proprietario também
+      setFormState({ 
+        nome: '', 
+        proprietario: '', 
+        categoria_id: '', 
+        descricao: '', 
+        endereco: '', 
+        cidade: '', 
+        telefone: '', 
+        whatsapp: '', 
+        website: '',
+        email_contato: '' // NOVO CAMPO
+      });
       setImageFiles([]); setMainImageIndex(0); setSelectedCaracteristicas([]);
       // Redireciono para a página de detalhes do negócio recém-criado.
       setTimeout(() => { router.push(`/negocio/${newNegocioId}`); }, 2500);
@@ -497,7 +509,7 @@ export default function MeuNegocioPage() {
   }
 
   return ( // O formulário é sempre renderizado se loadingPage for false (usuário logado)
-      <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative">
+      <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 mt-25 relative">
         {/* 2. Adicionar o LoadingModal */}
         <LoadingModal
           isOpen={isSubmitting || (submitStatus.type === 'success' && !!submitStatus.message)}
@@ -556,9 +568,35 @@ export default function MeuNegocioPage() {
               <InputField name="endereco" label="Endereço Completo (Opcional)" value={formState.endereco} onChange={handleChange} disabled={isSubmitting} placeholder="Rua, Número, Bairro..." />
               <InputField name="cidade" label="Cidade" value={formState.cidade} onChange={handleChange} required disabled={isSubmitting} placeholder="Cidade onde fica o negócio" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField name="telefone" label="Telefone Fixo (Opcional)" value={formState.telefone} onChange={handleChange} disabled={isSubmitting} type="tel" placeholder="(XX) XXXX-XXXX" />
-              <InputField name="whatsapp" label="WhatsApp (Opcional, com DDD)" value={formState.whatsapp} onChange={handleChange} disabled={isSubmitting} type="tel" placeholder="55XX9XXXXXXXX" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <InputField 
+                name="telefone" 
+                label="Telefone Fixo (Opcional)" 
+                value={formState.telefone} 
+                onChange={handleChange} 
+                disabled={isSubmitting} 
+                type="tel" 
+                placeholder="(XX) XXXX-XXXX" 
+              />
+              <InputField 
+                name="whatsapp" 
+                label="WhatsApp (Opcional, com DDD)" 
+                value={formState.whatsapp} 
+                onChange={handleChange} 
+                disabled={isSubmitting} 
+                type="tel" 
+                placeholder="55XX9XXXXXXXX" 
+              />
+              <InputField 
+                name="email_contato" 
+                label="Email de Contato" 
+                value={formState.email_contato} 
+                onChange={handleChange} 
+                required 
+                disabled={isSubmitting} 
+                type="email" 
+                placeholder="contato@seunegogio.com" 
+              />
             </div>
             <InputField name="website" label="Website ou Rede Social (Opcional)" value={formState.website} onChange={handleChange} disabled={isSubmitting} type="url" placeholder="https://..." />
 

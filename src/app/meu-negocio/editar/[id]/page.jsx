@@ -38,8 +38,8 @@ export default function EditarNegocioPage() {
 
   // --- Meus Estados para o Formulário ---
   const [formState, setFormState] = useState({
-    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '', // Adicionado proprietario
-    telefone: '', whatsapp: '', website: '',
+    nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
+    telefone: '', whatsapp: '', website: '', email_contato: '' // NOVO CAMPO ADICIONADO
   });
   const [categorias, setCategorias] = useState([]);
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
@@ -135,6 +135,7 @@ export default function EditarNegocioPage() {
           telefone: negocioData.telefone || '',
           whatsapp: negocioData.whatsapp || '',
           website: negocioData.website || '',
+          email_contato: negocioData.email_contato || '', // NOVO CAMPO
         });
 
         // 6. Preencho as características que já estavam selecionadas para este negócio.
@@ -410,6 +411,7 @@ export default function EditarNegocioPage() {
         telefone: formState.telefone || null,
         whatsapp: formState.whatsapp || null,
         website: formState.website || null,
+        email_contato: formState.email_contato || null, // NOVO CAMPO
         imagens: finalImageUrls, // Salvo o array de URLs atualizado.
         data_atualizacao: new Date().toISOString(), // Marco a data da atualização.
       };
@@ -553,7 +555,7 @@ export default function EditarNegocioPage() {
   if (!negocioOriginal && !loading) return <div className="p-6 text-red-600 bg-red-100 rounded-md text-center">{submitStatus.message || 'Erro ao carregar estabelecimento.'}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative">
+    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative mt-25">
       {/* 2. Adicionar o LoadingModal */}
       <LoadingModal
         isOpen={isSubmitting || (submitStatus.type === 'success' && !!submitStatus.message)}
@@ -610,10 +612,36 @@ export default function EditarNegocioPage() {
             <InputField name="endereco" label="Endereço Completo (Opcional)" value={formState.endereco} onChange={handleChange} disabled={isSubmitting} placeholder="Rua, Número, Bairro..." />
             <InputField name="cidade" label="Cidade" value={formState.cidade} onChange={handleChange} required disabled={isSubmitting} />
           </div>
-          {/* Seção 4: Contato */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField name="telefone" label="Telefone Fixo (Opcional)" value={formState.telefone} onChange={handleChange} disabled={isSubmitting} type="tel" placeholder="(XX) XXXX-XXXX"/>
-            <InputField name="whatsapp" label="WhatsApp (Opcional)" value={formState.whatsapp} onChange={handleChange} disabled={isSubmitting} type="tel" placeholder="(XX) 9XXXX-XXXX"/>
+          {/* Seção 4: Contato - ATUALIZADA */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <InputField 
+              name="telefone" 
+              label="Telefone Fixo (Opcional)" 
+              value={formState.telefone} 
+              onChange={handleChange} 
+              disabled={isSubmitting} 
+              type="tel" 
+              placeholder="(XX) XXXX-XXXX" 
+            />
+            <InputField 
+              name="whatsapp" 
+              label="WhatsApp (Opcional, com DDD)" 
+              value={formState.whatsapp} 
+              onChange={handleChange} 
+              disabled={isSubmitting} 
+              type="tel" 
+              placeholder="55XX9XXXXXXXX" 
+            />
+            <InputField 
+              name="email_contato" 
+              label="Email de Contato" 
+              value={formState.email_contato} 
+              onChange={handleChange} 
+              required 
+              disabled={isSubmitting} 
+              type="email" 
+              placeholder="contato@seunegogio.com" 
+            />
           </div>
           {/* Seção 5: Website */}
           <InputField name="website" label="Website ou Rede Social (Opcional)" value={formState.website} onChange={handleChange} disabled={isSubmitting} type="url" placeholder="https://..."/>
@@ -704,20 +732,20 @@ export default function EditarNegocioPage() {
                     {/* Mapeio a lista JÁ FILTRADA de características. */}
                     {filteredCharacteristics.map((item) => (
                       <div key={item.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`caracteristica-${item.id}`}
-                          value={item.id}
-                          checked={selectedCaracteristicas.includes(item.id)}
-                          onChange={() => handleCaracteristicaChange(item.id)}
-                          disabled={isSubmitting}
-                          className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
-                        />
-                        <label htmlFor={`caracteristica-${item.id}`} className="ml-2 block text-sm text-gray-900 cursor-pointer">
-                          {item.nome}
-                        </label>
-                      </div>
-                    ))}
+    <input
+      type="checkbox"
+      id={`caracteristica-${item.id}`}
+      value={item.id}
+      checked={selectedCaracteristicas.includes(item.id)}
+      onChange={() => handleCaracteristicaChange(item.id)}
+      disabled={isSubmitting}
+      className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+    />
+    <label htmlFor={`caracteristica-${item.id}`} className="ml-2 block text-sm text-gray-900 cursor-pointer">
+      {item.nome}
+    </label>
+  </div>
+))}
                   </div>
                 )}
 

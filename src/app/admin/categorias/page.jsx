@@ -196,12 +196,22 @@ export default function AdminCategoriasPage() {
 
   // Para deletar uma categoria.
   const handleDeleteCategory = async (id) => {
-    // Confirmação básica antes de deletar.
-    if (!window.confirm('Tem certeza que deseja excluir esta categoria? Isso pode afetar negócios associados.')) {
-      return;
-    }
+    if (!window.confirm('Tem certeza que deseja excluir esta categoria?')) return;
     setError('');
     try {
+      // Verifica se há negócios vinculados à categoria
+      const { data: negociosVinculados, error: negociosError } = await supabase
+        .from('negocios')
+        .select('id')
+        .eq('categoria_id', id);
+
+      if (negociosError) throw negociosError;
+      if (negociosVinculados && negociosVinculados.length > 0) {
+        setError('Não é possível excluir: existem negócios vinculados a esta categoria.');
+        return;
+      }
+
+      // Agora pode deletar a categoria
       const { error: deleteError } = await supabase
         .from('categorias')
         .delete()

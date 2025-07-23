@@ -9,15 +9,17 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { href: '/admin/negocios', label: 'Estabelecimentos' },
+    { href: '/admin/gerenciar-negocios', label: 'Gerenciar Negócios' },
+    { href: '/admin/cadastrar-negocio', label: 'Cadastrar Negócio' },
     { href: '/admin/categorias', label: 'Categorias' },
     { href: '/admin/caracteristicas', label: 'Características' },
     // Se eu precisar de mais seções no admin, adiciono os links aqui.
   ];
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen mt-25">
       {/* Minha barra lateral de navegação do admin. */}
-      <aside className="w-64 bg-green-600 text-white text-white p-4 flex flex-col">
+      <aside className="w-64 bg-green-600 text-white text-white rounded-tr-3xl p-4 flex flex-col">
         <h2 className="text-xl font-semibold mb-6">Painel Admin</h2>
         <nav className="flex-grow">
           <ul>

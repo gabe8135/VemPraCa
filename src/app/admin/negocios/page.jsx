@@ -63,23 +63,56 @@ export default function AdminNegociosPage() {
       // 3. Se for admin, busco TODOS os negócios.
       try {
         const { data, error: fetchError } = await supabase
-          .from('negocios') // Tabela principal dos negócios.
-          .select(` 
+          .from('negocios')
+          .select(`
             id,
             nome,
             cidade,
             ativo,
             usuario_id,
             imagens,
-            proprietario
+            proprietario,
+            email_proprietario,
+            criado_por_admin,
+            categorias(nome)
           `)
           .order('nome', { ascending: true });
 
         if (fetchError) throw fetchError;
-        setBusinesses(data || []);
+
+        // Se temos negócios, buscar os perfis dos usuários separadamente
+        if (data && data.length > 0) {
+          const userIds = data
+            .map(n => n.usuario_id)
+            .filter(Boolean); // Remove valores null/undefined
+
+          let profilesData = [];
+          if (userIds.length > 0) {
+            const { data: profiles, error: profilesError } = await supabase
+              .from('profiles')
+              .select('id, nome_proprietario, email')
+              .in('id', userIds);
+
+            if (profilesError) {
+              console.warn('Erro ao buscar profiles:', profilesError);
+            } else {
+              profilesData = profiles || [];
+            }
+          }
+
+          // Combinar os dados manualmente
+          const businessesComProfiles = data.map(business => ({
+            ...business,
+            profiles: profilesData.find(p => p.id === business.usuario_id) || null
+          }));
+
+          setBusinesses(businessesComProfiles);
+        } else {
+          setBusinesses(data || []);
+        }
 
       } catch (err) {
-        console.error("Erro detalhado ao buscar negócios:", err); // Logamos o objeto de erro completo para inspeção.
+        console.error("Erro detalhado ao buscar negócios:", err);
         let errorMessage = "Ocorreu um erro desconhecido ao buscar os estabelecimentos.";
         if (err && typeof err.message === 'string' && err.message.trim() !== '') {
           errorMessage = err.message;
@@ -199,8 +232,9 @@ export default function AdminNegociosPage() {
           <thead className="bg-gradient-to-r from-yellow-300 to-amber-400">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Nome</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Proprietário</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Cidade</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Nome Proprietário</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Vinculação</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Status</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Ações</th>
             </tr>
@@ -208,7 +242,7 @@ export default function AdminNegociosPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {businesses.length === 0 && (
               <tr>
-                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">Nenhum estabelecimento cadastrado.</td>
+                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Nenhum estabelecimento cadastrado.</td>
               </tr>
             )}
             {businesses.map((business) => (
@@ -220,9 +254,38 @@ export default function AdminNegociosPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{business.nome}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.cidade}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {business.proprietario || 'N/A'}
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {business.proprietario || 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {business.email_proprietario || 'Sem email'}
+                    </div>
+                    {/* Mostrar se tem usuário da plataforma vinculado */}
+                    {business.usuario_id && business.profiles && (
+                      <div className="text-xs text-green-600 mt-1">
+                        👤 Vinculado: {business.profiles.nome_proprietario}
+                      </div>
+                    )}
+                    {business.criado_por_admin && (
+                      <div className="text-xs text-blue-600">
+                        🔧 Criado pelo admin
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.cidade}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  {business.usuario_id ? (
+                    <span className="text-xs inline-flex items-center font-semibold leading-sm uppercase px-2 py-1 rounded-full bg-green-100 text-green-800">
+                      Vinculado
+                    </span>
+                  ) : (
+                    <span className="text-xs inline-flex items-center font-semibold leading-sm uppercase px-2 py-1 rounded-full bg-red-100 text-red-800">
+                      Não vinculado
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

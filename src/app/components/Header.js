@@ -151,7 +151,13 @@ export default function Header() {
             <Link href="/meus-negocios" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Meus Negócios</Link>
           )}
           {!loadingAuth && session && isAdmin && (
-            <Link href="/admin/negocios" className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Painel Admin</Link>
+            <Link
+              href="/admin/negocios" // <-- ALTERADO!
+              className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Painel Admin
+            </Link>
           )}
         </div>
         {/* Botão login à direita no desktop */}
@@ -210,7 +216,7 @@ export default function Header() {
           {!loadingAuth && session && isAdmin && (
             <li>
               <Link
-                href="/admin/negocios"
+                href="/admin/negocios" // <-- ALTERADO!
                 className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
                 onClick={handleLinkClick}
               >
