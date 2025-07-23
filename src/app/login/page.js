@@ -75,11 +75,11 @@ export default function Login() {
 
         if (signUpError) throw signUpError;
 
-        // Atualiza o nome_proprietario na tabela profiles
+        // Atualiza o nome_proprietario e email na tabela profiles
         if (data?.user?.id) {
           await supabase
             .from('profiles')
-            .update({ nome_proprietario: nome })
+            .update({ nome_proprietario: nome, email: email })
             .eq('id', data.user.id);
         }
 

@@ -8,15 +8,28 @@ import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 
 serve(async (req) => {
   const { record } = await req.json();
-
-  // record vai conter os dados do usuário recém-criado na tabela auth.users
   const userId = record.id;
-  const email = record.email ?? "Email não informado";
+
+  // Busca dados do perfil na tabela profiles
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  const profileRes = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userId}`, {
+    headers: {
+      "apikey": supabaseKey,
+      "Authorization": `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+  });
+  const profileData = await profileRes.json();
+  const nome = profileData[0]?.nome_proprietario ?? "Nome não informado";
+  const email = profileData[0]?.email ?? "Email não informado";
 
   const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
 
-  const mensagem = `🚀 Um novo usuário se cadastrou na plataforma VemPraCa!`;
+  const mensagem = `🚀 Novo usuário cadastrado na plataforma VemPraCa!\n\n👤 Nome: ${nome}\n✉️ Email: ${email}`;
 
   const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 

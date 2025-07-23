@@ -70,6 +70,9 @@ export default function AdminCadastrarNegocioPage() {
   const [submitStatus, setSubmitStatus] = useState({ message: '', type: '' });
   const [uploadError, setUploadError] = useState('');
   const [loadingInitialData, setLoadingInitialData] = useState(true);
+  const [estadoSelecionado, setEstadoSelecionado] = useState('');
+  const [cidades, setCidades] = useState([]);
+  const [estados, setEstados] = useState([]);
 
   const checkUserRole = useCallback(async (userId) => {
     if (!userId) return false;
@@ -111,6 +114,69 @@ export default function AdminCadastrarNegocioPage() {
 
     initializePage();
   }, [router, checkUserRole]);
+
+  // --- EFEITO PARA CARREGAR ESTADOS (CORRIGIDO COM LOGS) ---
+  useEffect(() => {
+    const carregarEstados = async () => {
+      console.log('🌎 Iniciando carregamento dos estados...');
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Estados carregados:', data.length, 'estados');
+        setEstados(data || []);
+      } catch (error) {
+        console.error('❌ Erro ao carregar estados:', error);
+        setEstados([]);
+        setSubmitStatus({ 
+          message: 'Erro ao carregar estados. Tente recarregar a página.', 
+          type: 'warning' 
+        });
+      }
+    };
+
+    carregarEstados();
+  }, []);
+
+  // --- EFEITO PARA CARREGAR CIDADES QUANDO O ESTADO MUDAR (CORRIGIDO) ---
+  useEffect(() => {
+    const carregarCidades = async () => {
+      if (!estadoSelecionado) {
+        console.log('🏙️ Nenhum estado selecionado, limpando cidades');
+        setCidades([]);
+        setFormState(prev => ({ ...prev, cidade: '' }));
+        return;
+      }
+
+      console.log('🏙️ Carregando cidades para o estado ID:', estadoSelecionado);
+      try {
+        const response = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios?orderBy=nome`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Cidades carregadas:', data.length, 'cidades');
+        setCidades(data || []);
+      } catch (error) {
+        console.error('❌ Erro ao carregar cidades:', error);
+        setCidades([]);
+        setSubmitStatus({ 
+          message: 'Erro ao carregar cidades. Tente selecionar outro estado.', 
+          type: 'warning' 
+        });
+      }
+    };
+
+    carregarCidades();
+  }, [estadoSelecionado]);
 
   const fetchInitialFormData = useCallback(async () => {
     setLoadingInitialData(true);
@@ -581,10 +647,63 @@ export default function AdminCadastrarNegocioPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div>
+              <label htmlFor="estado" className="block text-base font-semibold text-gray-700 mb-2">
+                Estado <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="estado"
+                name="estado"
+                value={estadoSelecionado}
+                onChange={e => {
+                  console.log('🌎 Estado selecionado:', e.target.value);
+                  setEstadoSelecionado(e.target.value);
+                }}
+                required
+                disabled={isSubmitting}
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              >
+                <option value="">Selecione o estado</option>
+                {estados.map(est => (
+                  <option key={est.id} value={est.id}>{est.nome}</option>
+                ))}
+              </select>
+              {estados.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">Carregando estados...</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="cidade" className="block text-base font-semibold text-gray-700 mb-2">
+                Cidade <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="cidade"
+                name="cidade"
+                value={formState.cidade}
+                onChange={e => {
+                  console.log('🏙️ Cidade selecionada:', e.target.value);
+                  setFormState(prev => ({ ...prev, cidade: e.target.value }));
+                }}
+                required
+                disabled={isSubmitting || !estadoSelecionado}
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              >
+                <option value="">Selecione a cidade</option>
+                {cidades.map(cidade => (
+                  <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
+                ))}
+              </select>
+              {!estadoSelecionado && (
+                <p className="text-xs text-gray-500 mt-1">Selecione um estado primeiro</p>
+              )}
+              {estadoSelecionado && cidades.length === 0 && (
+                <p className="text-xs text-gray-500 mt-1">Carregando cidades...</p>
+              )}
+            </div>
             <div>
               <label htmlFor="endereco" className="block text-base font-semibold text-gray-700 mb-2">
-                Endereço Completo <span className="text-gray-400">(Opcional)</span>
+                Endereço (Rua, Número, Bairro, etc)
               </label>
               <input
                 type="text"
@@ -593,23 +712,7 @@ export default function AdminCadastrarNegocioPage() {
                 value={formState.endereco}
                 onChange={handleChange}
                 disabled={isSubmitting}
-                placeholder="Rua, Número, Bairro..."
-                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
-              />
-            </div>
-            <div>
-              <label htmlFor="cidade" className="block text-base font-semibold text-gray-700 mb-2">
-                Cidade <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="cidade"
-                id="cidade"
-                value={formState.cidade}
-                onChange={handleChange}
-                required
-                disabled={isSubmitting}
-                placeholder="Cidade onde fica o negócio"
+                placeholder="Rua, Número, Bairro, Complemento"
                 className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
               />
             </div>

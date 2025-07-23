@@ -1,7 +1,7 @@
 // src/app/meu-negocio/page.js
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react'; // Lembrete: Adicionei o useMemo aqui.
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid'; 
@@ -72,6 +72,9 @@ export default function MeuNegocioPage() {
   const [submitStatus, setSubmitStatus] = useState({ message: '', type: '' });
   const [uploadError, setUploadError] = useState('');
   const [loadingInitialData, setLoadingInitialData] = useState(true); // Loading para os dados iniciais do formulário (categorias, características).
+  const [estadoSelecionado, setEstadoSelecionado] = useState('');
+  const [cidades, setCidades] = useState([]);
+  const [estados, setEstados] = useState([]);
 
   // --- Efeito Principal: Verifica se o usuário está logado e carrega dados do formulário ---
   useEffect(() => {
@@ -153,7 +156,62 @@ export default function MeuNegocioPage() {
     }
   }, []); // useCallback para memorizar a função.
 
-  // --- Meus Handlers para Mudanças no Formulário ---
+  // --- EFEITO PARA CARREGAR ESTADOS ---
+  useEffect(() => {
+    const carregarEstados = async () => {
+      console.log('🌎 [MeuNegocio] Iniciando carregamento dos estados...');
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ [MeuNegocio] Estados carregados:', data.length, 'estados');
+        setEstados(data || []);
+      } catch (error) {
+        console.error('❌ [MeuNegocio] Erro ao carregar estados:', error);
+        setEstados([]);
+      }
+    };
+
+    carregarEstados();
+  }, []);
+
+  // --- EFEITO PARA CARREGAR CIDADES QUANDO O ESTADO MUDAR ---
+  useEffect(() => {
+    const carregarCidades = async () => {
+      if (!estadoSelecionado) {
+        console.log('🏙️ [MeuNegocio] Nenhum estado selecionado, limpando cidades');
+        setCidades([]);
+        setFormState(prev => ({ ...prev, cidade: '' }));
+        return;
+      }
+
+      console.log('🏙️ [MeuNegocio] Carregando cidades para o estado ID:', estadoSelecionado);
+      try {
+        const response = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios?orderBy=nome`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ [MeuNegocio] Cidades carregadas:', data.length, 'cidades');
+        setCidades(data || []);
+      } catch (error) {
+        console.error('❌ [MeuNegocio] Erro ao carregar cidades:', error);
+        setCidades([]);
+      }
+    };
+
+    carregarCidades();
+  }, [estadoSelecionado]);
+
+  // --- Função para lidar com mudanças no formulário ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: value }));
@@ -564,9 +622,60 @@ export default function MeuNegocioPage() {
 
             {/* Seções 2 a 5 (Descrição, Localização, Contato, Website) - JSX igual ao da página de edição. */}
             <TextAreaField name="descricao" label="Descrição" value={formState.descricao} onChange={handleChange} disabled={isSubmitting} placeholder="Descreva o local, serviços, diferenciais..." />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField name="endereco" label="Endereço Completo (Opcional)" value={formState.endereco} onChange={handleChange} disabled={isSubmitting} placeholder="Rua, Número, Bairro..." />
-              <InputField name="cidade" label="Cidade" value={formState.cidade} onChange={handleChange} required disabled={isSubmitting} placeholder="Cidade onde fica o negócio" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label htmlFor="estado" className="block text-sm font-medium text-gray-700 mb-1">Estado <span className="text-red-500">*</span></label>
+                <select
+                  id="estado"
+                  name="estado"
+                  value={estadoSelecionado}
+                  onChange={e => {
+                    console.log('🌎 [MeuNegocio] Estado selecionado:', e.target.value);
+                    setEstadoSelecionado(e.target.value);
+                  }}
+                  required
+                  disabled={isSubmitting}
+                  className="input-form"
+                >
+                  <option value="">Selecione o estado</option>
+                  {estados.map(est => (
+                    <option key={est.id} value={est.id}>{est.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="cidade" className="block text-sm font-medium text-gray-700 mb-1">Cidade <span className="text-red-500">*</span></label>
+                <select
+                  id="cidade"
+                  name="cidade"
+                  value={formState.cidade}
+                  onChange={e => {
+                    console.log('🏙️ [MeuNegocio] Cidade selecionada:', e.target.value);
+                    setFormState(prev => ({ ...prev, cidade: e.target.value }));
+                  }}
+                  required
+                  disabled={isSubmitting || !estadoSelecionado}
+                  className="input-form"
+                >
+                  <option value="">Selecione a cidade</option>
+                  {cidades.map(cidade => (
+                    <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="endereco" className="block text-sm font-medium text-gray-700 mb-1">Endereço (Rua, Número, Bairro, etc)</label>
+                <input
+                  type="text"
+                  name="endereco"
+                  id="endereco"
+                  value={formState.endereco}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  placeholder="Rua, Número, Bairro, Complemento"
+                  className="input-form"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <InputField 

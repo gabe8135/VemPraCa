@@ -1,7 +1,7 @@
 // src/app/meu-negocio/editar/[id]/page.jsx
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react'; // Lembrete: Adicionei o useMemo aqui.
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -55,6 +55,11 @@ export default function EditarNegocioPage() {
   const [uploadError, setUploadError] = useState('');
   const [loadingInitialData, setLoadingInitialData] = useState(true); // Meu loading para os dados iniciais do formulário (negócio, categorias, características).
   const [imagesToDelete, setImagesToDelete] = useState([]); // Meu array com os paths das imagens a serem deletadas do Storage.
+
+  // --- NOVOS ESTADOS PARA CIDADES E ESTADOS ---
+  const [estadoSelecionado, setEstadoSelecionado] = useState('');
+  const [cidades, setCidades] = useState([]);
+  const [estados, setEstados] = useState([]);
 
   // --- Minha Função para verificar se o usuário é Admin ---
   const checkUserRole = useCallback(async (userId) => {
@@ -188,6 +193,92 @@ export default function EditarNegocioPage() {
     else { setSubmitStatus({ message: 'ID do estabelecimento inválido.', type: 'error' }); setLoading(false); setLoadingInitialData(false); }
 
   }, [negocioId, router, checkUserRole]); // Minhas dependências do efeito.
+
+  // --- EFEITO PARA CARREGAR ESTADOS ---
+  useEffect(() => {
+    const carregarEstados = async () => {
+      console.log('🌎 [EditarNegocio] Iniciando carregamento dos estados...');
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ [EditarNegocio] Estados carregados:', data.length, 'estados');
+        setEstados(data || []);
+      } catch (error) {
+        console.error('❌ [EditarNegocio] Erro ao carregar estados:', error);
+        setEstados([]);
+      }
+    };
+
+    carregarEstados();
+  }, []);
+
+  // --- EFEITO PARA CARREGAR CIDADES QUANDO O ESTADO MUDAR ---
+  useEffect(() => {
+    const carregarCidades = async () => {
+      if (!estadoSelecionado) {
+        console.log('🏙️ [EditarNegocio] Nenhum estado selecionado, limpando cidades');
+        setCidades([]);
+        setFormState(prev => ({ ...prev, cidade: '' }));
+        return;
+      }
+
+      console.log('🏙️ [EditarNegocio] Carregando cidades para o estado ID:', estadoSelecionado);
+      try {
+        const response = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios?orderBy=nome`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ [EditarNegocio] Cidades carregadas:', data.length, 'cidades');
+        setCidades(data || []);
+      } catch (error) {
+        console.error('❌ [EditarNegocio] Erro ao carregar cidades:', error);
+        setCidades([]);
+      }
+    };
+
+    carregarCidades();
+  }, [estadoSelecionado]);
+
+  // --- EFEITO PARA PRÉ-SELECIONAR ESTADO BASEADO NA CIDADE EXISTENTE ---
+  useEffect(() => {
+    const encontrarEstadoDaCidade = async () => {
+      if (!formState.cidade || estadoSelecionado || estados.length === 0) return;
+      
+      console.log('🔍 [EditarNegocio] Buscando estado para a cidade:', formState.cidade);
+      try {
+        for (const estado of estados) {
+          const cidadesResponse = await fetch(
+            `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado.id}/municipios`
+          );
+          const cidadesData = await cidadesResponse.json();
+          
+          const cidadeEncontrada = cidadesData.find(
+            cidade => cidade.nome.toLowerCase() === formState.cidade.toLowerCase()
+          );
+          
+          if (cidadeEncontrada) {
+            console.log('✅ [EditarNegocio] Estado encontrado:', estado.nome);
+            setEstadoSelecionado(estado.id);
+            break;
+          }
+        }
+      } catch (error) {
+        console.error('❌ [EditarNegocio] Erro ao encontrar estado da cidade:', error);
+      }
+    };
+
+    encontrarEstadoDaCidade();
+  }, [formState.cidade, estadoSelecionado, estados]);
 
   // --- Meus Handlers para Mudanças no Formulário ---
   const handleChange = (e) => {
@@ -608,10 +699,61 @@ export default function EditarNegocioPage() {
           {/* Seção 2: Descrição */}
           <TextAreaField name="descricao" label="Descrição" value={formState.descricao} onChange={handleChange} disabled={isSubmitting} placeholder="Descreva seu negócio, diferenciais, etc."/>
           {/* Seção 3: Localização */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField name="endereco" label="Endereço Completo (Opcional)" value={formState.endereco} onChange={handleChange} disabled={isSubmitting} placeholder="Rua, Número, Bairro..." />
-            <InputField name="cidade" label="Cidade" value={formState.cidade} onChange={handleChange} required disabled={isSubmitting} />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div>
+    <label htmlFor="estado" className="block text-sm font-medium text-gray-700 mb-1">Estado <span className="text-red-500">*</span></label>
+    <select
+      id="estado"
+      name="estado"
+      value={estadoSelecionado}
+      onChange={e => {
+        console.log('🌎 [EditarNegocio] Estado selecionado:', e.target.value);
+        setEstadoSelecionado(e.target.value);
+      }}
+      required
+      disabled={isSubmitting}
+      className="input-form"
+    >
+      <option value="">Selecione o estado</option>
+      {estados.map(est => (
+        <option key={est.id} value={est.id}>{est.nome}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label htmlFor="cidade" className="block text-sm font-medium text-gray-700 mb-1">Cidade <span className="text-red-500">*</span></label>
+    <select
+      id="cidade"
+      name="cidade"
+      value={formState.cidade}
+      onChange={e => {
+        console.log('🏙️ [EditarNegocio] Cidade selecionada:', e.target.value);
+        setFormState(prev => ({ ...prev, cidade: e.target.value }));
+      }}
+      required
+      disabled={isSubmitting || !estadoSelecionado}
+      className="input-form"
+    >
+      <option value="">Selecione a cidade</option>
+      {cidades.map(cidade => (
+        <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label htmlFor="endereco" className="block text-sm font-medium text-gray-700 mb-1">Endereço (Rua, Número, Bairro, etc)</label>
+    <input
+      type="text"
+      name="endereco"
+      id="endereco"
+      value={formState.endereco}
+      onChange={handleChange}
+      disabled={isSubmitting}
+      placeholder="Rua, Número, Bairro, Complemento"
+      className="input-form"
+    />
+  </div>
+</div>
           {/* Seção 4: Contato - ATUALIZADA */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <InputField 

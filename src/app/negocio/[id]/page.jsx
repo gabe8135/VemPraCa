@@ -438,9 +438,9 @@ export default function DetalhesNegocioPage() {
                 Ver Localização no Mapa
               </a>
             ) : negocio.endereco && (
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(negocio.endereco + ', ' + negocio.cidade)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${negocio.endereco}, ${negocio.cidade}`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
                 <FaMapMarkerAlt className="h-5 w-5" />
-                Ver Localização Aproximada
+                Ver Localização
               </a>
             )}
           </div>
