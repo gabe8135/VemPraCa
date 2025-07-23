@@ -469,60 +469,26 @@ export default function AdminCadastrarNegocioPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 relative">
+    <div className="max-w-4xl mx-auto p-6 md:p-8 bg-white shadow-lg rounded-lg my-10 mt-25 relative">
       <LoadingModal
         isOpen={isSubmitting || (submitStatus.type === 'success' && !!submitStatus.message)}
         message={getModalMessage()}
       />
 
+      {/* Cabeçalho com Título e Botão Cancelar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-3 gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Cadastrar Negócio (Admin)</h1>
-        <button 
-          type="button" 
-          onClick={() => router.back()} 
-          disabled={isSubmitting} 
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Cadastrar Novo Estabelecimento</h1>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          disabled={isSubmitting}
           className="button-secondary bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancelar
         </button>
       </div>
 
-      {/* Seção de transferência de propriedade */}
-      {isAdmin && (
-        <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-          <h2 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-            <FaUserPlus className="text-blue-600" />
-            Definir Proprietário (Opcional)
-          </h2>
-          
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex-1">              
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Proprietário do negócio:
-              </label>
-              <select
-                value={selectedOwnerId}
-                onChange={(e) => setSelectedOwnerId(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={isSubmitting}
-              >
-                <option value="">Sem proprietário (você pode definir depois)</option>
-                <option value={user.id}>🔧 Admin (Você)</option>
-                {allUsers.map(u => (
-                  <option key={u.id} value={u.id}>
-                    {u.nome_proprietario || 'Nome não definido'} ({u.email})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <p className="text-xs text-gray-600 mt-3">
-            💡 Dica: Use as notificações do Instagram/email para identificar o proprietário correto
-          </p>
-        </div>
-      )}
-
+      {/* Mensagens de status */}
       {submitStatus.message && (
         <div className={`p-4 mb-6 rounded-md text-center ${
           submitStatus.type === 'success' ? 'bg-green-100 text-green-800' : 
@@ -531,7 +497,6 @@ export default function AdminCadastrarNegocioPage() {
           {submitStatus.message}
         </div>
       )}
-
       {uploadError && !isSubmitting && (
         <div className="p-4 mb-6 rounded-md text-center bg-red-100 text-red-800">
           Erro no upload: {uploadError}
@@ -542,48 +507,54 @@ export default function AdminCadastrarNegocioPage() {
         <div className="text-center p-10">Carregando opções do formulário...</div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Seção 1: Informações Básicas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
-              name="nome" 
-              label="Nome do Estabelecimento" 
-              value={formState.nome} 
-              onChange={handleChange} 
-              required 
-              disabled={isSubmitting} 
-              placeholder="Nome visível ao público" 
-            />
-            <InputField 
-              name="proprietario" 
-              label="Nome do Proprietário" 
-              value={formState.proprietario} 
-              onChange={handleChange} 
-              required 
-              disabled={isSubmitting} 
-              placeholder="Nome completo do proprietário" 
-            />
-            <InputField 
-              name="email_proprietario" 
-              label="Email do Proprietário (Opcional)" 
-              value={formState.email_proprietario} 
-              onChange={handleChange} 
-              disabled={isSubmitting} 
-              type="email"
-              placeholder="email@exemplo.com - para identificar o futuro dono" 
-            />
             <div>
-              <label htmlFor="categoria_id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="nome" className="block text-base font-semibold text-gray-700 mb-2">
+                Nome do Estabelecimento <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="nome"
+                id="nome"
+                value={formState.nome}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+                placeholder="Nome visível ao público"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+            <div>
+              <label htmlFor="proprietario" className="block text-base font-semibold text-gray-700 mb-2">
+                Nome do Proprietário <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="proprietario"
+                id="proprietario"
+                value={formState.proprietario}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+                placeholder="Seu nome completo (será usado em todos os seus negócios)"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="categoria_id" className="block text-base font-semibold text-gray-700 mb-2">
                 Categoria <span className="text-red-500">*</span>
               </label>
-              <select 
-                id="categoria_id" 
-                name="categoria_id" 
-                value={formState.categoria_id} 
-                onChange={handleChange} 
-                required 
-                className="input-form bg-white" 
+              <select
+                id="categoria_id"
+                name="categoria_id"
+                value={formState.categoria_id}
+                onChange={handleChange}
+                required
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
                 disabled={isSubmitting || categorias.length === 0}
               >
-                <option value="" disabled>-- Selecione o tipo --</option>
+                <option value="" disabled className="text-gray-400">-- Selecione o tipo --</option>
                 {categorias.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.nome}</option>
                 ))}
@@ -594,113 +565,144 @@ export default function AdminCadastrarNegocioPage() {
             </div>
           </div>
 
-          <TextAreaField 
-            name="descricao" 
-            label="Descrição" 
-            value={formState.descricao} 
-            onChange={handleChange} 
-            disabled={isSubmitting} 
-            placeholder="Descreva o local, serviços, diferenciais..." 
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
-              name="endereco" 
-              label="Endereço Completo (Opcional)" 
-              value={formState.endereco} 
-              onChange={handleChange} 
-              disabled={isSubmitting} 
-              placeholder="Rua, Número, Bairro..." 
-            />
-            <InputField 
-              name="cidade" 
-              label="Cidade" 
-              value={formState.cidade} 
-              onChange={handleChange} 
-              required 
-              disabled={isSubmitting} 
-              placeholder="Cidade onde fica o negócio" 
+          <div className="mt-8">
+            <label htmlFor="descricao" className="block text-base font-semibold text-gray-700 mb-2">
+              Descrição
+            </label>
+            <textarea
+              name="descricao"
+              id="descricao"
+              rows={4}
+              value={formState.descricao}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              placeholder="Descreva o local, serviços, diferenciais..."
+              className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition resize-none disabled:bg-gray-100 disabled:opacity-70"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
-              name="telefone" 
-              label="Telefone Fixo (Opcional)" 
-              value={formState.telefone} 
-              onChange={handleChange} 
-              disabled={isSubmitting} 
-              type="tel" 
-              placeholder="(XX) XXXX-XXXX" 
-            />
-            <InputField 
-              name="whatsapp" 
-              label="WhatsApp (Opcional, com DDD)" 
-              value={formState.whatsapp} 
-              onChange={handleChange} 
-              disabled={isSubmitting} 
-              type="tel" 
-              placeholder="55XX9XXXXXXXX" 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div>
+              <label htmlFor="endereco" className="block text-base font-semibold text-gray-700 mb-2">
+                Endereço Completo <span className="text-gray-400">(Opcional)</span>
+              </label>
+              <input
+                type="text"
+                name="endereco"
+                id="endereco"
+                value={formState.endereco}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                placeholder="Rua, Número, Bairro..."
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+            <div>
+              <label htmlFor="cidade" className="block text-base font-semibold text-gray-700 mb-2">
+                Cidade <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="cidade"
+                id="cidade"
+                value={formState.cidade}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+                placeholder="Cidade onde fica o negócio"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div>
+              <label htmlFor="telefone" className="block text-base font-semibold text-gray-700 mb-2">
+                Telefone Fixo <span className="text-gray-400">(Opcional)</span>
+              </label>
+              <input
+                type="tel"
+                name="telefone"
+                id="telefone"
+                value={formState.telefone}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                placeholder="(XX) XXXX-XXXX"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+            <div>
+              <label htmlFor="whatsapp" className="block text-base font-semibold text-gray-700 mb-2">
+                WhatsApp <span className="text-gray-400">(Opcional, com DDD)</span>
+              </label>
+              <input
+                type="tel"
+                name="whatsapp"
+                id="whatsapp"
+                value={formState.whatsapp}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                placeholder="55XX9XXXXXXXX"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+            <div>
+              <label htmlFor="email_proprietario" className="block text-base font-semibold text-gray-700 mb-2">
+                Email do Proprietário <span className="text-gray-400">(Opcional)</span>
+              </label>
+              <input
+                type="email"
+                name="email_proprietario"
+                id="email_proprietario"
+                value={formState.email_proprietario}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                placeholder="email@exemplo.com"
+                className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
+              />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <label htmlFor="website" className="block text-base font-semibold text-gray-700 mb-2">
+              Website ou Rede Social <span className="text-gray-400">(Opcional)</span>
+            </label>
+            <input
+              type="url"
+              name="website"
+              id="website"
+              value={formState.website}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              placeholder="https://..."
+              className="block w-full px-4 py-3 text-lg text-gray-900 bg-white border-2 border-green-300 rounded-xl shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition disabled:bg-gray-100 disabled:opacity-70"
             />
           </div>
 
-          <InputField 
-            name="website" 
-            label="Website ou Rede Social (Opcional)" 
-            value={formState.website} 
-            onChange={handleChange} 
-            disabled={isSubmitting} 
-            type="url" 
-            placeholder="https://..." 
-          />
-
-          {/* Upload de Imagens */}
+          {/* Seção de Imagens */}
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">
               Imagens (máx. {MAX_IMAGES_PER_BUSINESS}, a primeira será a principal) <span className="text-red-500">*</span>
             </label>
             <div className="mb-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
               <div className="space-y-1 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 48 48" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
-                </svg>
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 48 48" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" /></svg>
                 <div className="flex text-sm text-gray-600 justify-center">
-                  <label 
-                    htmlFor="file-upload" 
-                    className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${
-                      isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
+                  <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500 ${isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS ? 'opacity-50 cursor-not-allowed' : ''}`}>
                     <span>{imageFiles.length > 0 ? 'Adicionar mais imagens' : 'Escolher imagens'}</span>
-                    <input 
-                      id="file-upload" 
-                      name="file-upload" 
-                      type="file" 
-                      className="sr-only" 
-                      multiple 
-                      accept="image/png, image/jpeg, image/webp" 
-                      onChange={handleFileChange} 
-                      disabled={isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS} 
-                    />
+                    <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={isSubmitting || imageFiles.length >= MAX_IMAGES_PER_BUSINESS} />
                   </label>
                 </div>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, WEBP. Máximo de {MAX_IMAGES_PER_BUSINESS} fotos. ({MAX_IMAGES_PER_BUSINESS - imageFiles.length} restantes)
-                </p>
+                <p className="text-xs text-gray-500">PNG, JPG, WEBP. Máximo de {MAX_IMAGES_PER_BUSINESS} fotos. ({MAX_IMAGES_PER_BUSINESS - imageFiles.length} restantes)</p>
               </div>
             </div>
-            
             {imageFiles.length === 0 && !isSubmitting && (
               <p className="text-sm text-red-600 text-center">É necessário adicionar pelo menos uma imagem.</p>
             )}
-            
             {imageFiles.length > 0 && (
               <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {imageFiles.map((img, index) => (
-                  <div
-                    key={img.id}
-                    className="relative group rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100"
-                  >
+                  <div key={img.id} className="relative group rounded-md overflow-hidden aspect-square flex items-center justify-center bg-gray-100" style={{ border: 'none' }}>
                     <img
                       src={img.url || img.preview}
                       alt={`Imagem ${index + 1}`}
@@ -710,7 +712,7 @@ export default function AdminCadastrarNegocioPage() {
                         e.target.src = 'https://via.placeholder.com/150?text=Erro+na+imagem';
                       }}
                     />
-                    
+                    {/* Botões de ação */}
                     {!img.uploading && !img.error && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button
@@ -720,9 +722,7 @@ export default function AdminCadastrarNegocioPage() {
                           className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed z-10"
                           aria-label="Remover imagem"
                         >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                         {mainImageIndex !== index && (
                           <button
@@ -736,7 +736,7 @@ export default function AdminCadastrarNegocioPage() {
                         )}
                       </div>
                     )}
-                    
+                    {/* Badge Principal */}
                     {mainImageIndex === index && !img.uploading && !img.error && (
                       <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded shadow z-10">
                         Principal
@@ -748,17 +748,14 @@ export default function AdminCadastrarNegocioPage() {
             )}
           </div>
 
-          {/* Características */}
+          {/* Seção de Características */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Características Oferecidas {formState.categoria_id && categorias.find(c=>c.id === formState.categoria_id) ? 
-                `(para ${categorias.find(c=>c.id === formState.categoria_id).nome})` : ''}
+              Características Oferecidas {formState.categoria_id && categorias.find(c=>c.id === formState.categoria_id) ? `(para ${categorias.find(c=>c.id === formState.categoria_id).nome})` : ''}
             </label>
-
             {formState.categoria_id ? (
               <>
                 {loadingInitialData && <p className="text-sm text-gray-500">Carregando características...</p>}
-
                 {!loadingInitialData && filteredCharacteristics.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3 border p-4 rounded-md bg-gray-50">
                     {filteredCharacteristics.map((item) => (
@@ -779,13 +776,11 @@ export default function AdminCadastrarNegocioPage() {
                     ))}
                   </div>
                 )}
-
                 {!loadingInitialData && filteredCharacteristics.length === 0 && allCharacteristics.length > 0 && (
                   <p className="text-sm text-gray-500 mt-1 p-4 border rounded-md bg-gray-50 text-center">
                     Nenhuma característica específica encontrada para esta categoria.
                   </p>
                 )}
-
                 {!loadingInitialData && allCharacteristics.length === 0 && (
                   <p className="text-sm text-yellow-600 mt-1 p-4 border border-yellow-200 rounded-md bg-yellow-50 text-center">
                     Nenhuma característica cadastrada no sistema ainda.
@@ -799,6 +794,7 @@ export default function AdminCadastrarNegocioPage() {
             )}
           </div>
 
+          {/* Botão de Submit */}
           <div className="pt-6">
             <button
               type="submit"
@@ -809,40 +805,17 @@ export default function AdminCadastrarNegocioPage() {
                 <>
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4zm16 0a8 8 0 01-8 8v-8h8z"></path>
                   </svg>
-                  Processando...
+                  {submitStatus.type === 'success' ? 'Negócio Cadastrado!' : 'Cadastrar Negócio'}
                 </>
               ) : (
-                'Cadastrar Estabelecimento'
+                'Cadastrar Negócio'
               )}
             </button>
           </div>
         </form>
       )}
-
-      <style jsx global>{`
-        .input-form { 
-          display: block; width: 100%; padding: 0.5rem 0.75rem; 
-          border: 1px solid #d1d5db; border-radius: 0.375rem; 
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #000; 
-        }
-        .input-form:focus { 
-          outline: none; border-color: #10b981; 
-          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5); 
-        }
-        .input-form:disabled { 
-          background-color: #f3f4f6; opacity: 0.7; cursor: not-allowed; 
-        }
-        .button-primary { 
-          background-color: #059669; color: white; font-weight: bold; 
-          padding: 0.75rem 1rem; border-radius: 0.375rem; 
-          transition: background-color 0.3s; 
-        }
-        .button-primary:hover:not(:disabled) { background-color: #047857; }
-        .button-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .button-secondary { transition: background-color 0.3s; }
-      `}</style>
     </div>
   );
 }

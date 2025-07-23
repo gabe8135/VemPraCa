@@ -15,6 +15,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // Meu estado pra controlar visibilidade da senha
+  const [nome, setNome] = useState(''); // Novo estado para o nome
 
   // Se já estou logado, redireciona pra home
   useEffect(() => {
@@ -61,20 +62,33 @@ export default function Login() {
           setLoading(false);
           return;
         }
+        if (!nome.trim()) {
+          setError('O nome é obrigatório.');
+          setLoading(false);
+          return;
+        }
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          // options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
         });
 
         if (signUpError) throw signUpError;
+
+        // Atualiza o nome_proprietario na tabela profiles
+        if (data?.user?.id) {
+          await supabase
+            .from('profiles')
+            .update({ nome_proprietario: nome })
+            .eq('id', data.user.id);
+        }
 
         alert('Cadastro realizado! Verifique seu email para confirmar.');
         setIsSignUp(false);
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setNome('');
       } else {
         // Login
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -236,6 +250,25 @@ export default function Login() {
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
+              />
+            </div>
+          )}
+
+          {/* Campo de nome (apenas no cadastro) */}
+          {isSignUp && (
+            <div>
+              <label htmlFor="nome" className="block text-sm font-medium text-gray-700">
+                Nome
+              </label>
+              <input
+                id="nome"
+                name="nome"
+                type="text"
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-black"
+                value={nome}
+                onChange={e => setNome(e.target.value)}
+                placeholder="Seu nome completo"
               />
             </div>
           )}
