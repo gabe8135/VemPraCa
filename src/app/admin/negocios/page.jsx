@@ -223,135 +223,168 @@ export default function AdminNegociosPage() {
   if (!isAdmin) return <div className="text-center p-10">Acesso Negado.</div>;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Painel de Administração - Estabelecimentos</h1>
+    <div className="w-full max-w-full overflow-hidden">
+      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800">Painel Admin - Estabelecimentos</h1>
 
-      {/* Aqui vai a tabela ou lista dos negócios. */}
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gradient-to-r from-yellow-300 to-amber-400">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Nome</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Proprietário</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">Cidade</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Vinculação</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Status</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {businesses.length === 0 && (
+      {/* Tabela Super Otimizada - SEM ROLAGEM HORIZONTAL */}
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gradient-to-r from-yellow-300 to-amber-400">
               <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Nenhum estabelecimento cadastrado.</td>
+                <th scope="col" className="px-2 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">
+                  Estabelecimento
+                </th>
+                <th scope="col" className="px-2 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider hidden sm:table-cell">
+                  Proprietário
+                </th>
+                <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">
+                  Cidade
+                </th>
+                <th scope="col" className="px-1 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="px-1 py-3 text-center text-xs font-bold text-green-800 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
-            )}
-            {businesses.map((business) => (
-              <tr
-                key={business.id}
-                className="hover:bg-green-100 cursor-pointer"
-                onClick={() => router.push(`/negocio/${business.id}`)} // Navega ao clicar na linha
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{business.nome}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {business.proprietario || 'N/A'}
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {businesses.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                    Nenhum estabelecimento cadastrado.
+                  </td>
+                </tr>
+              )}
+              {businesses.map((business) => (
+                <tr
+                  key={business.id}
+                  className="hover:bg-green-50 cursor-pointer transition-colors"
+                  onClick={() => router.push(`/negocio/${business.id}`)}
+                >
+                  {/* Coluna Nome - Responsiva */}
+                  <td className="px-2 py-3">
+                    <div className="text-sm font-medium text-gray-900 break-words leading-tight max-w-xs">
+                      {business.nome}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {business.email_proprietario || 'Sem email'}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {business.categorias?.nome || 'Sem categoria'}
                     </div>
-                    {/* Mostrar se tem usuário da plataforma vinculado */}
-                    {business.usuario_id && business.profiles && (
-                      <div className="text-xs text-green-600 mt-1">
-                        👤 Vinculado: {business.profiles.nome_proprietario}
-                      </div>
-                    )}
-                    {business.criado_por_admin && (
-                      <div className="text-xs text-blue-600">
-                        🔧 Criado pelo admin
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.cidade}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                  {business.usuario_id ? (
-                    <span className="text-xs inline-flex items-center font-semibold leading-sm uppercase px-2 py-1 rounded-full bg-green-100 text-green-800">
-                      Vinculado
-                    </span>
-                  ) : (
-                    <span className="text-xs inline-flex items-center font-semibold leading-sm uppercase px-2 py-1 rounded-full bg-red-100 text-red-800">
-                      Não vinculado
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    business.ativo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {business.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                  {/* Botão para Ativar/Desativar */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Impede que o clique na linha seja acionado
-                      handleToggleAtivo(business.id, business.ativo);
-                    }}
-                    disabled={togglingId === business.id} // Desabilito se já estiver alterando este.
-                    className={`p-1 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
-                      business.ativo
-                        ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-100'
-                        : 'text-green-600 hover:text-green-900 hover:bg-green-100'
-                    }`}
-                    title={business.ativo ? 'Desativar' : 'Ativar'}
-                  >
-                    {togglingId === business.id ? ( // Mostro o spinner se estiver carregando.
-                      <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    ) : business.ativo ? (
-                      <FaToggleOn className="h-5 w-5" />
-                    ) : (
-                      <FaToggleOff className="h-5 w-5" />
-                    )}
-                  </button>
+                    {/* Info do proprietário em telas pequenas */}
+                    <div className="sm:hidden text-xs text-gray-600 mt-1">
+                      👤 {business.proprietario || 'N/A'}
+                    </div>
+                  </td>
 
-                  {/* Botão para Editar */}
-                  <Link
-                    href={`/meu-negocio/editar/${business.id}`} // Leva para a página de edição do negócio específico.
-                    className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-1 rounded inline-block"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Impede que o clique na linha seja acionado
-                    }}
-                    title="Editar"
-                  >
-                    <FaEdit className="h-5 w-5" />
-                  </Link>
+                  {/* Coluna Proprietário - Oculta em telas pequenas */}
+                  <td className="px-2 py-3 hidden sm:table-cell">
+                    <div className="text-sm max-w-xs">
+                      <div className="font-medium text-gray-900 break-words leading-tight">
+                        {business.proprietario || 'N/A'}
+                      </div>
+                      {business.email_proprietario && (
+                        <div className="text-xs text-gray-500 truncate" title={business.email_proprietario}>
+                          {business.email_proprietario}
+                        </div>
+                      )}
+                      {/* Badges compactos */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {business.usuario_id && business.profiles && (
+                          <span className="text-xs bg-green-100 text-green-700 px-1 py-0.5 rounded">
+                            👤
+                          </span>
+                        )}
+                        {business.criado_por_admin && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
+                            🔧
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
 
-                  {/* Botão para Excluir */}
-                  <button
-                    // Chamo a função de deletar, passando o ID e as imagens (caso precise deletar do storage).
-                    onClick={(e) => {
-                      e.stopPropagation(); // Impede que o clique na linha seja acionado
-                      handleDeleteNegocio(business.id, business.imagens);
-                    }}
-                    disabled={deletingId === business.id} // Desabilito se já estiver deletando este.
-                    className="text-red-600 hover:text-red-900 hover:bg-red-100 p-1 rounded disabled:opacity-50"
-                    title="Excluir"
-                  >
-                    {deletingId === business.id ? ( // Spinner de loading.
-                      <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    ) : (
-                      <FaTrash className="h-5 w-5" />
-                    )}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {/* Coluna Cidade - Compacta */}
+                  <td className="px-2 py-3 text-center">
+                    <div className="text-sm text-gray-900 break-words leading-tight max-w-20">
+                      {business.cidade}
+                    </div>
+                  </td>
+
+                  {/* Coluna Status - Muito compacta */}
+                  <td className="px-1 py-3 text-center">
+                    <span className={`px-1 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
+                      business.ativo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {business.ativo ? '✓' : '✗'}
+                    </span>
+                  </td>
+
+                  {/* Coluna Ações - Compacta vertical */}
+                  <td className="px-1 py-3">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-1">
+                      {/* Botão Toggle Status */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleAtivo(business.id, business.ativo);
+                        }}
+                        disabled={togglingId === business.id}
+                        className={`p-1 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
+                          business.ativo
+                            ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-100'
+                            : 'text-green-600 hover:text-green-900 hover:bg-green-100'
+                        }`}
+                        title={business.ativo ? 'Desativar' : 'Ativar'}
+                      >
+                        {togglingId === business.id ? (
+                          <svg className="animate-spin h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : business.ativo ? (
+                          <FaToggleOn className="h-3 w-3" />
+                        ) : (
+                          <FaToggleOff className="h-3 w-3" />
+                        )}
+                      </button>
+
+                      {/* Botão Editar */}
+                      <Link
+                        href={`/meu-negocio/editar/${business.id}`}
+                        className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-1 rounded inline-block"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Editar"
+                      >
+                        <FaEdit className="h-3 w-3" />
+                      </Link>
+
+                      {/* Botão Excluir */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNegocio(business.id, business.imagens);
+                        }}
+                        disabled={deletingId === business.id}
+                        className="text-red-600 hover:text-red-900 hover:bg-red-100 p-1 rounded disabled:opacity-50"
+                        title="Excluir"
+                      >
+                        {deletingId === business.id ? (
+                          <svg className="animate-spin h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <FaTrash className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

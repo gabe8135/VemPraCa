@@ -1,11 +1,13 @@
 // d:\Documentos\programação\hotel-portal\src\app\admin\layout.js
-'use client'; // Lembrete: este layout precisa ser um Client Component porque usa hooks (usePathname).
+'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Hook para pegar a rota atual e destacar o link ativo.
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 export default function AdminLayout({ children }) {
-  const pathname = usePathname(); // Guardo o path atual aqui, tipo '/admin/negocios'.
+  const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/admin/negocios', label: 'Estabelecimentos' },
@@ -13,13 +15,51 @@ export default function AdminLayout({ children }) {
     { href: '/admin/cadastrar-negocio', label: 'Cadastrar Negócio' },
     { href: '/admin/categorias', label: 'Categorias' },
     { href: '/admin/caracteristicas', label: 'Características' },
-    // Se eu precisar de mais seções no admin, adiciono os links aqui.
   ];
 
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
+
   return (
-    <div className="flex min-h-screen mt-25">
-      {/* Minha barra lateral de navegação do admin. */}
-      <aside className="w-64 bg-green-600 text-white text-white rounded-tr-3xl p-4 flex flex-col">
+    <div className="flex min-h-screen mt-25 overflow-x-hidden">
+      {/* Botão do Menu Sanduíche - MOVIDO PARA A DIREITA */}
+      <button
+        onClick={toggleMenu}
+        className="fixed top-28 right-4 z-50 md:hidden bg-green-600 text-white p-3 rounded-lg shadow-lg hover:bg-green-700 transition-colors"
+        aria-label="Abrir menu"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {isMenuOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+
+      {/* Overlay para fechar o menu ao clicar fora */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Menu Lateral - CORRIGIDO PARA IR ATÉ EMBAIXO */}
+      <aside className={`
+        ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+        fixed md:static
+        w-64 bg-green-600 text-white p-4 rounded-tl-lg flex flex-col
+        transition-transform duration-300 ease-in-out
+        z-40 
+        h-screen md:min-h-full
+        top-0 md:top-auto
+        rounded-tr-3xl md:rounded-none
+      `}>
+        {/* Espaçamento para o header em mobile */}
+        <div className="h-25 rounded-tl-lg md:h-0 flex-shrink-0"></div>
+        
         <h2 className="text-xl font-semibold mb-6">Painel Admin</h2>
         <nav className="flex-grow">
           <ul>
@@ -27,8 +67,8 @@ export default function AdminLayout({ children }) {
               <li key={item.href} className="mb-2">
                 <Link
                   href={item.href}
+                  onClick={closeMenu}
                   className={`block px-3 py-2 rounded hover:bg-green-800 transition duration-200 ${
-                    // Destaque para o link da página atual.
                     pathname === item.href ? 'bg-green-400 font-semibold' : ''
                   }`}
                 >
@@ -38,17 +78,22 @@ export default function AdminLayout({ children }) {
             ))}
           </ul>
         </nav>
-        {/* Link para o usuário poder voltar ao site principal. */}
-        <div className="mt-auto">
-            <Link href="/" className="block text-center text-sm text-gray-100 hover:text-white">
-                &larr; Voltar ao Site
-            </Link>
+        <div className="mt-auto pb-4">
+          <Link 
+            href="/" 
+            onClick={closeMenu}
+            className="block text-center text-sm text-gray-100 hover:text-white"
+          >
+            &larr; Voltar ao Site
+          </Link>
         </div>
       </aside>
       
-      {/* Área principal onde o conteúdo de cada página do admin vai aparecer. */}
-      <main className="flex-1 p-6 md:p-10 bg-gray-100 overflow-y-auto">
-        {children} {/* O 'children' é o conteúdo específico da rota admin atual. */}
+      {/* Área principal - CORRIGIDA PARA EVITAR ROLAGEM HORIZONTAL */}
+      <main className="flex-1 bg-gray-100 overflow-x-hidden overflow-y-auto w-0 md:w-auto">
+        <div className="p-2 md:p-4 max-w-full">
+          {children}
+        </div>
       </main>
     </div>
   );
