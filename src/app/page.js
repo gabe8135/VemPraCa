@@ -223,7 +223,7 @@ function BusinessList() {
               <span className="text-gray-600">Filtros ativos:</span>
               {searchTerm && (
                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Busca:"{searchTerm}"
+                  Busca: {`"${searchTerm}"`}
                 </span>
               )}
               {selectedCidade && (
