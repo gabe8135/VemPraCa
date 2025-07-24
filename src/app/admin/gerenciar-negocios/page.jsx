@@ -353,7 +353,7 @@ export default function AdminGerenciarNegociosPage() {
                 </div>
 
                 {/* Seção de transferência */}
-                <div className="lg:w-80 border-l lg:pl-6">
+                <div className="lg:w-80 lg:pl-6">
                   <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <FaUserPlus className="text-green-600" />
                     Transferir Propriedade
