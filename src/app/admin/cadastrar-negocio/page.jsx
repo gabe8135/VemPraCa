@@ -703,7 +703,7 @@ export default function AdminCadastrarNegocioPage() {
             </div>
             <div>
               <label htmlFor="endereco" className="block text-base font-semibold text-gray-700 mb-2">
-                Endereço (Rua, Número, Bairro, etc)
+                Endereço(Rua, Número, Bairro)
               </label>
               <input
                 type="text"
