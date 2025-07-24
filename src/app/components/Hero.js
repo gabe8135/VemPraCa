@@ -62,7 +62,7 @@ export default function Hero() {
             </Link>
             <Link
               href="/sobre"
-              className="text-lg font-semibold text-[#F0B100] hover:text-green-700 transition max-w-full"
+              className="text-lg font-semibold text-green-600 hover:text-green-700 transition max-w-full"
             >
               Saiba mais <span aria-hidden="true">→</span>
             </Link>

@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Playfair_Display, Montserrat, Inter } from "next/fon
 import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
+import FloatingWhatsApp from "@/app/components/FloatingWhatsApp";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 // import AOSInit from "./components/AOSInit";
 
@@ -72,6 +73,13 @@ export default function RootLayout({ children }) {
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
+
+        {/* Botão WhatsApp flutuante em todas as páginas */}
+        <FloatingWhatsApp
+          phoneNumber="13997399924"
+          message="Olá! Vi o VemPraCá e gostaria de mais informações sobre como cadastrar meu negócio ou fazer uma parceria."
+        />
+
         <SpeedInsights />
       </body>
     </html>

@@ -29,7 +29,7 @@ async function handleSubmit(e) {
 
 return (
     <div className="min-h-screen px-[5vw] md:px-[15vw] lg:px-[15vw] py-12 bg-gray-50 rounded-2xl flex flex-col mt-20 items-center">
-    <h1 className="text-4xl font-bold text-center text-gray-800 mb-4">
+    <h1 className="text-4xl font-bold text-center text-green-800 mb-4">
         Fale com a gente
     </h1>
 
@@ -83,22 +83,41 @@ return (
 
         <button
         type="submit"
-        className="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-yellow-400 transition duration-300"
+        className="w-full bg-green-600 text-white font-semibold py-3 rounded-xl hover:bg-yellow-400 transition duration-300"
         >
         Enviar
         </button>
 
         <p className="text-center text-gray-600">ou</p>
 
+        {/* Botão WhatsApp com pulso */}
         <a
-        href="https://wa.me/5513997399924" // Meu número de WhatsApp para contato direto.
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex justify-center items-center gap-2 text-green-600 hover:text-green-700 mt-4"
+          href="https://wa.me/5513997399924"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out flex justify-center items-center gap-3 overflow-hidden animate-pulse hover:animate-none"
         >
-        <FaWhatsapp size={20} />
-        Falar no WhatsApp
+          {/* Círculos de pulso ao redor do botão */}
+          <div className="absolute inset-0 rounded-2xl bg-green-400 animate-ping opacity-75"></div>
+          <div className="absolute inset-0 rounded-2xl bg-green-500 animate-pulse"></div>
+          
+          {/* Efeito de brilho animado */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 group-hover:translate-x-full transition-all duration-700"></div>
+          
+          {/* Ícone do WhatsApp com animação */}
+          <FaWhatsapp 
+            size={24} 
+            className="z-10 group-hover:rotate-12 transition-transform duration-300 drop-shadow-lg" 
+          />
+          
+          <span className="z-10 text-lg drop-shadow-sm">Falar no WhatsApp</span>
+          
+          {/* Múltiplos indicadores de pulso */}
+          <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-300 rounded-full animate-ping"></div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-white rounded-full animate-bounce"></div>
         </a>
+
     </form>
 
     {/* Este é o meu modal que aparece quando o e-mail é enviado com sucesso. */}
