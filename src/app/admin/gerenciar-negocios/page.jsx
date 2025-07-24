@@ -266,7 +266,7 @@ export default function AdminGerenciarNegociosPage() {
       )}
 
       {/* Lista de negócios */}
-      <div className="space-y-4 bg-gray-100">
+      <div className="space-y-4">
         {loadingNegocios ? (
           <div className="text-center p-10">Carregando negócios...</div>
         ) : filteredNegocios.length === 0 ? (
@@ -278,7 +278,7 @@ export default function AdminGerenciarNegociosPage() {
           </div>
         ) : (
           filteredNegocios.map((negocio) => (
-            <div key={negocio.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={negocio.id} className="bg-gray-100 rounded-lg shadow-md p-6">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 {/* Informações do negócio */}
                 <div className="flex-1">
