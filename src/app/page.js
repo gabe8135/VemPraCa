@@ -23,8 +23,57 @@ function BusinessList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [allCategories, setAllCategories] = useState([]);
+  
+  // Novos estados para filtro de localização
+  const [selectedEstado, setSelectedEstado] = useState('');
+  const [selectedCidade, setSelectedCidade] = useState('');
+  const [estados, setEstados] = useState([]);
+  const [cidades, setCidades] = useState([]);
+  const [cidadesDisponiveis, setCidadesDisponiveis] = useState([]);
+  
   const isFirstRender = useRef(true);
   const prevCategorySlug = useRef(categorySlug);
+
+  // Carregar estados e cidades do IBGE
+  useEffect(() => {
+    const fetchEstados = async () => {
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        const data = await response.json();
+        setEstados(data);
+      } catch (error) {
+        console.error('Erro ao carregar estados:', error);
+      }
+    };
+    fetchEstados();
+  }, []);
+
+  // Carregar cidades quando estado é selecionado
+  useEffect(() => {
+    const fetchCidades = async () => {
+      if (selectedEstado) {
+        try {
+          const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios?orderBy=nome`);
+          const data = await response.json();
+          setCidades(data);
+        } catch (error) {
+          console.error('Erro ao carregar cidades:', error);
+        }
+      } else {
+        setCidades([]);
+        setSelectedCidade('');
+      }
+    };
+    fetchCidades();
+  }, [selectedEstado]);
+
+  // Atualizar cidades disponíveis baseado nos negócios
+  useEffect(() => {
+    if (businesses.length > 0) {
+      const cidadesUnicas = [...new Set(businesses.map(b => b.cidade))].sort();
+      setCidadesDisponiveis(cidadesUnicas);
+    }
+  }, [businesses]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -60,9 +109,8 @@ function BusinessList() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       prevCategorySlug.current = categorySlug;
-      return; // Não faz scroll no primeiro carregamento
+      return;
     }
-    // Só faz scroll se a categoria mudou (não por loading ou busca)
     if (!loading && prevCategorySlug.current !== categorySlug) {
       prevCategorySlug.current = categorySlug;
       const searchSection = document.getElementById('search-section');
@@ -73,14 +121,26 @@ function BusinessList() {
         window.scrollTo({ top, behavior: 'smooth' });
       }
     }
-  }, [loading, categorySlug]); // Executa quando loading muda ou categoria muda
+  }, [loading, categorySlug]);
 
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setSelectedEstado('');
+    setSelectedCidade('');
+    setSearchTerm('');
+  };
+
+  // Filtro atualizado com localização
   const filteredBusinesses = businesses.filter(business => {
     const matchesCategory = !categorySlug || (business.slug_categoria === categorySlug);
     const matchesSearchTerm = searchTerm === '' ||
       (business.nome?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (business.cidade?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearchTerm;
+    
+    // Novos filtros de localização
+    const matchesCidade = !selectedCidade || business.cidade === selectedCidade;
+    
+    return matchesCategory && matchesSearchTerm && matchesCidade;
   });
 
   const categoryDetailsFromAll = categorySlug
@@ -92,26 +152,102 @@ function BusinessList() {
 
   return (
     <>
-      {/* Barra de Busca com flip-down suave */}
+      {/* Barra de Busca com Filtros de Localização */}
       <div id="search-section" className="container mx-auto p-4 mt-8 mb-2 relative z-10">
         <h1 className="text-3xl text-green-700 font-bold mb-6 text-center">Encontre o que você precisa</h1>
-        <input
-          type="text"
-          placeholder="Buscar por nome ou cidade..."
-          className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
         
+        {/* Container dos filtros */}
+        <div className="space-y-4 mb-4">
+          {/* Barra de busca principal */}
+          <input
+            type="text"
+            placeholder="Buscar por nome..."
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          
+          {/* Filtros de localização */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Filtro por Estado */}
+            <select
+              value={selectedEstado}
+              onChange={(e) => setSelectedEstado(e.target.value)}
+              className="p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black bg-white"
+            >
+              <option value="">Todos os estados</option>
+              {estados.map((estado) => (
+                <option key={estado.id} value={estado.id}>
+                  {estado.nome}
+                </option>
+              ))}
+            </select>
+
+            {/* Filtro por Cidade */}
+            <select
+              value={selectedCidade}
+              onChange={(e) => setSelectedCidade(e.target.value)}
+              className="p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black bg-white"
+              disabled={!selectedEstado && cidadesDisponiveis.length === 0}
+            >
+              <option value="">Todas as cidades</option>
+              {selectedEstado ? (
+                // Se estado selecionado, mostra cidades do IBGE
+                cidades.map((cidade) => (
+                  <option key={cidade.id} value={cidade.nome}>
+                    {cidade.nome}
+                  </option>
+                ))
+              ) : (
+                // Se não, mostra apenas cidades que têm estabelecimentos
+                cidadesDisponiveis.map((cidade) => (
+                  <option key={cidade} value={cidade}>
+                    {cidade}
+                  </option>
+                ))
+              )}
+            </select>
+
+            {/* Botão para limpar filtros */}
+            <button
+              onClick={clearFilters}
+              className="p-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg shadow-md transition duration-200 font-medium"
+            >
+              Limpar Filtros
+            </button>
+          </div>
+          
+          {/* Indicador de filtros ativos */}
+          {(selectedEstado || selectedCidade || searchTerm) && (
+            <div className="flex flex-wrap gap-2 text-sm">
+              <span className="text-gray-600">Filtros ativos:</span>
+              {searchTerm && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Busca:"{searchTerm}"
+                </span>
+              )}
+              {selectedCidade && (
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Cidade: {selectedCidade}
+                </span>
+              )}
+              {selectedEstado && !selectedCidade && (
+                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  Estado: {estados.find(e => e.id === parseInt(selectedEstado))?.nome}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Seção de Categorias com fade-right */}
+      {/* Seção de Categorias */}
       <div>
         <CategoriesSection />
       </div>
 
       {/* Lista de Negócios */}
-      <div id="businesses-list" className="container  mx-auto p-4">
+      <div id="businesses-list" className="container mx-auto p-4">
         {loading && (
           <p className="text-center text-gray-600 py-8">Carregando estabelecimentos...</p>
         )}
@@ -120,24 +256,36 @@ function BusinessList() {
         )}
 
         {!loading && !error && filteredBusinesses.length === 0 && (
-          <p className="text-center text-gray-600 py-8">
-            {searchTerm || categorySlug
-              ? `Nenhum estabelecimento encontrado ${categorySlug && displayCategoryName ? `na categoria "${displayCategoryName}"` : ''} ${searchTerm ? `para "${searchTerm}"` : ''}.`
-              : 'Ainda não há estabelecimentos cadastrados.'}
-          </p>
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">
+              {searchTerm || categorySlug || selectedCidade
+                ? `Nenhum estabelecimento encontrado com os filtros aplicados.`
+                : 'Ainda não há estabelecimentos cadastrados.'}
+            </p>
+            {(searchTerm || selectedCidade || selectedEstado) && (
+              <button
+                onClick={clearFilters}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+              >
+                Ver todos os estabelecimentos
+              </button>
+            )}
+          </div>
         )}
 
         {!loading && !error && filteredBusinesses.length > 0 && (
-          <div
-            className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            data-aos="fade-up" // Animação aplicada aqui, no container dos cards
-          >
-            {filteredBusinesses.map((business) => (
-              <div key={business.id}>
-                <BusinessCard business={business} />
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="mb-4 text-center text-gray-600">
+              {filteredBusinesses.length} estabelecimento{filteredBusinesses.length !== 1 ? 's' : ''} encontrado{filteredBusinesses.length !== 1 ? 's' : ''}
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" data-aos="fade-up">
+              {filteredBusinesses.map((business) => (
+                <div key={business.id}>
+                  <BusinessCard business={business} />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </>
@@ -145,22 +293,18 @@ function BusinessList() {
 }
 
 export default function Sobre() {
-    return (
+  return (
     <div className="min-h-screen relative overflow-x-hidden">
       <Hero />
-
-      {/* Suspense com fade-up suave */}
       <Suspense fallback={<div className="text-center p-10">Carregando...</div>}>
         <BusinessList />
       </Suspense>
-
       <div>
         <HowItWorksSection />
       </div>
-
-      <div data-aos="fade-up" data-aos-delay="100"> {/* Animação aplicada aqui, na seção de FAQ */}
+      <div data-aos="fade-up" data-aos-delay="100">
         <FAQSection />
       </div>
     </div>
-    );
+  );
 }

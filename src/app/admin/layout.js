@@ -22,7 +22,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex min-h-screen mt-25 overflow-x-hidden">
-      {/* Botão do Menu Sanduíche - MOVIDO PARA A DIREITA */}
+      {/* Botão do Menu Sanduíche */}
       <button
         onClick={toggleMenu}
         className="fixed top-28 right-4 z-50 md:hidden bg-green-600 text-white p-3 rounded-lg shadow-lg hover:bg-green-700 transition-colors"
@@ -37,28 +37,28 @@ export default function AdminLayout({ children }) {
         </svg>
       </button>
 
-      {/* Overlay para fechar o menu ao clicar fora */}
+      {/* Overlay com efeito vidro desfocado */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 z-40 md:hidden backdrop-blur-sm bg-white/30"
           onClick={closeMenu}
         />
       )}
 
-      {/* Menu Lateral - CORRIGIDO PARA IR ATÉ EMBAIXO */}
+      {/* Menu Lateral com borda arredondada superior direita */}
       <aside className={`
         ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
         fixed md:static
-        w-64 bg-green-600 text-white p-4 rounded-tl-lg flex flex-col
+        w-64 bg-green-600 text-white p-4 flex flex-col
         transition-transform duration-300 ease-in-out
         z-40 
         h-screen md:min-h-full
         top-0 md:top-auto
-        rounded-tr-3xl md:rounded-none
+        rounded-tr-3xl
       `}>
         {/* Espaçamento para o header em mobile */}
-        <div className="h-25 rounded-tl-lg md:h-0 flex-shrink-0"></div>
+        <div className="h-25 md:h-0 flex-shrink-0"></div>
         
         <h2 className="text-xl font-semibold mb-6">Painel Admin</h2>
         <nav className="flex-grow">
@@ -89,7 +89,7 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
       
-      {/* Área principal - CORRIGIDA PARA EVITAR ROLAGEM HORIZONTAL */}
+      {/* Área principal */}
       <main className="flex-1 bg-gray-100 overflow-x-hidden overflow-y-auto w-0 md:w-auto">
         <div className="p-2 md:p-4 max-w-full">
           {children}

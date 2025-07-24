@@ -196,25 +196,25 @@ export default function AdminNegociosPage() {
     <div className="w-full max-w-full overflow-hidden">
       <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-gray-800">Painel Admin - Estabelecimentos</h1>
 
-      {/* Tabela Super Otimizada - SEM ROLAGEM HORIZONTAL */}
+      {/* Tabela com espaçamento reduzido */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gradient-to-r from-yellow-300 to-amber-400">
               <tr>
-                <th scope="col" className="px-2 py-3 text-left text-sm font-bold text-green-800 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-3 text-left text-sm font-bold text-green-800 uppercase tracking-wider">
                   Estabelecimento
                 </th>
-                <th scope="col" className="px-2 py-3 text-left text-sm font-bold text-green-800 uppercase tracking-wider hidden sm:table-cell">
+                <th scope="col" className="px-3 py-3 text-left text-sm font-bold text-green-800 uppercase tracking-wider hidden sm:table-cell">
                   Proprietário
                 </th>
-                <th scope="col" className="px-2 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
                   Cidade
                 </th>
-                <th scope="col" className="px-1 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
+                <th scope="col" className="px-2 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
                   Status
                 </th>
-                <th scope="col" className="px-1 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
+                <th scope="col" className="px-2 py-3 text-center text-sm font-bold text-green-800 uppercase tracking-wider">
                   Ações
                 </th>
               </tr>
@@ -233,9 +233,9 @@ export default function AdminNegociosPage() {
                   className="hover:bg-green-50 cursor-pointer transition-colors"
                   onClick={() => router.push(`/negocio/${business.id}`)}
                 >
-                  {/* Coluna Nome - Responsiva */}
-                  <td className="px-2 py-3">
-                    <div className="text-sm font-medium text-gray-900 break-words leading-tight max-w-xs">
+                  {/* Coluna Nome - Espaçamento reduzido */}
+                  <td className="px-3 py-3">
+                    <div className="text-base font-medium text-gray-900 break-words leading-tight max-w-xs">
                       {business.nome}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
@@ -247,8 +247,8 @@ export default function AdminNegociosPage() {
                     </div>
                   </td>
 
-                  {/* Coluna Proprietário - Oculta em telas pequenas */}
-                  <td className="px-2 py-3 hidden sm:table-cell">
+                  {/* Coluna Proprietário - Espaçamento reduzido */}
+                  <td className="px-3 py-3 hidden sm:table-cell">
                     <div className="text-sm max-w-xs">
                       <div className="font-medium text-gray-900 break-words leading-tight">
                         {business.proprietario || 'N/A'}
@@ -261,12 +261,12 @@ export default function AdminNegociosPage() {
                       {/* Badges compactos */}
                       <div className="flex flex-wrap gap-1 mt-1">
                         {business.usuario_id && business.profiles && (
-                          <span className="text-sm bg-green-100 text-green-700 px-1 py-0.5 rounded">
+                          <span className="text-xs bg-green-100 text-green-700 px-1 py-0.5 rounded">
                             👤
                           </span>
                         )}
                         {business.criado_por_admin && (
-                          <span className="text-sm bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
                             🔧
                           </span>
                         )}
@@ -274,24 +274,24 @@ export default function AdminNegociosPage() {
                     </div>
                   </td>
 
-                  {/* Coluna Cidade - Compacta */}
-                  <td className="px-2 py-3 text-center">
+                  {/* Coluna Cidade */}
+                  <td className="px-3 py-3 text-center">
                     <div className="text-sm text-gray-900 break-words leading-tight max-w-20">
                       {business.cidade}
                     </div>
                   </td>
 
-                  {/* Coluna Status - Muito compacta */}
-                  <td className="px-1 py-3 text-center">
-                    <span className={`px-1 py-0.5 text-sm font-semibold rounded-full whitespace-nowrap ${
+                  {/* Coluna Status */}
+                  <td className="px-2 py-3 text-center">
+                    <span className={`px-2 py-1 text-sm font-semibold rounded-full whitespace-nowrap ${
                       business.ativo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
                       {business.ativo ? '✓' : '✗'}
                     </span>
                   </td>
 
-                  {/* Coluna Ações - Compacta vertical */}
-                  <td className="px-1 py-3">
+                  {/* Coluna Ações - Espaçamento reduzido */}
+                  <td className="px-2 py-3">
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-1">
                       {/* Botão Toggle Status */}
                       <button
@@ -300,7 +300,7 @@ export default function AdminNegociosPage() {
                           handleToggleAtivo(business.id, business.ativo);
                         }}
                         disabled={togglingId === business.id}
-                        className={`p-1 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
+                        className={`p-1.5 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
                           business.ativo
                             ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-100'
                             : 'text-green-600 hover:text-green-900 hover:bg-green-100'
@@ -308,25 +308,25 @@ export default function AdminNegociosPage() {
                         title={business.ativo ? 'Desativar' : 'Ativar'}
                       >
                         {togglingId === business.id ? (
-                          <svg className="animate-spin h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                         ) : business.ativo ? (
-                          <FaToggleOn className="h-3 w-3" />
+                          <FaToggleOn className="h-4 w-4" />
                         ) : (
-                          <FaToggleOff className="h-3 w-3" />
+                          <FaToggleOff className="h-4 w-4" />
                         )}
                       </button>
 
                       {/* Botão Editar */}
                       <Link
                         href={`/meu-negocio/editar/${business.id}`}
-                        className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-1 rounded inline-block"
+                        className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-1.5 rounded inline-block"
                         onClick={(e) => e.stopPropagation()}
                         title="Editar"
                       >
-                        <FaEdit className="h-3 w-3" />
+                        <FaEdit className="h-4 w-4" />
                       </Link>
 
                       {/* Botão Excluir */}
@@ -336,16 +336,16 @@ export default function AdminNegociosPage() {
                           handleDeleteNegocio(business.id, business.imagens);
                         }}
                         disabled={deletingId === business.id}
-                        className="text-red-600 hover:text-red-900 hover:bg-red-100 p-1 rounded disabled:opacity-50"
+                        className="text-red-600 hover:text-red-900 hover:bg-red-100 p-1.5 rounded disabled:opacity-50"
                         title="Excluir"
                       >
                         {deletingId === business.id ? (
-                          <svg className="animate-spin h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                         ) : (
-                          <FaTrash className="h-3 w-3" />
+                          <FaTrash className="h-4 w-4" />
                         )}
                       </button>
                     </div>

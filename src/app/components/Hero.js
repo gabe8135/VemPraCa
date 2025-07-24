@@ -36,7 +36,7 @@ export default function Hero() {
       }}
     >
       {/* Overlay escuro para contraste */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-emerald-900/30 z-0"></div>
+      {/* <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-emerald-900/30 z-0"></div> */}
 
       {/* Conteúdo centralizado */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 pb-8">
