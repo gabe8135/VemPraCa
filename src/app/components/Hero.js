@@ -30,7 +30,7 @@ export default function Hero() {
     <section
       className="relative h-screen w-full flex items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: "url('https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//HERO-3%20(1)%20(1).webp')",
+        backgroundImage: "url('/img/hero.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
