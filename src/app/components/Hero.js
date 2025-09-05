@@ -39,15 +39,18 @@ const CategoryList = () => (
 export default function Hero() {
   // Lista das imagens do carrossel
   // Ordem decrescente das imagens, usando useMemo para evitar recriação
-  const images = useMemo(() => [
-    "/img/HERO-7.webp",
-    "/img/HERO-6.webp",
-    "/img/HERO-5.webp",
-    "/img/HERO-4.webp",
-    "/img/HERO-3.webp",
-    "/img/HERO-2.webp",
-    "/img/HERO-1.webp",
-  ], []);
+  const images = useMemo(
+    () => [
+      "/img/HERO-7.webp",
+      "/img/HERO-6.webp",
+      "/img/HERO-5.webp",
+      "/img/HERO-4.webp",
+      "/img/HERO-3.webp",
+      "/img/HERO-2.webp",
+      "/img/HERO-1.webp",
+    ],
+    []
+  );
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +67,9 @@ export default function Hero() {
         lazyImg.src = src;
       });
     };
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [images]);
 
   useEffect(() => {
