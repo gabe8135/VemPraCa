@@ -4,7 +4,7 @@ import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import Image from "next/image";
 import Header from "./Header";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 // Minha lista de categorias para o carrossel da Hero.
 const categories = [
@@ -38,23 +38,50 @@ const CategoryList = () => (
 
 export default function Hero() {
   // Lista das imagens do carrossel
-  const images = [
-    "/img/HERO-1.webp",
-    "/img/HERO-2.webp",
-    "/img/HERO-3.webp",
-    "/img/HERO-4.webp",
-    "/img/HERO-5.webp",
-    "/img/HERO-6.webp",
+  // Ordem decrescente das imagens, usando useMemo para evitar recriação
+  const images = useMemo(() => [
     "/img/HERO-7.webp",
-  ];
+    "/img/HERO-6.webp",
+    "/img/HERO-5.webp",
+    "/img/HERO-4.webp",
+    "/img/HERO-3.webp",
+    "/img/HERO-2.webp",
+    "/img/HERO-1.webp",
+  ], []);
   const [current, setCurrent] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Pré-carrega a primeira imagem e carrega as demais de forma lazy
+  useEffect(() => {
+    let isMounted = true;
+    const img = new window.Image();
+    img.src = images[0];
+    img.onload = () => {
+      if (isMounted) setLoading(false);
+      // Lazy load das outras imagens
+      images.slice(1).forEach((src) => {
+        const lazyImg = new window.Image();
+        lazyImg.src = src;
+      });
+    };
+    return () => { isMounted = false; };
+  }, [images]);
 
   useEffect(() => {
+    if (loading) return;
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
     }, 4000); // Troca a cada 4 segundos
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, loading]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
