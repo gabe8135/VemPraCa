@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaStar } from 'react-icons/fa';
 
 export default function AdminNegociosPage() {
   const router = useRouter();
@@ -15,6 +15,28 @@ export default function AdminNegociosPage() {
   const [error, setError] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [togglingDestaqueId, setTogglingDestaqueId] = useState(null);
+
+  // Função para ativar/desativar destaque
+  const handleToggleDestaque = async (negocioId, currentStatus) => {
+    setTogglingDestaqueId(negocioId);
+    setError(null);
+    const newStatus = !currentStatus;
+    try {
+      const { error: updateError } = await supabase
+        .from('negocios')
+        .update({ destaque: newStatus, data_atualizacao: new Date().toISOString() })
+        .eq('id', negocioId);
+      if (updateError) throw updateError;
+      setBusinesses(prev =>
+        prev.map(b => (b.id === negocioId ? { ...b, destaque: newStatus } : b))
+      );
+    } catch (err) {
+      setError(`Falha ao atualizar destaque: ${err.message}`);
+    } finally {
+      setTogglingDestaqueId(null);
+    }
+  };
 
   const checkUserRole = useCallback(async (userId) => {
     if (!userId) return false;
@@ -65,6 +87,7 @@ export default function AdminNegociosPage() {
             proprietario,
             email_proprietario,
             criado_por_admin,
+            destaque,
             categorias(nome)
           `)
           .order('nome', { ascending: true });
@@ -92,6 +115,7 @@ export default function AdminNegociosPage() {
 
           const businessesComProfiles = data.map(business => ({
             ...business,
+            destaque: business.destaque === true || business.destaque === 'true' ? true : false,
             profiles: profilesData.find(p => p.id === business.usuario_id) || null
           }));
 
@@ -316,6 +340,30 @@ export default function AdminNegociosPage() {
                           <FaToggleOn className="h-4 w-4" />
                         ) : (
                           <FaToggleOff className="h-4 w-4" />
+                        )}
+                      </button>
+
+                      {/* Botão Toggle Destaque */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleDestaque(business.id, business.destaque);
+                        }}
+                        disabled={togglingDestaqueId === business.id}
+                        className={`p-1.5 rounded transition duration-150 ease-in-out disabled:opacity-50 ${
+                          business.destaque
+                            ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-100'
+                            : 'text-gray-400 hover:text-yellow-700 hover:bg-yellow-50'
+                        }`}
+                        title={business.destaque ? 'Remover dos destaques' : 'Destacar'}
+                      >
+                        {togglingDestaqueId === business.id ? (
+                          <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <FaStar className={`h-4 w-4 ${business.destaque ? 'text-yellow-500' : 'text-gray-400'}`} />
                         )}
                       </button>
 

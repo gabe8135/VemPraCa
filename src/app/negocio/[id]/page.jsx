@@ -2,6 +2,67 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+// Modal simples para exibir o carrossel em tela cheia
+function ModalCarrossel({ open, onClose, imagens, initialIndex = 0, nome }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-lg shadow-2xl">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-red-500 text-3xl font-bold z-50 hover:text-red-700 transition"
+        aria-label="Fechar"
+      >
+        &times;
+      </button>
+      <div className="w-screen h-screen flex items-center justify-center">
+        <Swiper
+          modules={[Pagination, Scrollbar, A11y, Autoplay, Navigation]}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          spaceBetween={0} slidesPerView={1}
+          pagination={{ clickable: true }}
+          navigation={{
+            nextEl: '.modal-swiper-next',
+            prevEl: '.modal-swiper-prev',
+          }}
+          loop={imagens.length > 1}
+          initialSlide={initialIndex}
+          className="w-screen h-screen"
+        >
+          {imagens.map((imgUrl, index) => (
+            <SwiperSlide key={index}>
+              <img
+                src={imgUrl}
+                alt={`${nome} - Imagem ${index + 1}`}
+                className="w-full h-full object-contain"
+                style={{ maxWidth: '100vw', maxHeight: '100vh', display: 'block', margin: '0 auto' }}
+                loading="lazy"
+              />
+            </SwiperSlide>
+          ))}
+          {/* Setas customizadas sem fundo arredondado */}
+          <button
+            className="modal-swiper-prev absolute left-2 top-1/2 -translate-y-1/2 z-50 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition"
+            aria-label="Anterior"
+            style={{ boxShadow: 'none' }}
+          >
+            <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
+              <path d="M20 8l-8 8 8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button
+            className="modal-swiper-next absolute right-2 top-1/2 -translate-y-1/2 z-50 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition"
+            aria-label="Próxima"
+            style={{ boxShadow: 'none' }}
+          >
+            <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
+              <path d="M12 8l8 8-8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </Swiper>
+      </div>
+    </div>
+  );
+}
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -11,7 +72,7 @@ import { FiPhone, FiCoffee, FiWind, FiMail } from 'react-icons/fi';
 import { MdRestaurant, MdAcUnit, MdPool, MdRoomService, MdOutlineStar, MdOutlineStarBorder } from 'react-icons/md';
 // Swiper para o carrossel de imagens.
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Scrollbar, A11y, Autoplay } from 'swiper/modules';
+import { Pagination, Scrollbar, A11y, Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
@@ -52,6 +113,10 @@ const caracteristicaIconMap = {
 };
 
 export default function DetalhesNegocioPage() {
+  // Estado para modal do carrossel (deve vir antes do uso)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const { id: negocioId } = useParams(); // Pego o ID do negócio da URL.
   const router = useRouter();
   const [negocio, setNegocio] = useState(null);
@@ -338,22 +403,38 @@ export default function DetalhesNegocioPage() {
 
         {/* Carrossel de Imagens */}
         {todasImagens.length > 0 ? (
-          <div className="relative w-screen max-w-full left-1/2 right-1/2 -translate-x-1/2 mb-8 overflow-x-hidden">
-            <Swiper
-              modules={[Pagination, Scrollbar, A11y, Autoplay]}
-              autoplay={{ delay: 5000, disableOnInteraction: false }}
-              spaceBetween={0} slidesPerView={1}
-              pagination={{ clickable: true }}
-              loop={todasImagens.length > 1}
-              className="aspect-video max-h-[60vh]"
+          <>
+            <div className="relative w-screen max-w-full left-1/2 right-1/2 -translate-x-1/2 mb-8 overflow-x-hidden group cursor-zoom-in"
+              onClick={(e) => {
+                // Só expande se clicar na imagem, não nos bullets
+                if (e.target.tagName === 'IMG' || e.target.classList.contains('swiper-slide')) setModalOpen(true);
+              }}
             >
-              {todasImagens.map((imgUrl, index) => (
-                <SwiperSlide key={index}>
-                  <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
+              <Swiper
+                modules={[Pagination, Scrollbar, A11y, Autoplay]}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                spaceBetween={0} slidesPerView={1}
+                pagination={{ clickable: true }}
+                loop={todasImagens.length > 1}
+                className="aspect-video max-h-[60vh]"
+                onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+              >
+                {todasImagens.map((imgUrl, index) => (
+                  <SwiperSlide key={index}>
+                    <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover transition group-hover:brightness-90" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              <div className="absolute inset-0 pointer-events-none group-hover:bg-black/10 transition" />
+            </div>
+            <ModalCarrossel
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              imagens={todasImagens}
+              initialIndex={currentSlide}
+              nome={negocio.nome}
+            />
+          </>
         ) : (
           <div className="mb-8 bg-gray-100 aspect-video flex items-center justify-center rounded-2xl shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
         )}

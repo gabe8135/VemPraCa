@@ -9,6 +9,11 @@ import Hero from "@/app/components/Hero";
 import FAQSection from "@/app/components/FAQSection";
 import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from "@/app/components/HowItWorksSection";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, A11y } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const BusinessCard = dynamic(() => import("@/app/components/BusinessCard"), {
   ssr: false,
@@ -65,6 +70,27 @@ function BusinessList() {
         }
       } else {
         setCidades([]);
+        <div className="relative" data-aos="fade-up">
+          <Swiper
+            modules={[Navigation, Pagination, A11y]}
+            spaceBetween={16}
+            slidesPerView={1.2}
+            breakpoints={{
+              640: { slidesPerView: 2.2 },
+              1024: { slidesPerView: 3.2 },
+            }}
+            navigation
+            pagination={{ clickable: true }}
+            className="!pb-8"
+            style={{ paddingLeft: 4, paddingRight: 4 }}
+          >
+            {filteredBusinesses.map((business) => (
+              <SwiperSlide key={business.id} className="!h-auto flex">
+                <BusinessCard business={business} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>;
         setSelectedCidade("");
       }
     };
@@ -179,67 +205,104 @@ function BusinessList() {
         </h1>
 
         {/* Container dos filtros */}
-        <div className="space-y-4 mb-4">
+        <div className="space-y-4 mb-4 bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col gap-4 border border-gray-100">
           {/* Barra de busca principal */}
-          <input
-            type="text"
-            placeholder="Buscar por nome..."
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
+          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
+            <div className="flex-1">
+              <label
+                htmlFor="searchTerm"
+                className="block text-sm font-semibold text-emerald-700 mb-1"
+              >
+                Buscar por nome
+              </label>
+              <input
+                id="searchTerm"
+                type="text"
+                placeholder="Ex: Pousada, Restaurante..."
+                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
           {/* Filtros de localização */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Filtro por Estado */}
-            <select
-              value={selectedEstado}
-              onChange={(e) => setSelectedEstado(e.target.value)}
-              className="p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black bg-white"
-            >
-              <option value="">Todos os estados</option>
-              {estados.map((estado) => (
-                <option key={estado.id} value={estado.id}>
-                  {estado.nome}
-                </option>
-              ))}
-            </select>
-
-            {/* Filtro por Cidade */}
-            <select
-              value={selectedCidade}
-              onChange={(e) => setSelectedCidade(e.target.value)}
-              className="p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black bg-white"
-              disabled={!selectedEstado && cidadesDisponiveis.length === 0}
-            >
-              <option value="">Todas as cidades</option>
-              {selectedEstado
-                ? // Se estado selecionado, mostra cidades do IBGE
-                  cidades.map((cidade) => (
-                    <option key={cidade.id} value={cidade.nome}>
-                      {cidade.nome}
-                    </option>
-                  ))
-                : // Se não, mostra apenas cidades que têm estabelecimentos
-                  cidadesDisponiveis.map((cidade) => (
-                    <option key={cidade} value={cidade}>
-                      {cidade}
-                    </option>
-                  ))}
-            </select>
-
-            {/* Botão para limpar filtros */}
-            <button
-              onClick={clearFilters}
-              className="p-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg shadow-md transition duration-200 font-medium"
-            >
-              Limpar Filtros
-            </button>
+            <div>
+              <label
+                htmlFor="estado"
+                className="block text-sm font-semibold text-emerald-700 mb-1"
+              >
+                Estado
+              </label>
+              <select
+                id="estado"
+                value={selectedEstado}
+                onChange={(e) => setSelectedEstado(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
+              >
+                <option value="">Todos os estados</option>
+                {estados.map((estado) => (
+                  <option key={estado.id} value={estado.id}>
+                    {estado.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="cidade"
+                className="block text-sm font-semibold text-emerald-700 mb-1"
+              >
+                Cidade
+              </label>
+              <select
+                id="cidade"
+                value={selectedCidade}
+                onChange={(e) => setSelectedCidade(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
+                disabled={!selectedEstado && cidadesDisponiveis.length === 0}
+              >
+                <option value="">Todas as cidades</option>
+                {selectedEstado
+                  ? cidades.map((cidade) => (
+                      <option key={cidade.id} value={cidade.nome}>
+                        {cidade.nome}
+                      </option>
+                    ))
+                  : cidadesDisponiveis.map((cidade) => (
+                      <option key={cidade} value={cidade}>
+                        {cidade}
+                      </option>
+                    ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2 justify-end">
+              <button
+                onClick={clearFilters}
+                className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
+                type="button"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                Limpar Filtros
+              </button>
+            </div>
           </div>
-
           {/* Indicador de filtros ativos */}
           {(selectedEstado || selectedCidade || searchTerm) && (
-            <div className="flex flex-wrap gap-2 text-sm">
+            <div className="flex flex-wrap gap-2 text-sm mt-2">
               <span className="text-gray-600">Filtros ativos:</span>
               {searchTerm && (
                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -296,20 +359,75 @@ function BusinessList() {
 
         {!loading && !error && filteredBusinesses.length > 0 && (
           <>
+            {/* Destaques: negócios marcados manualmente (destaque === true), até 8 itens */}
+            {filteredBusinesses.filter((b) => b.destaque === true).length >
+              0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold mb-3 text-emerald-700">
+                  Destaques
+                </h2>
+                <Swiper
+                  modules={[Pagination, A11y]}
+                  spaceBetween={16}
+                  slidesPerView={1.2}
+                  breakpoints={{
+                    640: { slidesPerView: 2.2 },
+                    1024: { slidesPerView: 3.2 },
+                  }}
+                  pagination={{ clickable: true }}
+                  className="!pb-8"
+                  style={{ paddingLeft: 4, paddingRight: 4 }}
+                  loop={true}
+                  onInit={(swiper) => {
+                    setTimeout(() => {
+                      const bullets = document.querySelectorAll(
+                        ".swiper-pagination-bullet"
+                      );
+                      bullets.forEach((el) => {
+                        el.classList.add("!bg-emerald-500", "!opacity-80");
+                      });
+                    }, 100);
+                  }}
+                >
+                  {filteredBusinesses
+                    .filter((b) => b.destaque === true)
+                    .slice(0, 8)
+                    .map((business) => (
+                      <SwiperSlide key={business.id} className="!h-auto flex">
+                        <BusinessCard business={business} />
+                      </SwiperSlide>
+                    ))}
+                </Swiper>
+                <style jsx global>{`
+                  .swiper-pagination-bullet {
+                    background: #10b981 !important; /* emerald-500 */
+                    opacity: 0.8 !important;
+                  }
+                  .swiper-pagination-bullet-active {
+                    background: #047857 !important; /* emerald-700 */
+                    opacity: 1 !important;
+                  }
+                `}</style>
+              </div>
+            )}
+            {/* Grid dos demais estabelecimentos */}
             <div className="mb-4 text-center text-gray-600">
               {filteredBusinesses.length} estabelecimento
               {filteredBusinesses.length !== 1 ? "s" : ""} encontrado
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
             <div
-              className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+              className="w-full lg:max-w-6xl lg:w-[80%] mx-auto"
               data-aos="fade-up"
             >
-              {filteredBusinesses.map((business) => (
-                <div key={business.id}>
-                  <BusinessCard business={business} />
-                </div>
-              ))}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {filteredBusinesses.map((business) => (
+                  <BusinessCard
+                    key={business.id + "-normal"}
+                    business={business}
+                  />
+                ))}
+              </div>
             </div>
           </>
         )}
