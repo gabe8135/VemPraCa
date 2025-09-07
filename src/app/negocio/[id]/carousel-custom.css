@@ -1,0 +1,14 @@
+/* Custom Swiper pagination bullets: transparente e moderna */
+.swiper-pagination-bullet {
+  background: rgba(0,0,0,0.12) !important;
+  opacity: 1 !important;
+  border: 1.5px solid #d1fae5 !important; /* verde claro tailwind: emerald-100 */
+  width: 6px;
+  height: 6px;
+  margin: 0 3px !important;
+  transition: background 0.2s, border 0.2s;
+}
+.swiper-pagination-bullet-active {
+  background: #10b981 !important; /* emerald-500 */
+  border: 1.5px solid #10b981 !important;
+}

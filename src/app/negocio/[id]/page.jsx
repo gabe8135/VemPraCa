@@ -11,11 +11,11 @@ import { FiPhone, FiCoffee, FiWind, FiMail } from 'react-icons/fi';
 import { MdRestaurant, MdAcUnit, MdPool, MdRoomService, MdOutlineStar, MdOutlineStarBorder } from 'react-icons/md';
 // Swiper para o carrossel de imagens.
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Scrollbar, A11y, Autoplay } from 'swiper/modules';
+import { Pagination, Scrollbar, A11y, Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import './carousel-custom.css'; // Arquivo para customização das bolinhas
 import RatingForm from '@/app/components/RatingForm'; // Importar o formulário de avaliação
 import AcessosChart from '@/app/components/AcessosChart'; // 1. Importar o componente do gráfico
 
@@ -338,20 +338,22 @@ export default function DetalhesNegocioPage() {
 
         {/* Carrossel de Imagens */}
         {todasImagens.length > 0 ? (
-          <Swiper
-            modules={[Navigation, Pagination, Scrollbar, A11y, Autoplay]}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            spaceBetween={10} slidesPerView={1} navigation
-            pagination={{ clickable: true }}
-            loop={todasImagens.length > 1}
-            className="mb-8 rounded-2xl shadow-xl overflow-hidden bg-gray-100 aspect-video"
-          >
-            {todasImagens.map((imgUrl, index) => (
-              <SwiperSlide key={index}>
-                <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          <div className="relative w-screen max-w-full left-1/2 right-1/2 -translate-x-1/2 mb-8 overflow-x-hidden">
+            <Swiper
+              modules={[Pagination, Scrollbar, A11y, Autoplay]}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              spaceBetween={0} slidesPerView={1}
+              pagination={{ clickable: true }}
+              loop={todasImagens.length > 1}
+              className="aspect-video max-h-[60vh]"
+            >
+              {todasImagens.map((imgUrl, index) => (
+                <SwiperSlide key={index}>
+                  <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
         ) : (
           <div className="mb-8 bg-gray-100 aspect-video flex items-center justify-center rounded-2xl shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
         )}
