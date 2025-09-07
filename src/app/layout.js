@@ -1,8 +1,15 @@
-import { Geist, Geist_Mono, Playfair_Display, Montserrat, Inter } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Playfair_Display,
+  Montserrat,
+  Inter,
+} from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
-import FloatingWhatsApp from "@/app/components/FloatingWhatsApp";
+import FloatingWhatsAppWrapper from "@/app/components/FloatingWhatsAppWrapper";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 // import AOSInit from "./components/AOSInit";
 
@@ -49,6 +56,9 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  // Só mostra o botão nessas rotas:
+  const allowedPaths = ["/", "/como-funciona", "/sobre", "/termos-de-uso"];
+  // usePathname só funciona em Client Component, então precisamos de um wrapper
   return (
     <html
       lang="pt-BR"
@@ -57,29 +67,24 @@ export default function RootLayout({ children }) {
       <head>
         {/* <AOSInit /> */}
         {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-792WGGT77D"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-792WGGT77D');
-            `,
-          }}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-792WGGT77D"
+          strategy="afterInteractive"
         />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-792WGGT77D');
+          `}
+        </Script>
       </head>
       <body className="scroll-smooth antialiased min-h-screen bg-white text-black flex flex-col">
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
-
-        {/* Botão WhatsApp flutuante em todas as páginas */}
-        <FloatingWhatsApp
-          phoneNumber="13997399924"
-          message="Olá! Vi o VemPraCá e gostaria de mais informações sobre como cadastrar meu negócio ou fazer uma parceria."
-        />
-
+        <FloatingWhatsAppWrapper allowedPaths={allowedPaths} />
         <SpeedInsights />
       </body>
     </html>
