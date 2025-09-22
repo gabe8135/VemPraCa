@@ -93,27 +93,13 @@ function BusinessList() {
     fetchInitialData();
   }, []);
 
+  // Removemos a rolagem automática para evitar flicker e jump ao trocar categoria
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
-      prevCategorySlug.current = categorySlug;
-      return;
     }
-    if (!loading && prevCategorySlug.current !== categorySlug) {
-      prevCategorySlug.current = categorySlug;
-      const searchSection = document.getElementById("search-section");
-      if (searchSection) {
-        const header = document.querySelector("header");
-        const headerHeight = header ? header.offsetHeight : 0;
-        const top =
-          searchSection.getBoundingClientRect().top +
-          window.scrollY -
-          headerHeight -
-          12;
-        window.scrollTo({ top, behavior: "smooth" });
-      }
-    }
-  }, [loading, categorySlug]);
+    prevCategorySlug.current = categorySlug;
+  }, [categorySlug]);
 
   // Função para limpar filtros
   const clearFilters = () => {
@@ -339,16 +325,17 @@ function BusinessList() {
               {filteredBusinesses.length !== 1 ? "s" : ""} encontrado
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
-            <div
-              className="w-full lg:max-w-6xl lg:w-[80%] mx-auto"
-              data-aos="fade-up"
-            >
+            <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                 {filteredBusinesses.map((business) => (
-                  <BusinessCard
-                    key={business.id + "-normal"}
-                    business={business}
-                  />
+                  <Fade
+                    key={business.id}
+                    cascade={false}
+                    duration={260}
+                    triggerOnce
+                  >
+                    <BusinessCard business={business} />
+                  </Fade>
                 ))}
               </div>
             </div>

@@ -1,7 +1,7 @@
 // src/app/components/CategoriesSection.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Fade } from "react-awesome-reveal";
 import { supabase } from "@/app/lib/supabaseClient";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -15,6 +15,12 @@ export default function CategoriesSection() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const selectedCategory = searchParams.get("categoria") || "todas";
+
+  // Refs para calcular e animar o destaque deslizante (efeito "líquido")
+  const contentRef = useRef(null); // wrapper interno que contém os triggers (conteúdo que rola)
+  const triggerRefs = useRef(new Map()); // mapeia value -> elemento do trigger
+  const [hlStyle, setHlStyle] = useState({ left: 0, width: 0, height: 0 });
+  const [hlReady, setHlReady] = useState(false);
 
   useEffect(() => {
     const fetchCategoriesAndBusinesses = async () => {
@@ -71,27 +77,36 @@ export default function CategoriesSection() {
     };
   }, []);
 
+  // Atualiza o highlight para o trigger ativo
+  const updateHighlight = () => {
+    const activeEl = triggerRefs.current.get(selectedCategory);
+    const container = contentRef.current;
+    if (!activeEl || !container) return;
+    // left/width relativos ao contentRef (que é o elemento que contém os triggers)
+    const left = activeEl.offsetLeft;
+    const width = activeEl.offsetWidth;
+    const height = activeEl.offsetHeight;
+    setHlStyle({ left, width, height });
+    setHlReady(true);
+  };
+
+  // Recalcula quando a categoria muda, quando categorias carregam, ou no resize
+  useEffect(() => {
+    updateHighlight();
+    const onResize = () => updateHighlight();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, categoriesData.length]);
+
   // Função para trocar categoria via URL
   const handleTabChange = (value) => {
+    // Troca somente a query sem adicionar hash e sem rolar a página
     if (value === "todas") {
-      router.push("/#categories");
+      router.replace("/", { scroll: false });
     } else {
-      router.push(`/?categoria=${value}#categories`);
+      router.replace(`/?categoria=${value}`, { scroll: false });
     }
-    // Scroll suave para a barra de pesquisa, compensando a altura da header fixa
-    setTimeout(() => {
-      const searchSection = document.getElementById("search-section");
-      if (searchSection) {
-        const header = document.querySelector("header");
-        const headerHeight = header ? header.offsetHeight : 0;
-        const top =
-          searchSection.getBoundingClientRect().top +
-          window.scrollY -
-          headerHeight -
-          12; // 12px de margem extra
-        window.scrollTo({ top, behavior: "smooth" });
-      }
-    }, 100); // pequeno delay para garantir que o DOM atualize
   };
 
   return (
@@ -116,14 +131,38 @@ export default function CategoriesSection() {
               tabIndex={0}
             >
               <Fade cascade damping={0.15} triggerOnce>
-                <div className="flex gap-2">
+                {/* Wrapper do conteúdo rolável com posição relativa para o highlight */}
+                <div ref={contentRef} className="relative flex gap-2">
+                  {/* Highlight deslizante (efeito líquido) */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute top-0 rounded-full z-0 shadow-lg"
+                    style={{
+                      left: hlStyle.left,
+                      width: hlStyle.width,
+                      height: hlStyle.height,
+                      // Gradiente verde e leve brilho para parecer mais "líquido"
+                      background: "linear-gradient(90deg, #059669, #10B981)",
+                      boxShadow:
+                        "0 6px 20px rgba(16,185,129,0.35), inset 0 0 12px rgba(255,255,255,0.15)",
+                      opacity: hlReady ? 1 : 0,
+                      transition:
+                        "left 380ms cubic-bezier(0.22,1,0.36,1), width 380ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease-out",
+                    }}
+                  />
+
+                  {/* Triggers (ficam acima do highlight) */}
                   <Tabs.Trigger
                     value="todas"
+                    ref={(el) => {
+                      if (el) triggerRefs.current.set("todas", el);
+                      else triggerRefs.current.delete("todas");
+                    }}
                     className={`
-                      px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
-                      text-[#007B55]
-                      data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
-                      hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
+                      relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap
+                      text-[#007B55] transition-colors duration-200
+                      data-[state=active]:text-white
+                      hover:bg-yellow-200/60 hover:text-[#007B55]
                     `}
                   >
                     Todas
@@ -132,11 +171,15 @@ export default function CategoriesSection() {
                     <Tabs.Trigger
                       key={cat.id}
                       value={cat.slug}
+                      ref={(el) => {
+                        if (el) triggerRefs.current.set(cat.slug, el);
+                        else triggerRefs.current.delete(cat.slug);
+                      }}
                       className={`
-                        px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
-                        text-[#007B55]
-                        data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
-                        hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
+                        relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap
+                        text-[#007B55] transition-colors duration-200
+                        data-[state=active]:text-white
+                        hover:bg-yellow-200/60 hover:text-[#007B55]
                       `}
                     >
                       {cat.nome}
