@@ -343,7 +343,7 @@ function BusinessList() {
         )}
       </div>
       {/* Seção do Clima */}
-      <WeatherSection cidade={selectedCidade || "São Paulo"} />
+      <WeatherSection cidade={selectedCidade || "Ilha Comprida"} />
     </>
   );
 }

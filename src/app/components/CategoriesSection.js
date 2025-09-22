@@ -63,16 +63,17 @@ export default function CategoriesSection() {
   // Adicionei o listener de wheel para rolar as tabs
   useEffect(() => {
     const tabList = document.querySelector("#categories-tabs-list");
+    const onWheel = (e) => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      tabList.scrollLeft += e.deltaY;
+    };
     if (tabList) {
-      tabList.addEventListener("wheel", (e) => {
-        if (e.deltaY === 0) return;
-        e.preventDefault();
-        tabList.scrollLeft += e.deltaY;
-      });
+      tabList.addEventListener("wheel", onWheel, { passive: false });
     }
     return () => {
       if (tabList) {
-        tabList.removeEventListener("wheel", () => {});
+        tabList.removeEventListener("wheel", onWheel);
       }
     };
   }, []);
@@ -107,6 +108,17 @@ export default function CategoriesSection() {
     } else {
       router.replace(`/?categoria=${value}`, { scroll: false });
     }
+  };
+
+  // Classes condicionais para triggers (desativa hover no ativo)
+  const getTriggerClasses = (value) => {
+    const isActive = selectedCategory === value;
+    const base = `category-trigger relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-colors duration-200`;
+    // Texto padrão verde escuro; quando ativo, texto branco e sem hover amarelo
+    if (isActive) {
+      return `${base} text-white`;
+    }
+    return `${base} text-[#007B55] hover:bg-yellow-200/60 hover:text-[#007B55]`;
   };
 
   return (
@@ -158,12 +170,7 @@ export default function CategoriesSection() {
                       if (el) triggerRefs.current.set("todas", el);
                       else triggerRefs.current.delete("todas");
                     }}
-                    className={`
-                      relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap
-                      text-[#007B55] transition-colors duration-200
-                      data-[state=active]:text-white
-                      hover:bg-yellow-200/60 hover:text-[#007B55]
-                    `}
+                    className={getTriggerClasses("todas")}
                   >
                     Todas
                   </Tabs.Trigger>
@@ -175,12 +182,7 @@ export default function CategoriesSection() {
                         if (el) triggerRefs.current.set(cat.slug, el);
                         else triggerRefs.current.delete(cat.slug);
                       }}
-                      className={`
-                        relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap
-                        text-[#007B55] transition-colors duration-200
-                        data-[state=active]:text-white
-                        hover:bg-yellow-200/60 hover:text-[#007B55]
-                      `}
+                      className={getTriggerClasses(cat.slug)}
                     >
                       {cat.nome}
                     </Tabs.Trigger>
