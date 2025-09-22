@@ -9,8 +9,9 @@ import Hero from "@/app/components/Hero";
 import FAQSection from "@/app/components/FAQSection";
 import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from "@/app/components/HowItWorksSection";
+import WeatherSection from "@/app/components/WeatherSection";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, A11y } from "swiper/modules";
+import { Navigation, Pagination, A11y, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -30,72 +31,23 @@ function BusinessList() {
   const [allCategories, setAllCategories] = useState([]);
 
   // Novos estados para filtro de localização
-  const [selectedEstado, setSelectedEstado] = useState("");
   const [selectedCidade, setSelectedCidade] = useState("");
-  const [estados, setEstados] = useState([]);
-  const [cidades, setCidades] = useState([]);
   const [cidadesDisponiveis, setCidadesDisponiveis] = useState([]);
 
   const isFirstRender = useRef(true);
   const prevCategorySlug = useRef(categorySlug);
 
-  // Carregar estados e cidades do IBGE
+  // Atualizar cidades disponíveis baseado nos negócios cadastrados em SP
   useEffect(() => {
-    const fetchEstados = async () => {
-      try {
-        const response = await fetch(
-          "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome"
-        );
-        const data = await response.json();
-        setEstados(data);
-      } catch (error) {
-        console.error("Erro ao carregar estados:", error);
-      }
-    };
-    fetchEstados();
-  }, []);
-
-  // Carregar cidades quando estado é selecionado
-  useEffect(() => {
-    const fetchCidades = async () => {
-      if (selectedEstado) {
-        try {
-          const response = await fetch(
-            `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios?orderBy=nome`
-          );
-          const data = await response.json();
-          setCidades(data);
-        } catch (error) {
-          console.error("Erro ao carregar cidades:", error);
-        }
-      } else {
-        setCidades([]);
-        <div className="relative" data-aos="fade-up">
-          <Swiper
-            modules={[Navigation, Pagination, A11y]}
-            spaceBetween={16}
-            slidesPerView={1.2}
-            breakpoints={{
-              640: { slidesPerView: 2.2 },
-              1024: { slidesPerView: 3.2 },
-            }}
-            navigation
-            pagination={{ clickable: true }}
-            className="!pb-8"
-            style={{ paddingLeft: 4, paddingRight: 4 }}
-          >
-            {filteredBusinesses.map((business) => (
-              <SwiperSlide key={business.id} className="!h-auto flex">
-                <BusinessCard business={business} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>;
-        setSelectedCidade("");
-      }
-    };
-    fetchCidades();
-  }, [selectedEstado]);
+    if (businesses.length > 0) {
+      const cidadesUnicas = [
+        ...new Set(
+          businesses.filter((b) => b.estado === "SP").map((b) => b.cidade)
+        ),
+      ].sort();
+      setCidadesDisponiveis(cidadesUnicas);
+    }
+  }, [businesses]);
 
   // Atualizar cidades disponíveis baseado nos negócios
   useEffect(() => {
@@ -163,7 +115,6 @@ function BusinessList() {
 
   // Função para limpar filtros
   const clearFilters = () => {
-    setSelectedEstado("");
     setSelectedCidade("");
     setSearchTerm("");
   };
@@ -206,8 +157,8 @@ function BusinessList() {
 
         {/* Container dos filtros */}
         <div className="space-y-4 mb-4 bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col gap-4 border border-gray-100">
-          {/* Barra de busca principal */}
-          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
+          {/* Filtros de busca e cidade - SEM duplicidade, SEM rolagem horizontal */}
+          <div className="flex flex-col md:flex-row gap-3 w-full">
             <div className="flex-1">
               <label
                 htmlFor="searchTerm"
@@ -224,62 +175,32 @@ function BusinessList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          </div>
-          {/* Filtros de localização */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label
-                htmlFor="estado"
-                className="block text-sm font-semibold text-emerald-700 mb-1"
-              >
-                Estado
-              </label>
-              <select
-                id="estado"
-                value={selectedEstado}
-                onChange={(e) => setSelectedEstado(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-              >
-                <option value="">Todos os estados</option>
-                {estados.map((estado) => (
-                  <option key={estado.id} value={estado.id}>
-                    {estado.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
+            <div className="flex-1">
               <label
                 htmlFor="cidade"
                 className="block text-sm font-semibold text-emerald-700 mb-1"
               >
-                Cidade
+                Cidades Disponiveis em (SP)
               </label>
               <select
                 id="cidade"
                 value={selectedCidade}
                 onChange={(e) => setSelectedCidade(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-                disabled={!selectedEstado && cidadesDisponiveis.length === 0}
+                disabled={cidadesDisponiveis.length === 0}
               >
                 <option value="">Todas as cidades</option>
-                {selectedEstado
-                  ? cidades.map((cidade) => (
-                      <option key={cidade.id} value={cidade.nome}>
-                        {cidade.nome}
-                      </option>
-                    ))
-                  : cidadesDisponiveis.map((cidade) => (
-                      <option key={cidade} value={cidade}>
-                        {cidade}
-                      </option>
-                    ))}
+                {cidadesDisponiveis.map((cidade) => (
+                  <option key={cidade} value={cidade}>
+                    {cidade}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="flex flex-col gap-2 justify-end">
+            <div className="flex flex-col justify-end w-full md:w-auto">
               <button
                 onClick={clearFilters}
-                className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
+                className="w-full md:w-auto p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
                 type="button"
               >
                 <svg
@@ -301,7 +222,7 @@ function BusinessList() {
             </div>
           </div>
           {/* Indicador de filtros ativos */}
-          {(selectedEstado || selectedCidade || searchTerm) && (
+          {(selectedCidade || searchTerm) && (
             <div className="flex flex-wrap gap-2 text-sm mt-2">
               <span className="text-gray-600">Filtros ativos:</span>
               {searchTerm && (
@@ -314,12 +235,7 @@ function BusinessList() {
                   Cidade: {selectedCidade}
                 </span>
               )}
-              {selectedEstado && !selectedCidade && (
-                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                  Estado:{" "}
-                  {estados.find((e) => e.id === parseInt(selectedEstado))?.nome}
-                </span>
-              )}
+              {/* Estado removido do filtro, não exibe badge */}
             </div>
           )}
         </div>
@@ -346,7 +262,7 @@ function BusinessList() {
                 ? `Nenhum estabelecimento encontrado com os filtros aplicados.`
                 : "Ainda não há estabelecimentos cadastrados."}
             </p>
-            {(searchTerm || selectedCidade || selectedEstado) && (
+            {(searchTerm || selectedCidade) && (
               <button
                 onClick={clearFilters}
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
@@ -367,7 +283,7 @@ function BusinessList() {
                   Destaques
                 </h2>
                 <Swiper
-                  modules={[Pagination, A11y]}
+                  modules={[Pagination, A11y, Autoplay]}
                   spaceBetween={16}
                   slidesPerView={1.2}
                   breakpoints={{
@@ -378,6 +294,7 @@ function BusinessList() {
                   className="!pb-8"
                   style={{ paddingLeft: 4, paddingRight: 4 }}
                   loop={true}
+                  autoplay={{ delay: 3500, disableOnInteraction: false }}
                   onInit={(swiper) => {
                     setTimeout(() => {
                       const bullets = document.querySelectorAll(
@@ -432,6 +349,8 @@ function BusinessList() {
           </>
         )}
       </div>
+      {/* Seção do Clima */}
+      <WeatherSection cidade={selectedCidade || "São Paulo"} />
     </>
   );
 }

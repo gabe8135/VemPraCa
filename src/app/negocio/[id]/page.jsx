@@ -561,8 +561,8 @@ export default function DetalhesNegocioPage() {
           </div>
         )}
 
-        {/* Avaliações */}
-        <div className="mt-10">
+  {/* Avaliações */}
+  <div id="avaliacao" className="mt-10">
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-green-800">Avaliações</h2>
           {avaliacoesNegocio.length > 0 ? (
             <div className="space-y-5">

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import imageCompression from "browser-image-compression";
 import LoadingModal from "@/app/components/LoadingModal"; // Importo o novo modal.
+import QRCodeGenerator from "@/app/components/QRCodeGenerator";
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de edição) ---
 function InputField({

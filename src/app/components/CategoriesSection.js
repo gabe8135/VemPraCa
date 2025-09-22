@@ -1,45 +1,63 @@
 // src/app/components/CategoriesSection.js
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
-import { useSearchParams, useRouter } from 'next/navigation';
-import * as Tabs from '@radix-ui/react-tabs';
+import { useState, useEffect } from "react";
+import { supabase } from "@/app/lib/supabaseClient";
+import { useSearchParams, useRouter } from "next/navigation";
+import * as Tabs from "@radix-ui/react-tabs";
 
 export default function CategoriesSection() {
   const [categoriesData, setCategoriesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [businesses, setBusinesses] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const selectedCategory = searchParams.get('categoria') || "todas";
+  const selectedCategory = searchParams.get("categoria") || "todas";
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategoriesAndBusinesses = async () => {
       setLoading(true);
       setError(null);
       try {
-        const { data, error: dbError } = await supabase
-          .from('categorias')
-          .select('id, nome, slug')
-          .order('nome', { ascending: true });
-
-        if (dbError) throw dbError;
-        setCategoriesData(data || []);
+        const [
+          { data: categories, error: catError },
+          { data: businesses, error: busError },
+        ] = await Promise.all([
+          supabase
+            .from("categorias")
+            .select("id, nome, slug")
+            .order("nome", { ascending: true }),
+          supabase
+            .from("negocios_com_media")
+            .select("id, categoria_id")
+            .eq("ativo", true),
+        ]);
+        if (catError) throw catError;
+        if (busError) throw busError;
+        setBusinesses(businesses || []);
+        // Filtrar categorias que possuem negócios
+        const categoriaIdsComNegocios = new Set(
+          (businesses || []).map((b) => b.categoria_id)
+        );
+        const categoriasComNegocios = (categories || []).filter((cat) =>
+          categoriaIdsComNegocios.has(cat.id)
+        );
+        setCategoriesData(categoriasComNegocios);
       } catch (err) {
         setError("Não foi possível carregar as categorias.");
       } finally {
         setLoading(false);
       }
     };
-    fetchCategories();
+    fetchCategoriesAndBusinesses();
   }, []);
 
   // Adicionei o listener de wheel para rolar as tabs
   useEffect(() => {
-    const tabList = document.querySelector('#categories-tabs-list');
+    const tabList = document.querySelector("#categories-tabs-list");
     if (tabList) {
-      tabList.addEventListener('wheel', (e) => {
+      tabList.addEventListener("wheel", (e) => {
         if (e.deltaY === 0) return;
         e.preventDefault();
         tabList.scrollLeft += e.deltaY;
@@ -47,7 +65,7 @@ export default function CategoriesSection() {
     }
     return () => {
       if (tabList) {
-        tabList.removeEventListener('wheel', () => {});
+        tabList.removeEventListener("wheel", () => {});
       }
     };
   }, []);
@@ -61,12 +79,16 @@ export default function CategoriesSection() {
     }
     // Scroll suave para a barra de pesquisa, compensando a altura da header fixa
     setTimeout(() => {
-      const searchSection = document.getElementById('search-section');
+      const searchSection = document.getElementById("search-section");
       if (searchSection) {
-        const header = document.querySelector('header');
+        const header = document.querySelector("header");
         const headerHeight = header ? header.offsetHeight : 0;
-        const top = searchSection.getBoundingClientRect().top + window.scrollY - headerHeight - 12; // 12px de margem extra
-        window.scrollTo({ top, behavior: 'smooth' });
+        const top =
+          searchSection.getBoundingClientRect().top +
+          window.scrollY -
+          headerHeight -
+          12; // 12px de margem extra
+        window.scrollTo({ top, behavior: "smooth" });
       }
     }, 100); // pequeno delay para garantir que o DOM atualize
   };
@@ -75,7 +97,9 @@ export default function CategoriesSection() {
     <section id="categories" className="py-8 bg-white">
       <div className="container mx-auto px-4">
         {/* Feedback de loading e erro. */}
-        {loading && <p className="text-center text-gray-500">Carregando categorias...</p>}
+        {loading && (
+          <p className="text-center text-gray-500">Carregando categorias...</p>
+        )}
         {error && <p className="text-center text-red-500">{error}</p>}
         {!loading && !error && (
           <Tabs.Root
@@ -87,7 +111,7 @@ export default function CategoriesSection() {
             <Tabs.List
               id="categories-tabs-list"
               className="flex gap-2 overflow-x-auto scrollbar-hide bg-gray-50 rounded-full p-2 max-w-full"
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              style={{ WebkitOverflowScrolling: "touch" }}
               tabIndex={0}
             >
               <Tabs.Trigger
@@ -101,7 +125,7 @@ export default function CategoriesSection() {
               >
                 Todas
               </Tabs.Trigger>
-              {categoriesData.map(cat => (
+              {categoriesData.map((cat) => (
                 <Tabs.Trigger
                   key={cat.id}
                   value={cat.slug}
