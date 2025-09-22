@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { Fade } from 'react-awesome-reveal';
 // Modal simples para exibir o carrossel em tela cheia
 function ModalCarrossel({ open, onClose, imagens, initialIndex = 0, nome }) {
   if (!open) return null;
@@ -361,20 +362,6 @@ export default function DetalhesNegocioPage() {
 
   return (
     <div className="relative min-h-screen mt-25 overflow-x-hidden">
-      {/* Fundo esfumaçado decorativo superior */}
-      {/* <div
-        aria-hidden="true"
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-screen -z-10 pointer-events-none overflow-visible blur-[80px]"
-        style={{ maxWidth: 'none' }}
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="w-full h-full bg-gradient-to-tr from-green-600 to-emerald-700 opacity-60"
-        />
-      </div> */}
       {/* Fundo esfumaçado decorativo inferior */}
       <div
         aria-hidden="true"
@@ -390,252 +377,256 @@ export default function DetalhesNegocioPage() {
       </div>
 
       <div className="container mx-auto p-4 max-w-5xl">
-        
-
-        {/* Título, Categoria e Avaliação */}
-        <div className="mb-6 text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold mb-1 text-green-800 drop-shadow">{negocio.nome}</h1>
-          <p className="text-lg text-emerald-700 font-semibold mb-3">{negocio.nome_categoria}</p>
-          <div className="flex justify-center md:justify-start">
-            <EstrelasDisplay media={negocio.media_avaliacoes} total={negocio.total_avaliacoes} />
-          </div>
-        </div>
-
-        {/* Carrossel de Imagens */}
-        {todasImagens.length > 0 ? (
-          <>
-            <div className="relative w-screen max-w-full left-1/2 right-1/2 -translate-x-1/2 mb-8 overflow-x-hidden group cursor-zoom-in"
-              onClick={(e) => {
-                // Só expande se clicar na imagem, não nos bullets
-                if (e.target.tagName === 'IMG' || e.target.classList.contains('swiper-slide')) setModalOpen(true);
-              }}
-            >
-              <Swiper
-                modules={[Pagination, Scrollbar, A11y, Autoplay]}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                spaceBetween={0} slidesPerView={1}
-                pagination={{ clickable: true }}
-                loop={todasImagens.length > 1}
-                className="aspect-video max-h-[60vh]"
-                onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
-              >
-                {todasImagens.map((imgUrl, index) => (
-                  <SwiperSlide key={index}>
-                    <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover transition group-hover:brightness-90" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-              <div className="absolute inset-0 pointer-events-none group-hover:bg-black/10 transition" />
+        <Fade direction="up" triggerOnce>
+          {/* Título, Categoria e Avaliação */}
+          <div className="mb-6 text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-bold mb-1 text-green-800 drop-shadow">{negocio.nome}</h1>
+            <p className="text-lg text-emerald-700 font-semibold mb-3">{negocio.nome_categoria}</p>
+            <div className="flex justify-center md:justify-start">
+              <EstrelasDisplay media={negocio.media_avaliacoes} total={negocio.total_avaliacoes} />
             </div>
-            <ModalCarrossel
-              open={modalOpen}
-              onClose={() => setModalOpen(false)}
-              imagens={todasImagens}
-              initialIndex={currentSlide}
-              nome={negocio.nome}
-            />
-          </>
-        ) : (
-          <div className="mb-8 bg-gray-100 aspect-video flex items-center justify-center rounded-2xl shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
-        )}
+          </div>
+        </Fade>
 
-        {/* Grid de Informações */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Coluna Principal */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Descrição */}
+        <Fade direction="up" delay={120} triggerOnce>
+          {/* Carrossel de Imagens */}
+          {todasImagens.length > 0 ? (
             <div>
-              <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Sobre o Local</h2>
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{negocio.descricao || 'Nenhuma descrição fornecida.'}</p>
-            </div>
-            {/* Características */}
-            {caracteristicasNegocio.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Comodidades e Serviços</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
-                  {caracteristicasNegocio.map((caracteristica) => {
-                    const Icon = caracteristicaIconMap[caracteristica.nome] || MdOutlineStar;
-                    return (
-                      <div key={caracteristica.id} className="flex items-center gap-2 text-emerald-700">
-                        <Icon className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <span>{caracteristica.nome}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="relative w-screen max-w-full left-1/2 right-1/2 -translate-x-1/2 mb-8 overflow-x-hidden group cursor-zoom-in"
+                onClick={(e) => {
+                  if (e.target.tagName === 'IMG' || e.target.classList.contains('swiper-slide')) setModalOpen(true);
+                }}
+              >
+                <Swiper
+                  modules={[Pagination, Scrollbar, A11y, Autoplay]}
+                  autoplay={{ delay: 5000, disableOnInteraction: false }}
+                  spaceBetween={0} slidesPerView={1}
+                  pagination={{ clickable: true }}
+                  loop={todasImagens.length > 1}
+                  className="aspect-video max-h-[60vh]"
+                  onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+                >
+                  {todasImagens.map((imgUrl, index) => (
+                    <SwiperSlide key={index}>
+                      <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover transition group-hover:brightness-90" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+                <div className="absolute inset-0 pointer-events-none group-hover:bg-black/10 transition" />
               </div>
-            )}
-          </div>
-          {/* Coluna Lateral */}
-          <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
-            <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-green-800">Contato e Localização</h2>
-            
-            {negocio.endereco && (
-              <div className="flex items-start gap-2 text-gray-700">
-                <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
-                <span>{negocio.endereco}, {negocio.cidade}</span>
-              </div>
-            )}
-            
-            {!negocio.endereco && negocio.cidade && (
-              <div className="flex items-start gap-2 text-gray-700">
-                <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
-                <span>{negocio.cidade}</span>
-              </div>
-            )}
-            
-            {negocio.email_contato && (
-              <div className="flex items-center gap-2 text-gray-700">
-                <FiMail className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <a href={`mailto:${negocio.email_contato}`} className="hover:text-green-700 break-all">
-                  {negocio.email_contato}
-                </a>
-              </div>
-            )}
-            
-            {negocio.telefone && (
-              <div className="flex items-center gap-2 text-gray-700">
-                <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">
-                  {negocio.telefone}
-                </a>
-              </div>
-            )}
-            
-            {negocio.website && (
-              <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
-                <FaGlobe className="w-4 h-4 flex-shrink-0" />
-                <span>{negocio.website}</span>
-              </a>
-            )}
-            
-            {whatsappLink && (
-              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                <FaWhatsapp className="text-xl" />
-                Conversar no WhatsApp
-              </a>
-            )}
-            {(negocio.latitude && negocio.longitude) ? (
-              <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                <FaMapMarkerAlt className="h-5 w-5" />
-                Ver Localização no Mapa
-              </a>
-            ) : negocio.endereco && (
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${negocio.endereco}, ${negocio.cidade}`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                <FaMapMarkerAlt className="h-5 w-5" />
-                Ver Localização
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Botões de Editar/Excluir */}
-        {canEditOrDelete && (
-          <div className="mb-6 flex justify-end gap-4">
-            <Link
-              href={`/meu-negocio/editar/${negocio.id}`}
-              className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
-              aria-disabled={isDeleting}
-              onClick={(e) => { if (isDeleting) e.preventDefault(); }}
-            >
-              <FaEdit className="h-4 w-4" />
-              Editar
-            </Link>
-            <button
-              onClick={handleDeleteNegocio}
-              disabled={isDeleting}
-              className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
-            >
-              {isDeleting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Excluindo...
-                </>
-              ) : (
-                <>
-                  <FaTrash className="h-4 w-4" />
-                  Excluir
-                </>
-              )}
-            </button>
-          </div>
-        )}
-
-  {/* Avaliações */}
-  <div id="avaliacao" className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-green-800">Avaliações</h2>
-          {avaliacoesNegocio.length > 0 ? (
-            <div className="space-y-5">
-              {avaliacoesNegocio.map((avaliacao) => (
-                <div key={avaliacao.id} className="bg-white/90 p-4 rounded-2xl border border-gray-100 shadow-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-gray-800">Usuário</span>
-                    <span className="text-xs text-gray-500">{new Date(avaliacao.data_avaliacao).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((_, i) =>
-                      i < avaliacao.nota
-                        ? <MdOutlineStar key={i} className="text-yellow-500 h-5 w-5" />
-                        : <MdOutlineStarBorder key={i} className="text-yellow-500 h-5 w-5" />
-                    )}
-                  </div>
-                  <p className="text-gray-700 text-sm leading-relaxed">{avaliacao.comentario || 'Sem comentário.'}</p>
-                </div>
-              ))}
+              <ModalCarrossel
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                imagens={todasImagens}
+                initialIndex={currentSlide}
+                nome={negocio.nome}
+              />
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
+            <div className="mb-8 bg-gray-100 aspect-video flex items-center justify-center rounded-2xl shadow-lg"><span className="text-gray-500">Nenhuma imagem disponível</span></div>
           )}
-          {!isOwner && (
-            <RatingForm
-              negocioId={negocio.id}
-              currentUser={currentUser}
-              onRatingSuccess={handleRatingSuccess}
-            />
-          )}
-        </div>
+        </Fade>
 
-        {/* Estatísticas de Acessos */}
-        {canEditOrDelete && (
-          <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-2xl shadow-md border border-slate-100">
-            <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
-            {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
-            {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
-            {!loadingCliques && cliqueStats && (
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white rounded-lg">
-                  <thead className="bg-green-600">
-                    <tr>
-                      <th className="text-left py-3 px-4 rounded-tl-lg uppercase font-semibold text-sm text-white">Período</th>
-                      <th className="text-right py-3 px-4 rounded-tr-lg uppercase font-semibold text-sm text-white">Acessos</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-gray-700">
-                    <tr className="border-gray-300 border-b">
-                      <td className="text-left py-3 px-4">Total de Acessos</td>
-                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.total_acessos ?? 0}</td>
-                    </tr>
-                    <tr className="border-gray-300 border-b">
-                      <td className="text-left py-3 px-4">Acessos Hoje</td>
-                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_hoje ?? 0}</td>
-                    </tr>
-                    <tr className="border-gray-300 border-b">
-                      <td className="text-left py-3 px-4">Acessos nos Últimos 7 Dias</td>
-                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_7_dias ?? 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="text-left py-3 px-4">Acessos nos Últimos 30 Dias</td>
-                      <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_30_dias ?? 0}</td>
-                    </tr>
-                  </tbody>
-                </table>
+        <Fade direction="right" cascade damping={0.16} delay={200} triggerOnce>
+          {/* Grid de Informações */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            {/* Coluna Principal */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Descrição */}
+              <div>
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Sobre o Local</h2>
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{negocio.descricao || 'Nenhuma descrição fornecida.'}</p>
               </div>
+              {/* Características */}
+              {caracteristicasNegocio.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Comodidades e Serviços</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
+                    {caracteristicasNegocio.map((caracteristica) => {
+                      const Icon = caracteristicaIconMap[caracteristica.nome] || MdOutlineStar;
+                      return (
+                        <div key={caracteristica.id} className="flex items-center gap-2 text-emerald-700">
+                          <Icon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <span>{caracteristica.nome}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Coluna Lateral */}
+            <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
+              <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-green-800">Contato e Localização</h2>
+              {/* ...existing code... */}
+              {negocio.endereco && (
+                <div className="flex items-start gap-2 text-gray-700">
+                  <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
+                  <span>{negocio.endereco}, {negocio.cidade}</span>
+                </div>
+              )}
+              {!negocio.endereco && negocio.cidade && (
+                <div className="flex items-start gap-2 text-gray-700">
+                  <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
+                  <span>{negocio.cidade}</span>
+                </div>
+              )}
+              {negocio.email_contato && (
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FiMail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <a href={`mailto:${negocio.email_contato}`} className="hover:text-green-700 break-all">
+                    {negocio.email_contato}
+                  </a>
+                </div>
+              )}
+              {negocio.telefone && (
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">
+                    {negocio.telefone}
+                  </a>
+                </div>
+              )}
+              {negocio.website && (
+                <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
+                  <FaGlobe className="w-4 h-4 flex-shrink-0" />
+                  <span>{negocio.website}</span>
+                </a>
+              )}
+              {whatsappLink && (
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
+                  <FaWhatsapp className="text-xl" />
+                  Conversar no WhatsApp
+                </a>
+              )}
+              {(negocio.latitude && negocio.longitude) ? (
+                <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
+                  <FaMapMarkerAlt className="h-5 w-5" />
+                  Ver Localização no Mapa
+                </a>
+              ) : negocio.endereco && (
+                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${negocio.endereco}, ${negocio.cidade}`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
+                  <FaMapMarkerAlt className="h-5 w-5" />
+                  Ver Localização
+                </a>
+              )}
+            </div>
+          </div>
+        </Fade>
+
+        <Fade direction="up" delay={320} triggerOnce>
+          {/* Botões de Editar/Excluir */}
+          {canEditOrDelete && (
+            <div className="mb-6 flex justify-end gap-4">
+              <Link
+                href={`/meu-negocio/editar/${negocio.id}`}
+                className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+                aria-disabled={isDeleting}
+                onClick={(e) => { if (isDeleting) e.preventDefault(); }}
+              >
+                <FaEdit className="h-4 w-4" />
+                Editar
+              </Link>
+              <button
+                onClick={handleDeleteNegocio}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <FaTrash className="h-4 w-4" />
+                    Excluir
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </Fade>
+
+        <Fade direction="up" delay={400} triggerOnce>
+          {/* Avaliações */}
+          <div id="avaliacao" className="mt-10">
+            <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-green-800">Avaliações</h2>
+            {avaliacoesNegocio.length > 0 ? (
+              <div className="space-y-5">
+                {avaliacoesNegocio.map((avaliacao) => (
+                  <div key={avaliacao.id} className="bg-white/90 p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-gray-800">Usuário</span>
+                      <span className="text-xs text-gray-500">{new Date(avaliacao.data_avaliacao).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) =>
+                        i < avaliacao.nota
+                          ? <MdOutlineStar key={i} className="text-yellow-500 h-5 w-5" />
+                          : <MdOutlineStarBorder key={i} className="text-yellow-500 h-5 w-5" />
+                      )}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed">{avaliacao.comentario || 'Sem comentário.'}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
             )}
-            {!loadingCliques && cliqueStats && negocio && (
-              <AcessosChart negocioId={negocio.id} />
+            {!isOwner && (
+              <RatingForm
+                negocioId={negocio.id}
+                currentUser={currentUser}
+                onRatingSuccess={handleRatingSuccess}
+              />
             )}
           </div>
-        )}
+        </Fade>
+
+        <Fade delay={500} triggerOnce>
+          {/* Estatísticas de Acessos */}
+          {canEditOrDelete && (
+            <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-2xl shadow-md border border-slate-100">
+              <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
+              {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
+              {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
+              {!loadingCliques && cliqueStats && (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white rounded-lg">
+                    <thead className="bg-green-600">
+                      <tr>
+                        <th className="text-left py-3 px-4 rounded-tl-lg uppercase font-semibold text-sm text-white">Período</th>
+                        <th className="text-right py-3 px-4 rounded-tr-lg uppercase font-semibold text-sm text-white">Acessos</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-gray-700">
+                      <tr className="border-gray-300 border-b">
+                        <td className="text-left py-3 px-4">Total de Acessos</td>
+                        <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.total_acessos ?? 0}</td>
+                      </tr>
+                      <tr className="border-gray-300 border-b">
+                        <td className="text-left py-3 px-4">Acessos Hoje</td>
+                        <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_hoje ?? 0}</td>
+                      </tr>
+                      <tr className="border-gray-300 border-b">
+                        <td className="text-left py-3 px-4">Acessos nos Últimos 7 Dias</td>
+                        <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_7_dias ?? 0}</td>
+                      </tr>
+                      <tr>
+                        <td className="text-left py-3 px-4">Acessos nos Últimos 30 Dias</td>
+                        <td className="text-right py-3 px-4 font-bold text-green-600">{cliqueStats.acessos_ultimos_30_dias ?? 0}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {!loadingCliques && cliqueStats && negocio && (
+                <AcessosChart negocioId={negocio.id} />
+              )}
+            </div>
+          )}
+        </Fade>
       </div>
     </div>
   );

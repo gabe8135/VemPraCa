@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState, Suspense, useRef } from "react";
+import { Fade } from "react-awesome-reveal";
+// ...existing code...
 import { supabase } from "@/app/lib/supabaseClient";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
@@ -157,70 +159,72 @@ function BusinessList() {
 
         {/* Container dos filtros */}
         <div className="space-y-4 mb-4 bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col gap-4 border border-gray-100">
-          {/* Filtros de busca e cidade - SEM duplicidade, SEM rolagem horizontal */}
-          <div className="flex flex-col md:flex-row gap-3 w-full">
-            <div className="flex-1">
-              <label
-                htmlFor="searchTerm"
-                className="block text-sm font-semibold text-emerald-700 mb-1"
-              >
-                Buscar por nome
-              </label>
-              <input
-                id="searchTerm"
-                type="text"
-                placeholder="Ex: Pousada, Restaurante..."
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex-1">
-              <label
-                htmlFor="cidade"
-                className="block text-sm font-semibold text-emerald-700 mb-1"
-              >
-                Cidades Disponiveis em (SP)
-              </label>
-              <select
-                id="cidade"
-                value={selectedCidade}
-                onChange={(e) => setSelectedCidade(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-                disabled={cidadesDisponiveis.length === 0}
-              >
-                <option value="">Todas as cidades</option>
-                {cidadesDisponiveis.map((cidade) => (
-                  <option key={cidade} value={cidade}>
-                    {cidade}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col justify-end w-full md:w-auto">
-              <button
-                onClick={clearFilters}
-                className="w-full md:w-auto p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
-                type="button"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+          {/* Filtros de busca e cidade animados */}
+          <Fade cascade damping={0.18} triggerOnce>
+            <div className="flex flex-col md:flex-row gap-3 w-full">
+              <div className="flex-1">
+                <label
+                  htmlFor="searchTerm"
+                  className="block text-sm font-semibold text-emerald-700 mb-1"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                Limpar Filtros
-              </button>
+                  Buscar por nome
+                </label>
+                <input
+                  id="searchTerm"
+                  type="text"
+                  placeholder="Ex: Pousada, Restaurante..."
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <label
+                  htmlFor="cidade"
+                  className="block text-sm font-semibold text-emerald-700 mb-1"
+                >
+                  Cidades Disponiveis em (SP)
+                </label>
+                <select
+                  id="cidade"
+                  value={selectedCidade}
+                  onChange={(e) => setSelectedCidade(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
+                  disabled={cidadesDisponiveis.length === 0}
+                >
+                  <option value="">Todas as cidades</option>
+                  {cidadesDisponiveis.map((cidade) => (
+                    <option key={cidade} value={cidade}>
+                      {cidade}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col justify-end w-full md:w-auto">
+                <button
+                  onClick={clearFilters}
+                  className="w-full md:w-auto p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Limpar Filtros
+                </button>
+              </div>
             </div>
-          </div>
+          </Fade>
           {/* Indicador de filtros ativos */}
           {(selectedCidade || searchTerm) && (
             <div className="flex flex-wrap gap-2 text-sm mt-2">
@@ -306,14 +310,16 @@ function BusinessList() {
                     }, 100);
                   }}
                 >
-                  {filteredBusinesses
-                    .filter((b) => b.destaque === true)
-                    .slice(0, 8)
-                    .map((business) => (
-                      <SwiperSlide key={business.id} className="!h-auto flex">
-                        <BusinessCard business={business} />
-                      </SwiperSlide>
-                    ))}
+                  <Fade cascade damping={0.18} triggerOnce>
+                    {filteredBusinesses
+                      .filter((b) => b.destaque === true)
+                      .slice(0, 8)
+                      .map((business) => (
+                        <SwiperSlide key={business.id} className="!h-auto flex">
+                          <BusinessCard business={business} />
+                        </SwiperSlide>
+                      ))}
+                  </Fade>
                 </Swiper>
                 <style jsx global>{`
                   .swiper-pagination-bullet {
@@ -371,8 +377,9 @@ export default function Sobre() {
       {/* Chamada para colaboração */}
       <section className="w-full py-12 px-4 flex flex-col items-center justify-center bg-white">
         <div className="max-w-2xl w-full text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-emerald-700 mb-2">
-            Apoie o VemPraCa 💚
+          <h2 className="text-2xl sm:text-3xl font-bold text-emerald-700 mb-2 flex items-center justify-center gap-2">
+            Apoie o VemPraCa
+            <span className="inline-block animate-pulse-heart">💚</span>
           </h2>
           <p className="text-gray-700 mb-4">
             Ajude a manter e evoluir a plataforma!
@@ -381,12 +388,30 @@ export default function Sobre() {
           </p>
           <Link
             href="/colabore"
-            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition"
+            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition animate-pulse-heart"
           >
             Quero Colaborar
           </Link>
         </div>
       </section>
+      <style jsx global>{`
+        @keyframes pulse-heart {
+          0%,
+          100% {
+            transform: scale(1);
+            filter: brightness(1);
+          }
+          50% {
+            transform: scale(1.12);
+            filter: brightness(1.12);
+          }
+        }
+        .animate-pulse-heart {
+          animation: pulse-heart 1.1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+          will-change: transform, filter;
+          display: inline-block;
+        }
+      `}</style>
 
       <div data-aos="fade-up" data-aos-delay="100">
         <FAQSection />

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Fade } from "react-awesome-reveal";
 import {
   WiDaySunny,
   WiNightClear,
@@ -175,54 +176,60 @@ export default function WeatherSection({ cidade }) {
   })();
 
   return (
-    <section className="w-full py-8 px-4 flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg mb-8 border border-gray-100">
-      <h2 className="text-2xl font-bold text-emerald-700 mb-2 tracking-tight">
-        Clima em {cidade}
-      </h2>
-      {loading && <p className="text-emerald-600">Carregando clima...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {weather && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="mb-2">
-            {getWeatherIcon(weather.weathercode, isDay)}
-          </div>
-          <span className="text-3xl font-bold text-emerald-700">
-            {Math.round(weather.temperature)}°C
-          </span>
-          <span className="text-base text-gray-700">
-            Vento: {Math.round(weather.windspeed)} km/h
-          </span>
-          <span className="text-sm text-gray-500">
-            {isDay ? "Dia" : "Noite"}
-          </span>
-        </div>
-      )}
-      {/* Previsão para amanhã */}
-      {forecast && (
-        <div className="flex flex-col items-center gap-2 mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 shadow">
-          <span className="text-lg font-semibold text-emerald-700 mb-1">
-            Previsão para amanhã
-          </span>
-          <div className="mb-2">
-            {getWeatherIcon(forecast.weathercode, true)}
-          </div>
-          <span className="text-xl font-bold text-emerald-700">
-            {Math.round(forecast.temp_max)}°C{" "}
-            <span className="text-gray-500">máx</span>
-          </span>
-          <span className="text-xl font-bold text-blue-700">
-            {Math.round(forecast.temp_min)}°C{" "}
-            <span className="text-gray-500">mín</span>
-          </span>
-          <span className="text-sm text-gray-500">
-            {new Date(forecast.date).toLocaleDateString("pt-BR", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
-          </span>
-        </div>
-      )}
-    </section>
+    <Fade triggerOnce>
+      <section className="w-full py-8 px-4 flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg mb-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-emerald-700 mb-2 tracking-tight">
+          Clima em {cidade}
+        </h2>
+        {loading && <p className="text-emerald-600">Carregando clima...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {weather && (
+          <Fade direction="up" triggerOnce>
+            <div className="flex flex-col items-center gap-2">
+              <div className="mb-2">
+                {getWeatherIcon(weather.weathercode, isDay)}
+              </div>
+              <span className="text-3xl font-bold text-emerald-700">
+                {Math.round(weather.temperature)}°C
+              </span>
+              <span className="text-base text-gray-700">
+                Vento: {Math.round(weather.windspeed)} km/h
+              </span>
+              <span className="text-sm text-gray-500">
+                {isDay ? "Dia" : "Noite"}
+              </span>
+            </div>
+          </Fade>
+        )}
+        {/* Previsão para amanhã */}
+        {forecast && (
+          <Fade direction="up" delay={200} triggerOnce>
+            <div className="flex flex-col items-center gap-2 mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 shadow">
+              <span className="text-lg font-semibold text-emerald-700 mb-1">
+                Previsão para amanhã
+              </span>
+              <div className="mb-2">
+                {getWeatherIcon(forecast.weathercode, true)}
+              </div>
+              <span className="text-xl font-bold text-emerald-700">
+                {Math.round(forecast.temp_max)}°C{" "}
+                <span className="text-gray-500">máx</span>
+              </span>
+              <span className="text-xl font-bold text-blue-700">
+                {Math.round(forecast.temp_min)}°C{" "}
+                <span className="text-gray-500">mín</span>
+              </span>
+              <span className="text-sm text-gray-500">
+                {new Date(forecast.date).toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+              </span>
+            </div>
+          </Fade>
+        )}
+      </section>
+    </Fade>
   );
 }

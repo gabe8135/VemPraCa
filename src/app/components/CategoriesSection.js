@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Fade } from "react-awesome-reveal";
 import { supabase } from "@/app/lib/supabaseClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -114,31 +115,35 @@ export default function CategoriesSection() {
               style={{ WebkitOverflowScrolling: "touch" }}
               tabIndex={0}
             >
-              <Tabs.Trigger
-                value="todas"
-                className={`
-                  px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
-                  text-[#007B55]
-                  data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
-                  hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
-                `}
-              >
-                Todas
-              </Tabs.Trigger>
-              {categoriesData.map((cat) => (
-                <Tabs.Trigger
-                  key={cat.id}
-                  value={cat.slug}
-                  className={`
-                    px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
-                    text-[#007B55]
-                    data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
-                    hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
-                  `}
-                >
-                  {cat.nome}
-                </Tabs.Trigger>
-              ))}
+              <Fade cascade damping={0.15} triggerOnce>
+                <div className="flex gap-2">
+                  <Tabs.Trigger
+                    value="todas"
+                    className={`
+                      px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
+                      text-[#007B55]
+                      data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
+                      hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
+                    `}
+                  >
+                    Todas
+                  </Tabs.Trigger>
+                  {categoriesData.map((cat) => (
+                    <Tabs.Trigger
+                      key={cat.id}
+                      value={cat.slug}
+                      className={`
+                        px-4 py-2 rounded-full font-semibold transition whitespace-nowrap
+                        text-[#007B55]
+                        data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white
+                        hover:bg-gradient-to-r hover:from-yellow-300 hover:to-amber-400 hover:text-[#007B55]
+                      `}
+                    >
+                      {cat.nome}
+                    </Tabs.Trigger>
+                  ))}
+                </div>
+              </Fade>
             </Tabs.List>
           </Tabs.Root>
         )}
