@@ -1,68 +1,170 @@
 // src/app/negocio/[id]/page.jsx
+
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Fade } from 'react-awesome-reveal';
 // Modal simples para exibir o carrossel em tela cheia
 function ModalCarrossel({ open, onClose, imagens, initialIndex = 0, nome }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-lg shadow-2xl">
+  const [mounted, setMounted] = useState(false);
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [swiperInstance, setSwiperInstance] = useState(null);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Trava o scroll do body enquanto o modal estiver aberto
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, [open]);
+
+  // Vincula a navegação do Swiper quando refs e instância estiverem prontos
+  useEffect(() => {
+    if (!swiperInstance || !prevRef.current || !nextRef.current) return;
+    try {
+      swiperInstance.params.navigation.prevEl = prevRef.current;
+      swiperInstance.params.navigation.nextEl = nextRef.current;
+      if (swiperInstance.navigation && swiperInstance.navigation.init) {
+        swiperInstance.navigation.init();
+        swiperInstance.navigation.update();
+      }
+    } catch (e) {
+      console.warn('Falha ao inicializar navegação customizada do Swiper (modal):', e);
+    }
+  }, [swiperInstance]);
+
+  // Navegação por teclado
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (!swiperInstance) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        swiperInstance.slidePrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        swiperInstance.slideNext();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, swiperInstance, onClose]);
+
+  if (!mounted) return null;
+
+  const overlay = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="modal-overlay"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
       <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-red-500 text-3xl font-bold z-50 hover:text-red-700 transition"
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="absolute top-4 right-4 text-white text-3xl font-bold hover:text-gray-200 transition z-50"
         aria-label="Fechar"
       >
         &times;
       </button>
-      <div className="w-screen h-screen flex items-center justify-center">
+      <div
+        className="w-screen h-screen flex items-center justify-center"
+        onClickCapture={(e) => {
+          // Fecha se o clique não for na imagem nem nas setas
+          const target = e.target;
+          const isImg = target && target.tagName === 'IMG';
+          const isPrevBtn = prevRef.current && prevRef.current.contains(target);
+          const isNextBtn = nextRef.current && nextRef.current.contains(target);
+          const isPagination = typeof target.closest === 'function' && !!target.closest('.swiper-pagination');
+          if (!(isImg || isPrevBtn || isNextBtn || isPagination)) {
+            e.stopPropagation();
+            onClose();
+          }
+        }}
+        onWheel={(e) => {
+          if (!swiperInstance) return;
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            if (e.deltaY < 0) swiperInstance.zoom?.in?.();
+            else swiperInstance.zoom?.out?.();
+          } catch {}
+        }}
+      >
         <Swiper
-          modules={[Pagination, Scrollbar, A11y, Autoplay, Navigation]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          spaceBetween={0} slidesPerView={1}
+          modules={[Pagination, Scrollbar, A11y, Autoplay, Navigation, Zoom]}
+          // Desativa autoplay no modal para "pausar" quando a imagem estiver aberta
+          autoplay={false}
+          spaceBetween={0}
+          slidesPerView={1}
           pagination={{ clickable: true }}
-          navigation={{
-            nextEl: '.modal-swiper-next',
-            prevEl: '.modal-swiper-prev',
+          allowTouchMove={true}
+          zoom={{ maxRatio: 3, minRatio: 1 }}
+          // Configura navegação customizada quando o swiper estiver pronto
+          onSwiper={(swiper) => {
+            setSwiperInstance(swiper);
           }}
-          loop={imagens.length > 1}
+          loop={(imagens?.length || 0) > 1}
           initialSlide={initialIndex}
           className="w-screen h-screen"
         >
           {imagens.map((imgUrl, index) => (
             <SwiperSlide key={index}>
-              <img
-                src={imgUrl}
-                alt={`${nome} - Imagem ${index + 1}`}
-                className="w-full h-full object-contain"
-                style={{ maxWidth: '100vw', maxHeight: '100vh', display: 'block', margin: '0 auto' }}
-                loading="lazy"
-              />
+              <div className="swiper-zoom-container">
+                <img
+                  src={imgUrl}
+                  alt={`${nome} - Imagem ${index + 1}`}
+                  className="w-full h-full object-contain select-none"
+                  style={{ maxWidth: '100vw', maxHeight: '100vh', display: 'block', margin: '0 auto', touchAction: 'none' }}
+                  loading="lazy"
+                  draggable={false}
+                />
+              </div>
             </SwiperSlide>
           ))}
-          {/* Setas customizadas sem fundo arredondado */}
-          <button
-            className="modal-swiper-prev absolute left-2 top-1/2 -translate-y-1/2 z-50 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition"
-            aria-label="Anterior"
-            style={{ boxShadow: 'none' }}
-          >
-            <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
-              <path d="M20 8l-8 8 8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button
-            className="modal-swiper-next absolute right-2 top-1/2 -translate-y-1/2 z-50 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition"
-            aria-label="Próxima"
-            style={{ boxShadow: 'none' }}
-          >
-            <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
-              <path d="M12 8l8 8-8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
         </Swiper>
+        {/* Setas customizadas sem fundo arredondado */}
+        <button
+          ref={prevRef}
+          className="absolute left-2 top-1/2 -translate-y-1/2 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition z-50 pointer-events-auto"
+          aria-label="Anterior"
+          style={{ boxShadow: 'none' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
+            <path d="M20 8l-8 8 8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <button
+          ref={nextRef}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-0 bg-transparent border-none outline-none flex items-center justify-center hover:scale-110 transition z-50 pointer-events-auto"
+          aria-label="Próxima"
+          style={{ boxShadow: 'none' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <svg width="32" height="32" fill="none" viewBox="0 0 32 32">
+            <path d="M12 8l8 8-8 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
+
+  return createPortal(overlay, document.body);
 }
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -73,10 +175,12 @@ import { FiPhone, FiCoffee, FiWind, FiMail } from 'react-icons/fi';
 import { MdRestaurant, MdAcUnit, MdPool, MdRoomService, MdOutlineStar, MdOutlineStarBorder } from 'react-icons/md';
 // Swiper para o carrossel de imagens.
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Scrollbar, A11y, Autoplay, Navigation } from 'swiper/modules';
+import { Pagination, Scrollbar, A11y, Autoplay, Navigation, Zoom } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
+import 'swiper/css/navigation';
+import 'swiper/css/zoom';
 import './carousel-custom.css'; // Arquivo para customização das bolinhas
 import RatingForm from '@/app/components/RatingForm'; // Importar o formulário de avaliação
 import AcessosChart from '@/app/components/AcessosChart'; // 1. Importar o componente do gráfico
@@ -117,6 +221,8 @@ export default function DetalhesNegocioPage() {
   // Estado para modal do carrossel (deve vir antes do uso)
   const [modalOpen, setModalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  // Referência ao Swiper do carrossel de fundo para pausar/resumir autoplay quando o modal abre/fecha
+  const [mainSwiper, setMainSwiper] = useState(null);
 
   const { id: negocioId } = useParams(); // Pego o ID do negócio da URL.
   const router = useRouter();
@@ -339,6 +445,22 @@ export default function DetalhesNegocioPage() {
   // --- Minha preparação de Dados para Renderização (usando useMemo para otimizar) ---
   const todasImagens = useMemo(() => negocio?.imagens || [], [negocio]); // Array de imagens, ou vazio se não houver.
 
+  // Fechar com ESC
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setModalOpen(false); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Pausa o autoplay do carrossel de fundo quando o modal está aberto e retoma quando fecha
+  useEffect(() => {
+    if (!mainSwiper || !mainSwiper.autoplay) return;
+    try {
+      if (modalOpen) mainSwiper.autoplay.stop();
+      else mainSwiper.autoplay.start();
+    } catch {}
+  }, [modalOpen, mainSwiper]);
+
   const whatsappLink = useMemo(() => {
     if (!negocio?.whatsapp) return null;
     const numeroLimpo = negocio.whatsapp.replace(/\D/g, ''); // Tiro tudo que não for dígito.
@@ -399,12 +521,13 @@ export default function DetalhesNegocioPage() {
               >
                 <Swiper
                   modules={[Pagination, Scrollbar, A11y, Autoplay]}
-                  autoplay={{ delay: 5000, disableOnInteraction: false }}
+                  autoplay={{ delay: 3000, disableOnInteraction: false }}
                   spaceBetween={0} slidesPerView={1}
                   pagination={{ clickable: true }}
                   loop={todasImagens.length > 1}
                   className="aspect-video max-h-[60vh]"
                   onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+                  onSwiper={(swiper) => setMainSwiper(swiper)}
                 >
                   {todasImagens.map((imgUrl, index) => (
                     <SwiperSlide key={index}>
@@ -434,13 +557,13 @@ export default function DetalhesNegocioPage() {
             <div className="lg:col-span-2 space-y-8">
               {/* Descrição */}
               <div>
-                <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Sobre o Local</h2>
+                <h2 className="text-2xl font-semibold mb-3 pb-2 text-green-800">Sobre o Local</h2>
                 <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{negocio.descricao || 'Nenhuma descrição fornecida.'}</p>
               </div>
               {/* Características */}
               {caracteristicasNegocio.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-semibold mb-3 border-b pb-2 text-green-800">Comodidades e Serviços</h2>
+                  <h2 className="text-2xl font-semibold mb-3 pb-2 text-green-800">Comodidades e Serviços</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
                     {caracteristicasNegocio.map((caracteristica) => {
                       const Icon = caracteristicaIconMap[caracteristica.nome] || MdOutlineStar;
@@ -457,7 +580,7 @@ export default function DetalhesNegocioPage() {
             </div>
             {/* Coluna Lateral */}
             <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
-              <h2 className="text-xl font-semibold mb-3 border-b pb-2 text-green-800">Contato e Localização</h2>
+              <h2 className="text-xl font-semibold mb-3 pb-2 text-green-800">Contato e Localização</h2>
               {/* ...existing code... */}
               {negocio.endereco && (
                 <div className="flex items-start gap-2 text-gray-700">
@@ -514,9 +637,9 @@ export default function DetalhesNegocioPage() {
           </div>
         </Fade>
 
-        <Fade direction="up" delay={320} triggerOnce>
-          {/* Botões de Editar/Excluir */}
-          {canEditOrDelete && (
+        {canEditOrDelete && (
+          <Fade direction="up" delay={320} triggerOnce>
+            {/* Botões de Editar/Excluir */}
             <div className="mb-6 flex justify-end gap-4">
               <Link
                 href={`/meu-negocio/editar/${negocio.id}`}
@@ -545,13 +668,13 @@ export default function DetalhesNegocioPage() {
                 )}
               </button>
             </div>
-          )}
-        </Fade>
+          </Fade>
+        )}
 
         <Fade direction="up" delay={400} triggerOnce>
           {/* Avaliações */}
           <div id="avaliacao" className="mt-10">
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-green-800">Avaliações</h2>
+            <h2 className="text-2xl font-semibold mb-4 pb-2 text-green-800">Avaliações</h2>
             {avaliacoesNegocio.length > 0 ? (
               <div className="space-y-5">
                 {avaliacoesNegocio.map((avaliacao) => (
@@ -574,7 +697,7 @@ export default function DetalhesNegocioPage() {
             ) : (
               <p className="text-gray-600 text-center py-4">Este estabelecimento ainda não recebeu avaliações.</p>
             )}
-            {!isOwner && (
+            {isOwner ? null : (
               <RatingForm
                 negocioId={negocio.id}
                 currentUser={currentUser}
@@ -584,9 +707,9 @@ export default function DetalhesNegocioPage() {
           </div>
         </Fade>
 
-        <Fade delay={500} triggerOnce>
-          {/* Estatísticas de Acessos */}
-          {canEditOrDelete && (
+        {canEditOrDelete && (
+          <Fade delay={500} triggerOnce>
+            {/* Estatísticas de Acessos */}
             <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-2xl shadow-md border border-slate-100">
               <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
               {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
@@ -625,8 +748,8 @@ export default function DetalhesNegocioPage() {
                 <AcessosChart negocioId={negocio.id} />
               )}
             </div>
-          )}
-        </Fade>
+          </Fade>
+        )}
       </div>
     </div>
   );
