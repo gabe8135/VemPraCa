@@ -582,9 +582,7 @@ export default function WeatherSection({ cidade }) {
                   {resolvedCoords.lon.toFixed(3)}
                 </span>
               )}
-              <span className="ml-auto text-[10px] text-emerald-500/70 font-medium tracking-wide">
-                Dados meteorológicos sem garantia • Uso informativo
-              </span>
+              {/* Disclaimer removido conforme solicitação */}
             </footer>
           </div>
         </div>
