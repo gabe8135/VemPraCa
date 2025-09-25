@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FiClock } from "react-icons/fi";
 import { Fade } from "react-awesome-reveal";
 import {
   WiDaySunny,
@@ -28,6 +29,41 @@ const cidadesSP = {
 const cToF = (c) => (c * 9) / 5 + 32;
 const fToC = (f) => ((f - 32) * 5) / 9;
 
+// Descrição textual de códigos meteorológicos Open-Meteo em PT-BR
+const weatherCodeDescription = (code) => {
+  const map = {
+    0: "Céu limpo",
+    1: "Predomínio de sol",
+    2: "Parcialmente nublado",
+    3: "Nublado",
+    45: "Nevoeiro",
+    48: "Nevoeiro gelado",
+    51: "Garoa fraca",
+    53: "Garoa moderada",
+    55: "Garoa intensa",
+    56: "Garoa congelante leve",
+    57: "Garoa congelante intensa",
+    61: "Chuva fraca",
+    63: "Chuva moderada",
+    65: "Chuva forte",
+    66: "Chuva congelante leve",
+    67: "Chuva congelante forte",
+    71: "Neve fraca",
+    73: "Neve moderada",
+    75: "Neve forte",
+    77: "Grãos de neve",
+    80: "Aversos de chuva fracos",
+    81: "Aversos de chuva moderados",
+    82: "Aversos de chuva fortes",
+    85: "Aversos de neve fracos",
+    86: "Aversos de neve fortes",
+    95: "Tempestade",
+    96: "Tempestade com granizo leve",
+    99: "Tempestade com granizo forte",
+  };
+  return map[code] || "Condição indefinida";
+};
+
 // Heat Index (NOAA Rothfusz), retorna em °C
 const heatIndexC = (tempC, rh) => {
   const T = cToF(tempC);
@@ -52,6 +88,37 @@ const heatIndexC = (tempC, rh) => {
     HI += adj;
   }
   return fToC(HI);
+};
+
+// Humidex (Environment Canada) => mede desconforto por calor + umidade
+const humidexC = (tempC, dewPointC) => {
+  if (typeof tempC !== "number" || typeof dewPointC !== "number") return tempC;
+  const e = 6.11 * Math.exp(5417.753 * (1 / 273.16 - 1 / (dewPointC + 273.15)));
+  return tempC + 0.5555 * (e - 10);
+};
+
+// Ponto de orvalho (Magnus-Tetens) - entrada tempC, RH (%)
+const dewPointMagnus = (tempC, rh) => {
+  if (typeof tempC !== "number" || typeof rh !== "number" || rh <= 0)
+    return null;
+  const a = 17.27;
+  const b = 237.7;
+  const alpha = (a * tempC) / (b + tempC) + Math.log(rh / 100);
+  return (b * alpha) / (a - alpha);
+};
+
+// Australian Apparent Temperature (Steadman) simplificada
+// AT = T + 0.33*e - 0.70*ws - 4.00  (e em hPa, ws em m/s)
+const australianAT = (tempC, rh, windKmh) => {
+  if (
+    typeof tempC !== "number" ||
+    typeof rh !== "number" ||
+    typeof windKmh !== "number"
+  )
+    return tempC;
+  const e = (rh / 100) * 6.105 * Math.exp((17.27 * tempC) / (237.7 + tempC));
+  const ws = windKmh / 3.6; // m/s
+  return tempC + 0.33 * e - 0.7 * ws - 4.0;
 };
 
 // Wind Chill (válido para T<=10°C e vento > 4.8 km/h), retorna °C
@@ -168,13 +235,16 @@ export default function WeatherSection({ cidade }) {
               const v = data.current_weather.windspeed; // km/h
               let feels = null;
               if (typeof t === "number" && typeof rh === "number") {
-                if (t >= 27) {
+                const dewPoint = dewPointMagnus(t, rh);
+                if (t >= 27 && rh >= 40) {
                   feels = heatIndexC(t, rh);
+                } else if (t >= 24 && t < 27 && rh >= 50 && dewPoint !== null) {
+                  feels = humidexC(t, dewPoint);
                 } else if (t <= 10) {
                   feels = windChillC(t, v);
                 } else {
-                  // Faixa intermediária: aproxima da temp. atual
-                  feels = t;
+                  // fallback australian apparent temperature para faixa temperada
+                  feels = australianAT(t, rh, v);
                 }
               }
               if (
@@ -255,12 +325,20 @@ export default function WeatherSection({ cidade }) {
                 const v = data.current_weather.windspeed; // km/h
                 let feels = null;
                 if (typeof t === "number" && typeof rh === "number") {
-                  if (t >= 27) {
+                  const dewPoint = dewPointMagnus(t, rh);
+                  if (t >= 27 && rh >= 40) {
                     feels = heatIndexC(t, rh);
+                  } else if (
+                    t >= 24 &&
+                    t < 27 &&
+                    rh >= 50 &&
+                    dewPoint !== null
+                  ) {
+                    feels = humidexC(t, dewPoint);
                   } else if (t <= 10) {
                     feels = windChillC(t, v);
                   } else {
-                    feels = t;
+                    feels = australianAT(t, rh, v);
                   }
                 }
                 if (
@@ -361,89 +439,155 @@ export default function WeatherSection({ cidade }) {
     return hour >= 6 && hour < 18;
   })();
 
+  // (Descrição movida para escopo de módulo)
+
+  const lastUpdate = weather
+    ? new Date(weather.time).toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
   return (
     <Fade triggerOnce>
-      <section className="w-full py-8 px-4 flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg mb-8 border border-gray-100">
-        <h2 className="text-2xl font-bold text-emerald-700 mb-2 tracking-tight">
-          Clima em {cidade || "Ilha Comprida"}
-        </h2>
-        {(resolvedCity || (resolvedCoords.lat && resolvedCoords.lon)) && (
-          <span className="text-xs text-gray-400 mb-2">
-            Fonte: Open‑Meteo • Local: {resolvedCity || "GPS"}
-            {resolvedCoords.lat &&
-              ` (${resolvedCoords.lat.toFixed(4)}, ${resolvedCoords.lon.toFixed(
-                4
-              )})`}
-          </span>
-        )}
-        {stormAlert && (
-          <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 text-sm font-semibold">
-            <WiThunderstorm size={20} className="text-red-600" />
-            Alerta de tempestade
+      <section className="relative w-full mb-8">
+        {/* Fundo suavizado: tom claro neutro com borda sutil */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 shadow-lg" />
+        <div className="relative rounded-3xl overflow-hidden ring-1 ring-emerald-100/60">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(16,185,129,0.15),transparent_70%)]" />
+          <div className="relative p-5 md:p-7 flex flex-col gap-6 text-emerald-900">
+            <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 text-emerald-800">
+                  <span className="inline-flex px-2.5 py-1 rounded-full bg-emerald-600/10 backdrop-blur-sm text-[11px] font-medium uppercase tracking-wide shadow-sm border border-emerald-200">
+                    Clima agora
+                  </span>
+                  <span className="text-emerald-700 font-light">
+                    | {cidade || "Ilha Comprida"}
+                  </span>
+                </h2>
+                {(resolvedCity ||
+                  (resolvedCoords.lat && resolvedCoords.lon)) && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-500 flex items-center gap-2">
+                    <FiClock className="text-emerald-400" size={14} />
+                    <span>Atualizado {lastUpdate}</span>
+                    <span className="hidden sm:inline text-emerald-400">
+                      • Fonte Open‑Meteo
+                    </span>
+                  </p>
+                )}
+              </div>
+              {stormAlert && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold shadow-sm">
+                  <WiThunderstorm size={20} className="text-red-500" />
+                  Alerta de tempestade
+                </div>
+              )}
+            </header>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Bloco Agora */}
+              <div className="relative rounded-2xl bg-white/80 backdrop-blur-sm p-5 flex flex-col items-center text-center border border-emerald-100 shadow-sm">
+                <div className="relative mb-3">
+                  <div className="absolute inset-0 blur-xl opacity-30 bg-gradient-to-tr from-emerald-200 via-teal-100 to-emerald-100" />
+                  <div className="relative flex items-center justify-center">
+                    {weather && getWeatherIcon(weather.weathercode, isDay)}
+                  </div>
+                </div>
+                {weather ? (
+                  <>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-light leading-none text-emerald-800">
+                        {Math.round(weather.temperature)}
+                      </span>
+                      <span className="text-2xl font-semibold mt-1 text-emerald-700">
+                        °C
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium tracking-wide uppercase text-emerald-600">
+                      {weatherCodeDescription(weather.weathercode)}
+                    </p>
+                    {typeof apparent === "number" && (
+                      <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 text-[12px] font-medium shadow-sm">
+                        Sensação {Math.round(apparent)}°C
+                      </div>
+                    )}
+                  </>
+                ) : loading ? (
+                  <p className="text-sm text-emerald-600">Carregando...</p>
+                ) : error ? (
+                  <p className="text-sm text-red-600">{error}</p>
+                ) : null}
+              </div>
+
+              {/* Bloco Amanhã */}
+              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm p-5 flex flex-col justify-between border border-emerald-100 shadow-sm">
+                {forecast ? (
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs font-semibold tracking-wide text-emerald-700 uppercase">
+                        Amanhã
+                      </span>
+                      <span className="text-[11px] text-emerald-500">
+                        {new Date(forecast.date).toLocaleDateString("pt-BR", {
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      <div className="scale-90 -ml-1">
+                        {getWeatherIcon(forecast.weathercode, true)}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium text-emerald-700">
+                          {weatherCodeDescription(forecast.weathercode)}
+                        </span>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md bg-emerald-100 border border-emerald-200 text-[13px] font-semibold text-emerald-700 shadow-sm">
+                            {Math.round(forecast.temp_max)}°C
+                            <span className="text-[10px] font-medium text-emerald-600">
+                              máx
+                            </span>
+                          </span>
+                          <span className="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-[13px] font-semibold text-emerald-700 shadow-sm">
+                            {Math.round(forecast.temp_min)}°C
+                            <span className="text-[10px] font-medium text-emerald-600">
+                              mín
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-emerald-500 text-sm">
+                    {loading ? "Carregando previsão..." : "Sem dados"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Rodapé */}
+            <footer className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-100">
+              {(resolvedCity || (resolvedCoords.lat && resolvedCoords.lon)) && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-100/70 border border-emerald-200 text-[11px] font-medium text-emerald-800">
+                  Local: {resolvedCity || "GPS"}
+                </span>
+              )}
+              {resolvedCoords.lat && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-[10px] tracking-wide text-emerald-600">
+                  {resolvedCoords.lat.toFixed(3)},{" "}
+                  {resolvedCoords.lon.toFixed(3)}
+                </span>
+              )}
+              <span className="ml-auto text-[10px] text-emerald-500/70 font-medium tracking-wide">
+                Dados meteorológicos sem garantia • Uso informativo
+              </span>
+            </footer>
           </div>
-        )}
-        {loading && <p className="text-emerald-600">Carregando clima...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {weather && (
-          <Fade direction="up" triggerOnce>
-            <div className="flex flex-col items-center gap-2">
-              <div className="mb-2">
-                {getWeatherIcon(weather.weathercode, isDay)}
-              </div>
-              <span className="text-3xl font-bold text-emerald-700">
-                {Math.round(weather.temperature)}°C
-              </span>
-              {typeof apparent === "number" && (
-                <span className="text-base text-gray-700">
-                  Sensação térmica: {Math.round(apparent)}°C
-                </span>
-              )}
-              <span className="text-base text-gray-700">
-                Vento: {Math.round(weather.windspeed)} km/h
-              </span>
-              {(typeof precip === "number" ||
-                typeof precipProb === "number") && (
-                <span className="text-sm text-gray-600">
-                  {typeof precip === "number" &&
-                    `Precipitação: ${precip.toFixed(1)} mm`}
-                  {typeof precip === "number" &&
-                    typeof precipProb === "number" &&
-                    " • "}
-                  {typeof precipProb === "number" &&
-                    `Prob. de chuva: ${Math.round(precipProb)}%`}
-                </span>
-              )}
-            </div>
-          </Fade>
-        )}
-        {/* Previsão para amanhã */}
-        {forecast && (
-          <Fade direction="up" delay={200} triggerOnce>
-            <div className="flex flex-col items-center gap-2 mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 shadow">
-              <span className="text-lg font-semibold text-emerald-700 mb-1">
-                Previsão para amanhã
-              </span>
-              <div className="mb-2">
-                {getWeatherIcon(forecast.weathercode, true)}
-              </div>
-              <span className="text-xl font-bold text-emerald-700">
-                {Math.round(forecast.temp_max)}°C{" "}
-                <span className="text-gray-500">máx</span>
-              </span>
-              <span className="text-xl font-bold text-blue-700">
-                {Math.round(forecast.temp_min)}°C{" "}
-                <span className="text-gray-500">mín</span>
-              </span>
-              <span className="text-sm text-gray-500">
-                {new Date(forecast.date).toLocaleDateString("pt-BR", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                })}
-              </span>
-            </div>
-          </Fade>
-        )}
+        </div>
       </section>
     </Fade>
   );
