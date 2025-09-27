@@ -41,24 +41,24 @@ export default function BusinessCard({ business }) {
           />
           {/* Selo flutuante */}
           {destaque && (
-            <div className="absolute top-2 left-2 bg-white/90 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full shadow">
+            <div className="absolute top-2 left-2 bg-white/90 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full shadow">
               Destaque
             </div>
           )}
           {/* Nota/Avaliação no topo direito */}
-          <div className="absolute top-2 right-2 flex items-center bg-white/90 text-yellow-600 text-xs md:text-sm font-bold px-2 py-1 rounded-full shadow">
-            <FaStar className="mr-1 text-yellow-500" />
+          <div className="absolute top-2 right-2 flex items-center bg-white/90 text-amber-700 text-xs md:text-sm font-bold px-2 py-1 rounded-full shadow">
+            <FaStar className="mr-1 text-amber-500" />
             <span>{rating ? rating : "--"}</span>
           </div>
         </div>
         {/* Infos centralizadas abaixo */}
         <div className="flex flex-col items-start justify-center px-4 py-3 text-left">
-          <h3 className="font-bold text-base md:text-lg lg:text-xl leading-tight group-hover:text-emerald-700 transition-colors line-clamp-2 break-words mb-1">
+          <h3 className="font-bold text-base md:text-lg lg:text-xl leading-tight text-emerald-900 group-hover:text-emerald-700 transition-colors line-clamp-2 break-words mb-1">
             {nome}
           </h3>
-          <div className="flex flex-wrap items-center gap-1 text-xs md:text-sm text-gray-600 leading-tight mb-1">
+          <div className="flex flex-wrap items-center gap-1 text-xs md:text-sm text-emerald-700/70 leading-tight mb-1">
             <span>{nome_categoria}</span>
-            <span className="mx-1">&bull;</span>
+            <span className="mx-1 text-emerald-600/70">&bull;</span>
             {cidade && <span>{cidade}</span>}
           </div>
         </div>

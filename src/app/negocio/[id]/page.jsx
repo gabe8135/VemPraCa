@@ -237,6 +237,8 @@ export default function DetalhesNegocioPage() {
   const [cliqueStats, setCliqueStats] = useState(null);
   const [dataVersion, setDataVersion] = useState(0); // Estado para forçar re-fetch
   const [loadingCliques, setLoadingCliques] = useState(false);
+  // Novo: estado para horário de funcionamento (JSON)
+  const [horarioFunc, setHorarioFunc] = useState(null);
 
   // --- Minha função para verificar Role (Admin) ---
   const checkUserRole = async (userId) => {
@@ -296,6 +298,19 @@ export default function DetalhesNegocioPage() {
         if (negocioError) throw negocioError;
         if (!negocioData) { setError(`Estabelecimento com ID ${negocioId} não encontrado.`); setLoading(false); return; }
         setNegocio(negocioData);
+        // Novo: pega horário da view se existir; se não existir, busca da tabela base
+        if (typeof negocioData.horario_funcionamento !== 'undefined') {
+          setHorarioFunc(negocioData.horario_funcionamento || null);
+        } else {
+          try {
+            const { data: horarioRow, error: horarioErr } = await supabase
+              .from('negocios')
+              .select('horario_funcionamento')
+              .eq('id', negocioId)
+              .maybeSingle();
+            if (!horarioErr) setHorarioFunc(horarioRow?.horario_funcionamento || null);
+          } catch {}
+        }
 
         // 2.1. Registro o acesso a este negócio (não precisa de await se não quiser bloquear)
         // Agora passamos o ID do proprietário e do usuário logado para a função
@@ -477,6 +492,176 @@ export default function DetalhesNegocioPage() {
   // Função para ser chamada pelo componente filho para recarregar os dados
   const handleRatingSuccess = () => setDataVersion(v => v + 1);
 
+  // ---------- Utilitários de Horário de Funcionamento ----------
+  const normalizeSchedule = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    // Aceita formatos com keys em PT ou EN
+    const mapKeys = {
+      domingo: 'sun', dom: 'sun', sun: 'sun',
+      segunda: 'mon', seg: 'mon', mon: 'mon',
+      terca: 'tue', terça: 'tue', ter: 'tue', tue: 'tue',
+      quarta: 'wed', qua: 'wed', wed: 'wed',
+      quinta: 'thu', qui: 'thu', thu: 'thu',
+      sexta: 'fri', sex: 'fri', fri: 'fri',
+      sabado: 'sat', sábado: 'sat', sab: 'sat', sáb: 'sat', sat: 'sat',
+    };
+    const days = { sun: [], mon: [], tue: [], wed: [], thu: [], fri: [], sat: [] };
+    const fromRawDays = raw.days || raw.dias || raw.horarios || raw; // tolerante
+    const pushInterval = (key, arr) => {
+      if (!Array.isArray(arr)) return;
+      arr.forEach((it) => {
+        // Suporta ['09:00','12:00'] ou {abre:'09:00', fecha:'12:00'}
+        let start = Array.isArray(it) ? it[0] : it?.[0] || it?.abre || it?.open || it?.inicio || it?.start;
+        let end = Array.isArray(it) ? it[1] : it?.[1] || it?.fecha || it?.close || it?.fim || it?.end;
+        if (typeof start === 'string' && typeof end === 'string') {
+          days[key].push([start, end]);
+        }
+      });
+    };
+    // Itera chaves e normaliza
+    Object.entries(fromRawDays || {}).forEach(([k, v]) => {
+      const lk = k.toLowerCase();
+      const norm = mapKeys[lk] || (['sun','mon','tue','wed','thu','fri','sat'].includes(lk) ? lk : null);
+      if (!norm) return;
+      pushInterval(norm, v);
+    });
+    const timezone = raw.timezone || raw.fuso || raw.time_zone || 'America/Sao_Paulo';
+    return { timezone, days };
+  };
+
+  const timePartsInTZ = (timeZone) => {
+    // Converte agora para a timezone desejada usando o truque do toLocaleString
+    const nowTZ = new Date(new Date().toLocaleString('en-US', { timeZone }));
+    const day = nowTZ.getDay(); // 0=Sun..6=Sat na TZ
+    const hours = nowTZ.getHours();
+    const minutes = nowTZ.getMinutes();
+    return { day, minutesTotal: hours * 60 + minutes, dateObj: nowTZ };
+  };
+
+  const parseHM = (s) => {
+    if (typeof s !== 'string') return null;
+    const m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = Math.max(0, Math.min(23, parseInt(m[1], 10)));
+    const mi = Math.max(0, Math.min(59, parseInt(m[2], 10)));
+    return h * 60 + mi;
+  };
+
+  const fmtHM = (min) => {
+    const h = Math.floor(min / 60) % 24;
+    const m = min % 60;
+    const hh = h.toString().padStart(2, '0');
+    const mm = m.toString().padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+
+  // Converte os intervalos do dia em blocos de abertura efetivos.
+  // Se houver um intervalo "grande" contendo um menor, tratamos o menor como pausa e subtraímos do grande.
+  const computeOpenBlocks = (rawList) => {
+    // rawList: array de ["HH:MM","HH:MM"]
+    if (!Array.isArray(rawList)) return [];
+    const parsed = rawList
+      .map(([s, e]) => [parseHM(s), parseHM(e)])
+      .filter(([s, e]) => s != null && e != null && s !== e);
+
+    // Separa em mesmos-dia (end > start) e cruzando meia-noite (end < start)
+    const sameDay = [];
+    const overnight = [];
+    for (const [s, e] of parsed) {
+      if (e > s) sameDay.push([s, e]);
+      else overnight.push([s, e]);
+    }
+
+    // Identifica containers (intervalos não contidos por outros) e pauses (contidos por algum container)
+    const isContainedIn = (a, b) => b[0] <= a[0] && b[1] >= a[1];
+    const containers = sameDay.filter((cand, i) => !sameDay.some((other, j) => j !== i && isContainedIn(cand, other)));
+    const pauses = sameDay.filter((cand, i) => sameDay.some((other, j) => j !== i && isContainedIn(cand, other)));
+
+    let result = [];
+    if (pauses.length === 0) {
+      // Sem pausas internas: os próprios sameDay já são blocos de abertura
+      result = [...sameDay];
+    } else {
+      // Para cada container, subtrai todas as pausas internas
+      const sortedPauses = [...pauses].sort((a, b) => a[0] - b[0]);
+      for (const [cStart, cEnd] of containers) {
+        let cursor = cStart;
+        for (const [pStart, pEnd] of sortedPauses) {
+          if (pEnd <= cStart || pStart >= cEnd) continue; // pausa fora do container
+          const startSeg = Math.max(cursor, cStart);
+          const endSeg = Math.min(pStart, cEnd);
+          if (endSeg > startSeg) result.push([startSeg, endSeg]);
+          cursor = Math.max(cursor, pEnd);
+          if (cursor >= cEnd) break;
+        }
+        if (cursor < cEnd) result.push([cursor, cEnd]);
+      }
+    }
+
+    // Junta com os intervalos overnight (mantém como estão para exibição e cálculo)
+    result.push(...overnight);
+
+    // Ordena e mescla sobreposições/adjacências para garantir limpeza
+    result.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const seg of result) {
+      if (!merged.length) { merged.push(seg); continue; }
+      const last = merged[merged.length - 1];
+      // Mescla se sobrepõe e ambos são same-day (end>start) e sem cruzar meia-noite
+      const lastOvernight = last[1] <= last[0];
+      const segOvernight = seg[1] <= seg[0];
+      if (!lastOvernight && !segOvernight && seg[0] <= last[1]) {
+        last[1] = Math.max(last[1], seg[1]);
+      } else {
+        merged.push([...seg]);
+      }
+    }
+    return merged; // lista de pares [startMin, endMin] (end pode ser < start para overnight)
+  };
+
+  const scheduleInfo = useMemo(() => {
+    const norm = normalizeSchedule(horarioFunc);
+    if (!norm) return null;
+    const tz = norm.timezone || 'America/Sao_Paulo';
+    const { day, minutesTotal } = timePartsInTZ(tz);
+    const idxToKey = ['sun','mon','tue','wed','thu','fri','sat'];
+    const todayKey = idxToKey[day];
+    const prevKey = idxToKey[(day + 6) % 7];
+
+    const effectiveOpen = (key) => computeOpenBlocks(norm.days[key] || []);
+    const checkIntervals = (key, minuteNow) => {
+      const blocks = effectiveOpen(key);
+      for (const [start, end] of blocks) {
+        if (end > start) {
+          if (minuteNow >= start && minuteNow < end) return true;
+        } else if (end < start) {
+          // Cruza a meia-noite: aberto de start..24h e 0..end
+          if (minuteNow >= start || minuteNow < end) return true;
+        }
+      }
+      return false;
+    };
+
+    const abertoAgora = checkIntervals(todayKey, minutesTotal) || checkIntervals(prevKey, minutesTotal);
+
+    // Texto de hoje
+    const toLabel = (key) => {
+      const raw = norm.days[key] || [];
+      if (!raw.length) return 'Fechado';
+      const blocks = computeOpenBlocks(raw);
+      if (!blocks.length) return 'Fechado';
+      return blocks.map(([s, e]) => `${fmtHM(s)}–${fmtHM(e)}`).join(', ');
+    };
+
+    const weekdayNames = {
+      sun: 'Domingo', mon: 'Segunda', tue: 'Terça', wed: 'Quarta', thu: 'Quinta', fri: 'Sexta', sat: 'Sábado',
+    };
+
+    const weekly = idxToKey.map((k) => ({ key: k, name: weekdayNames[k], label: toLabel(k) }));
+    const hojeLabel = toLabel(todayKey);
+    return { abertoAgora, hojeLabel, weekly };
+  }, [horarioFunc]);
+
   // --- Minha Renderização ---
   if (loading) return <div className="text-center p-10">Carregando detalhes do estabelecimento...</div>;
   if (error) return <div className="p-6 text-red-600 bg-red-100 rounded-md text-center">Erro: {error}</div>;
@@ -581,6 +766,32 @@ export default function DetalhesNegocioPage() {
             {/* Coluna Lateral */}
             <div className="space-y-5 bg-white/90 p-5 rounded-2xl shadow-md border border-gray-100 h-fit">
               <h2 className="text-xl font-semibold mb-3 pb-2 text-green-800">Contato e Localização</h2>
+              {/* Horário de Funcionamento */}
+              {scheduleInfo && (
+                <div className="mb-4 p-3 rounded-xl border border-emerald-100 bg-emerald-50/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-emerald-800">Horário de funcionamento</span>
+                    <span className={`inline-flex items-center gap-2 text-xs font-medium px-2 py-1 rounded-full ${scheduleInfo.abertoAgora ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
+                      <span className={`inline-block w-2 h-2 rounded-full ${scheduleInfo.abertoAgora ? 'bg-green-600' : 'bg-red-600'}`} />
+                      {scheduleInfo.abertoAgora ? 'Aberto agora' : 'Fechado agora'}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    <div className="mb-2"><span className="font-medium">Hoje:</span> {scheduleInfo.hojeLabel}</div>
+                    <details className="group">
+                      <summary className="cursor-pointer select-none text-emerald-700 hover:text-emerald-800 text-sm">Ver semana</summary>
+                      <div className="mt-2 grid grid-cols-1 gap-1 text-sm">
+                        {scheduleInfo.weekly.map((d) => (
+                          <div key={d.key} className="flex justify-between">
+                            <span className="text-gray-600">{d.name}</span>
+                            <span className="text-gray-800">{d.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              )}
               {/* ...existing code... */}
               {negocio.endereco && (
                 <div className="flex items-start gap-2 text-gray-700">

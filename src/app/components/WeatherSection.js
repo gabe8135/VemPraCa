@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { FiClock } from "react-icons/fi";
 import { Fade } from "react-awesome-reveal";
@@ -450,16 +452,16 @@ export default function WeatherSection({ cidade }) {
 
   return (
     <Fade triggerOnce>
-      <section className="relative w-full mb-8">
+      <section className="relative w-[98%] mx-auto mb-8">
         {/* Fundo suavizado: tom claro neutro com borda sutil */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 shadow-lg" />
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-amber-50 shadow" />
         <div className="relative rounded-3xl overflow-hidden ring-1 ring-emerald-100/60">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(16,185,129,0.15),transparent_70%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(16,185,129,0.08),transparent_80%)]" />
           <div className="relative p-5 md:p-7 flex flex-col gap-6 text-emerald-900">
             <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 text-emerald-800">
-                  <span className="inline-flex px-2.5 py-1 rounded-full bg-emerald-600/10 backdrop-blur-sm text-[11px] font-medium uppercase tracking-wide shadow-sm border border-emerald-200">
+                  <span className="inline-flex px-2.5 py-1 rounded-full bg-amber-500/10 backdrop-blur-sm text-[11px] font-medium uppercase tracking-wide shadow-sm border border-amber-200 text-amber-700">
                     Clima agora
                   </span>
                   <span className="text-emerald-700 font-light">
@@ -468,10 +470,10 @@ export default function WeatherSection({ cidade }) {
                 </h2>
                 {(resolvedCity ||
                   (resolvedCoords.lat && resolvedCoords.lon)) && (
-                  <p className="mt-1 text-[11px] font-medium text-emerald-500 flex items-center gap-2">
-                    <FiClock className="text-emerald-400" size={14} />
+                  <p className="mt-1 text-[11px] font-medium text-emerald-600 flex items-center gap-2">
+                    <FiClock className="text-amber-500" size={14} />
                     <span>Atualizado {lastUpdate}</span>
-                    <span className="hidden sm:inline text-emerald-400">
+                    <span className="hidden sm:inline text-amber-500/80">
                       • Fonte Open‑Meteo
                     </span>
                   </p>
@@ -489,7 +491,7 @@ export default function WeatherSection({ cidade }) {
               {/* Bloco Agora */}
               <div className="relative rounded-2xl bg-white/80 backdrop-blur-sm p-5 flex flex-col items-center text-center border border-emerald-100 shadow-sm">
                 <div className="relative mb-3">
-                  <div className="absolute inset-0 blur-xl opacity-30 bg-gradient-to-tr from-emerald-200 via-teal-100 to-emerald-100" />
+                  <div className="absolute inset-0 blur-xl opacity-30 bg-gradient-to-tr from-emerald-200 via-amber-100 to-emerald-100" />
                   <div className="relative flex items-center justify-center">
                     {weather && getWeatherIcon(weather.weathercode, isDay)}
                   </div>
@@ -508,7 +510,7 @@ export default function WeatherSection({ cidade }) {
                       {weatherCodeDescription(weather.weathercode)}
                     </p>
                     {typeof apparent === "number" && (
-                      <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 text-[12px] font-medium shadow-sm">
+                      <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[12px] font-medium shadow-sm">
                         Sensação {Math.round(apparent)}°C
                       </div>
                     )}
@@ -545,9 +547,9 @@ export default function WeatherSection({ cidade }) {
                           {weatherCodeDescription(forecast.weathercode)}
                         </span>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md bg-emerald-100 border border-emerald-200 text-[13px] font-semibold text-emerald-700 shadow-sm">
+                          <span className="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md bg-amber-100 border border-amber-200 text-[13px] font-semibold text-amber-700 shadow-sm">
                             {Math.round(forecast.temp_max)}°C
-                            <span className="text-[10px] font-medium text-emerald-600">
+                            <span className="text-[10px] font-medium text-amber-600">
                               máx
                             </span>
                           </span>
@@ -570,9 +572,9 @@ export default function WeatherSection({ cidade }) {
             </div>
 
             {/* Rodapé */}
-            <footer className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-100">
+            <footer className="flex flex-wrap items-center gap-2 pt-2 border-t border-amber-100/70">
               {(resolvedCity || (resolvedCoords.lat && resolvedCoords.lon)) && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-100/70 border border-emerald-200 text-[11px] font-medium text-emerald-800">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100/60 border border-amber-200 text-[11px] font-medium text-amber-800">
                   Local: {resolvedCity || "GPS"}
                 </span>
               )}

@@ -132,51 +132,107 @@ export default function MeuNegocioPage() {
   const [estadoSelecionado, setEstadoSelecionado] = useState("");
   const [cidades, setCidades] = useState([]);
   const [estados, setEstados] = useState([]);
+  // --- Horário de funcionamento (UI amigável) ---
+  const defaultSchedule = useMemo(
+    () => ({
+      timezone: "America/Sao_Paulo",
+      days: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+    }),
+    []
+  );
+  const [schedule, setSchedule] = useState(defaultSchedule);
 
-  // --- Efeito Principal: Verifica se o usuário está logado e carrega dados do formulário ---
-  useEffect(() => {
-    const initializePage = async () => {
-      setLoadingPage(true);
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+  const dayOrder = [
+    { key: "mon", label: "Segunda" },
+    { key: "tue", label: "Terça" },
+    { key: "wed", label: "Quarta" },
+    { key: "thu", label: "Quinta" },
+    { key: "fri", label: "Sexta" },
+    { key: "sat", label: "Sábado" },
+    { key: "sun", label: "Domingo" },
+  ];
 
-      if (sessionError || !session) {
-        router.push("/login?message=Você precisa estar logado."); // Se não estiver logado, mando para o login.
-        return;
-      }
-      setUser(session.user); // Guardo os dados do usuário.
+  const addInterval = (day) => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: [...(prev.days[day] || []), { start: "09:00", end: "18:00" }],
+      },
+    }));
+  };
+  const removeInterval = (day, idx) => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: (prev.days[day] || []).filter((_, i) => i !== idx),
+      },
+    }));
+  };
+  const updateInterval = (day, idx, field, value) => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: (prev.days[day] || []).map((it, i) =>
+          i === idx ? { ...it, [field]: value } : it
+        ),
+      },
+    }));
+  };
+  const toggleClosed = (day, closed) => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: closed ? [] : [{ start: "09:00", end: "18:00" }],
+      },
+    }));
+  };
+  // Ações rápidas do painel de horários
+  const clearDay = (day) => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: { ...prev.days, [day]: [] },
+    }));
+  };
+  const clearAllDays = () => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: Object.fromEntries(Object.keys(prev.days).map((k) => [k, []])),
+    }));
+  };
+  const copyMonToFri = () => {
+    setSchedule((prev) => {
+      const src = prev.days.mon || [];
+      const clone = src.map((it) => ({ start: it.start, end: it.end }));
+      const newDays = { ...prev.days };
+      ["tue", "wed", "thu", "fri"].forEach((k) => {
+        newDays[k] = clone.map((it) => ({ ...it }));
+      });
+      return { ...prev, days: newDays };
+    });
+  };
+  const closeWeekend = () => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: { ...prev.days, sat: [], sun: [] },
+    }));
+  };
 
-      // Busco o perfil do usuário para verificar se já existe um nome_proprietario
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("nome_proprietario")
-        .eq("id", session.user.id)
-        .single();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error(
-          "Erro ao buscar perfil do usuário no cadastro:",
-          profileError
-        );
-        // Não é fatal para o carregamento do formulário, mas pode impactar o preenchimento do nome do proprietário
-      }
-      setUserProfile(profileData);
-      if (profileData?.nome_proprietario) {
-        setFormState((prev) => ({
-          ...prev,
-          proprietario: profileData.nome_proprietario,
-        }));
-      }
-
-      // Se o usuário está logado, busca os dados para o formulário.
-      await fetchInitialFormData();
-      setLoadingPage(false);
-    };
-
-    initializePage();
-  }, [router]); // Dependência: router (para o redirecionamento).
+  const buildHorarioFromSchedule = (sch) => {
+    if (!sch || !sch.days) return null;
+    const any = Object.values(sch.days).some((arr) => (arr || []).length > 0);
+    if (!any) return null;
+    const days = Object.fromEntries(
+      Object.entries(sch.days).map(([k, v]) => [
+        k,
+        (v || []).map((it) => [it.start || "00:00", it.end || "00:00"]),
+      ])
+    );
+    return { timezone: sch.timezone || "America/Sao_Paulo", days };
+  };
 
   // --- Função para buscar os dados iniciais do formulário (categorias e características) ---
   const fetchInitialFormData = useCallback(async () => {
@@ -245,6 +301,51 @@ export default function MeuNegocioPage() {
       setLoadingInitialData(false);
     }
   }, []); // useCallback para memorizar a função.
+
+  // --- Efeito Principal: Verifica se o usuário está logado e carrega dados do formulário ---
+  useEffect(() => {
+    const initializePage = async () => {
+      setLoadingPage(true);
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        router.push("/login?message=Você precisa estar logado."); // Se não estiver logado, mando para o login.
+        return;
+      }
+      setUser(session.user); // Guardo os dados do usuário.
+
+      // Busco o perfil do usuário para verificar se já existe um nome_proprietario
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("nome_proprietario")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileError && profileError.code !== "PGRST116") {
+        console.error(
+          "Erro ao buscar perfil do usuário no cadastro:",
+          profileError
+        );
+        // Não é fatal para o carregamento do formulário, mas pode impactar o preenchimento do nome do proprietário
+      }
+      setUserProfile(profileData);
+      if (profileData?.nome_proprietario) {
+        setFormState((prev) => ({
+          ...prev,
+          proprietario: profileData.nome_proprietario,
+        }));
+      }
+
+      // Se o usuário está logado, busca os dados para o formulário.
+      await fetchInitialFormData();
+      setLoadingPage(false);
+    };
+
+    initializePage();
+  }, [router, fetchInitialFormData]); // Inclui fetchInitialFormData como dependência estável
 
   // --- EFEITO PARA CARREGAR ESTADOS ---
   useEffect(() => {
@@ -729,6 +830,8 @@ export default function MeuNegocioPage() {
 
       // 3. Preparo os dados do negócio para INSERIR no banco.
       setSubmitStatus({ message: "Salvando informações...", type: "loading" });
+      // 3.1 Gero horário automaticamente a partir do painel (única forma visível)
+      const horario_funcionamento = buildHorarioFromSchedule(schedule);
       const negocioData = {
         nome: formState.nome,
         proprietario: formState.proprietario,
@@ -743,6 +846,7 @@ export default function MeuNegocioPage() {
         imagens: finalImageUrls,
         usuario_id: user.id,
         ativo: false, // Negócios começam inativos.
+        ...(horario_funcionamento ? { horario_funcionamento } : {}),
       };
 
       // 4. INSIRO o negócio no banco.
@@ -811,6 +915,7 @@ export default function MeuNegocioPage() {
         website: "",
         email_contato: "", // NOVO CAMPO
       });
+      setSchedule(defaultSchedule);
       setImageFiles([]);
       setMainImageIndex(0);
       setSelectedCaracteristicas([]);
@@ -1142,7 +1247,161 @@ export default function MeuNegocioPage() {
             placeholder="https://..."
           />
 
-          {/* Seção 6: Upload de Imagens - JSX igual ao da página de edição. */}
+          {/* Seção 6: Horário de Funcionamento (Painel visual) */}
+          <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h3 className="font-semibold text-gray-800">
+                Horário de Funcionamento
+              </h3>
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Fuso horário
+                </label>
+                <input
+                  type="text"
+                  className="input-form text-sm w-56"
+                  value={schedule.timezone}
+                  onChange={(e) =>
+                    setSchedule((prev) => ({
+                      ...prev,
+                      timezone: e.target.value,
+                    }))
+                  }
+                  placeholder="America/Sao_Paulo"
+                  disabled={isSubmitting}
+                />
+              </div>
+              {/* Ações rápidas */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={copyMonToFri}
+                  disabled={isSubmitting}
+                  className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50"
+                >
+                  Copiar Seg → Sex
+                </button>
+                <button
+                  type="button"
+                  onClick={closeWeekend}
+                  disabled={isSubmitting}
+                  className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50"
+                >
+                  Fechar fim de semana
+                </button>
+                <button
+                  type="button"
+                  onClick={clearAllDays}
+                  disabled={isSubmitting}
+                  className="text-xs px-2.5 py-1 rounded border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                >
+                  Limpar todos
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dayOrder.map((d) => {
+                const intervals = schedule.days[d.key] || [];
+                const isClosed = intervals.length === 0;
+                return (
+                  <div
+                    key={d.key}
+                    className="rounded-md border border-gray-200 bg-white p-3 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-800">
+                        {d.label}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        {!isClosed && (
+                          <button
+                            type="button"
+                            onClick={() => clearDay(d.key)}
+                            disabled={isSubmitting}
+                            className="text-xs px-2 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50"
+                            title="Limpar este dia"
+                          >
+                            Limpar dia
+                          </button>
+                        )}
+                        <label className="text-sm text-gray-700 flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isClosed}
+                            onChange={(e) =>
+                              toggleClosed(d.key, e.target.checked)
+                            }
+                            disabled={isSubmitting}
+                            className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                          />
+                          Fechado
+                        </label>
+                      </div>
+                    </div>
+                    {!isClosed && (
+                      <div className="space-y-2">
+                        {intervals.map((it, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={it.start}
+                              onChange={(e) =>
+                                updateInterval(
+                                  d.key,
+                                  idx,
+                                  "start",
+                                  e.target.value
+                                )
+                              }
+                              className="input-form text-sm"
+                              disabled={isSubmitting}
+                            />
+                            <span className="text-gray-500">até</span>
+                            <input
+                              type="time"
+                              value={it.end}
+                              onChange={(e) =>
+                                updateInterval(
+                                  d.key,
+                                  idx,
+                                  "end",
+                                  e.target.value
+                                )
+                              }
+                              className="input-form text-sm"
+                              disabled={isSubmitting}
+                            />
+                            <button
+                              type="button"
+                              className="text-xs px-2 py-1 rounded border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                              onClick={() => removeInterval(d.key, idx)}
+                              disabled={isSubmitting}
+                            >
+                              Remover
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-1 px-2 rounded-md"
+                          onClick={() => addInterval(d.key)}
+                          disabled={isSubmitting}
+                        >
+                          + Adicionar intervalo
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500">
+              Deixe marcado “Fechado” nos dias que não funcionam. Você pode
+              adicionar vários intervalos no mesmo dia.
+            </p>
+          </div>
+
+          {/* Seção 7: Upload de Imagens - JSX igual ao da página de edição. */}
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">
               Imagens (máx. {MAX_IMAGES_PER_BUSINESS}, a primeira será a

@@ -12,6 +12,7 @@ import FAQSection from "@/app/components/FAQSection";
 import CategoriesSection from "./components/CategoriesSection";
 import HowItWorksSection from "@/app/components/HowItWorksSection";
 import WeatherSection from "@/app/components/WeatherSection";
+import AnnouncementsSection from "@/app/components/AnnouncementsSection";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, A11y, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -326,7 +327,7 @@ function BusinessList() {
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              <div className="grid -mx-2 sm:mx-0 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
                 {filteredBusinesses.map((business) => (
                   <Fade
                     key={business.id}
@@ -344,6 +345,9 @@ function BusinessList() {
       </div>
       {/* Seção do Clima */}
       <WeatherSection cidade={selectedCidade || "Ilha Comprida"} />
+
+      {/* Seção de Anúncios (Em breve) */}
+      <AnnouncementsSection />
     </>
   );
 }

@@ -39,7 +39,7 @@ export default function EditarNegocioPage() {
   // --- Meus Estados para o Formulário ---
   const [formState, setFormState] = useState({
     nome: '', proprietario: '', categoria_id: '', descricao: '', endereco: '', cidade: '',
-    telefone: '', whatsapp: '', website: '', email_contato: '' // NOVO CAMPO ADICIONADO
+    telefone: '', whatsapp: '', website: '', email_contato: ''
   });
   const [categorias, setCategorias] = useState([]);
   // Aqui eu guardo TODAS as características do banco, com suas associações de categoria.
@@ -60,6 +60,40 @@ export default function EditarNegocioPage() {
   const [estadoSelecionado, setEstadoSelecionado] = useState('');
   const [cidades, setCidades] = useState([]);
   const [estados, setEstados] = useState([]);
+  // --- Horário de funcionamento (UI amigável) ---
+  const defaultSchedule = useMemo(() => ({ timezone: 'America/Sao_Paulo', days: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } }), []);
+  const [schedule, setSchedule] = useState(defaultSchedule);
+  const dayOrder = [
+    { key: 'mon', label: 'Segunda' },
+    { key: 'tue', label: 'Terça' },
+    { key: 'wed', label: 'Quarta' },
+    { key: 'thu', label: 'Quinta' },
+    { key: 'fri', label: 'Sexta' },
+    { key: 'sat', label: 'Sábado' },
+    { key: 'sun', label: 'Domingo' },
+  ];
+  const addInterval = (day) => setSchedule(prev => ({ ...prev, days: { ...prev.days, [day]: [...(prev.days[day]||[]), { start: '09:00', end: '18:00' }] } }));
+  const removeInterval = (day, idx) => setSchedule(prev => ({ ...prev, days: { ...prev.days, [day]: (prev.days[day]||[]).filter((_,i)=>i!==idx) } }));
+  const updateInterval = (day, idx, field, value) => setSchedule(prev => ({ ...prev, days: { ...prev.days, [day]: (prev.days[day]||[]).map((it,i)=> i===idx? { ...it, [field]: value } : it) } }));
+  const toggleClosed = (day, closed) => setSchedule(prev => ({ ...prev, days: { ...prev.days, [day]: closed ? [] : [{ start:'09:00', end:'18:00' }] } }));
+  // Ações rápidas do painel de horários
+  const clearDay = (day) => setSchedule(prev => ({ ...prev, days: { ...prev.days, [day]: [] } }));
+  const clearAllDays = () => setSchedule(prev => ({ ...prev, days: Object.fromEntries(Object.keys(prev.days).map(k => [k, []])) }));
+  const copyMonToFri = () => setSchedule(prev => {
+    const src = prev.days.mon || [];
+    const clone = src.map(it => ({ start: it.start, end: it.end }));
+    const newDays = { ...prev.days };
+    ['tue','wed','thu','fri'].forEach(k => { newDays[k] = clone.map(it => ({ ...it })); });
+    return { ...prev, days: newDays };
+  });
+  const closeWeekend = () => setSchedule(prev => ({ ...prev, days: { ...prev.days, sat: [], sun: [] } }));
+  const buildHorarioFromSchedule = (sch) => {
+    if (!sch || !sch.days) return null;
+    const any = Object.values(sch.days).some((arr)=>(arr||[]).length>0);
+    if (!any) return null;
+    const days = Object.fromEntries(Object.entries(sch.days).map(([k,v]) => [k,(v||[]).map(it=>[it.start||'00:00', it.end||'00:00'])]));
+    return { timezone: sch.timezone || 'America/Sao_Paulo', days };
+  };
 
   // --- Minha Função para verificar se o usuário é Admin ---
   const checkUserRole = useCallback(async (userId) => {
@@ -115,6 +149,23 @@ export default function EditarNegocioPage() {
         }
 
         setNegocioOriginal(negocioData); // Guardo os dados originais.
+        // Inicializa UI visual a partir do JSON existente, se houver
+        if (negocioData.horario_funcionamento) {
+          try {
+            const hf = negocioData.horario_funcionamento;
+            const uiDays = Object.fromEntries(['mon','tue','wed','thu','fri','sat','sun'].map(k => [k, []]));
+            const srcDays = hf.days || {};
+            Object.entries(srcDays).forEach(([k,v]) => {
+              const arr = Array.isArray(v) ? v : [];
+              uiDays[k] = arr.map(it => Array.isArray(it) ? { start: it[0], end: it[1] } : { start: it?.start || it?.abre || '09:00', end: it?.end || it?.fecha || '18:00' });
+            });
+            setSchedule({ timezone: hf.timezone || 'America/Sao_Paulo', days: uiDays });
+            // JSON avançado não é mais exibido na UI
+          } catch {}
+        } else {
+          setSchedule(defaultSchedule);
+          // Sem JSON avançado na UI
+        }
 
         // 4. Busco o perfil do dono para pegar o nome_proprietario consistente
         const { data: profileData, error: profileError } = await supabase
@@ -140,7 +191,7 @@ export default function EditarNegocioPage() {
           telefone: negocioData.telefone || '',
           whatsapp: negocioData.whatsapp || '',
           website: negocioData.website || '',
-          email_contato: negocioData.email_contato || '', // NOVO CAMPO
+          email_contato: negocioData.email_contato || '' // NOVO CAMPO
         });
 
         // 6. Preencho as características que já estavam selecionadas para este negócio.
@@ -492,6 +543,9 @@ export default function EditarNegocioPage() {
 
       // 4. Atualizo os Dados do Negócio no Banco.
       setSubmitStatus({ message: 'Atualizando dados do estabelecimento...', type: 'loading' });
+      // Apenas o painel visual define o horário
+      const horario_funcionamento = buildHorarioFromSchedule(schedule);
+
       const negocioUpdateData = {
         nome: formState.nome,
         proprietario: formState.proprietario, // Salva o nome do proprietário no negócio
@@ -505,6 +559,8 @@ export default function EditarNegocioPage() {
         email_contato: formState.email_contato || null, // NOVO CAMPO
         imagens: finalImageUrls, // Salvo o array de URLs atualizado.
         data_atualizacao: new Date().toISOString(), // Marco a data da atualização.
+        // Envia sempre: se o painel estiver vazio, seta null para limpar no banco
+        horario_funcionamento: horario_funcionamento ?? null,
       };
       const { error: updateNegocioError } = await supabase
         .from('negocios')
@@ -786,7 +842,61 @@ export default function EditarNegocioPage() {
             />
           </div>
           {/* Seção 5: Website */}
+          {/* Seção 5: Website */}
           <InputField name="website" label="Website ou Rede Social (Opcional)" value={formState.website} onChange={handleChange} disabled={isSubmitting} type="url" placeholder="https://..."/>
+          {/* Seção 5.1: Horário (Painel visual) */}
+          <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h3 className="font-semibold text-gray-800">Horário de Funcionamento</h3>
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">Fuso horário</label>
+                <input type="text" className="input-form text-sm w-56" value={schedule.timezone} onChange={(e)=> setSchedule(prev=>({ ...prev, timezone: e.target.value }))} placeholder="America/Sao_Paulo" disabled={isSubmitting} />
+              </div>
+              {/* Ações rápidas */}
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={copyMonToFri} disabled={isSubmitting} className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50">Copiar Seg → Sex</button>
+                <button type="button" onClick={closeWeekend} disabled={isSubmitting} className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50">Fechar fim de semana</button>
+                <button type="button" onClick={clearAllDays} disabled={isSubmitting} className="text-xs px-2.5 py-1 rounded border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">Limpar todos</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dayOrder.map((d)=>{
+                const intervals = schedule.days[d.key] || [];
+                const isClosed = intervals.length === 0;
+                return (
+                  <div key={d.key} className="rounded-md border border-gray-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-800">{d.label}</span>
+                      <div className="flex items-center gap-3">
+                        {!isClosed && (
+                          <button type="button" onClick={() => clearDay(d.key)} disabled={isSubmitting} className="text-xs px-2 py-1 rounded border border-gray-200 bg-white hover:bg-gray-50" title="Limpar este dia">Limpar dia</button>
+                        )}
+                        <label className="text-sm text-gray-700 flex items-center gap-2">
+                          <input type="checkbox" checked={isClosed} onChange={(e)=> toggleClosed(d.key, e.target.checked)} disabled={isSubmitting} className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer" />
+                          Fechado
+                        </label>
+                      </div>
+                    </div>
+                    {!isClosed && (
+                      <div className="space-y-2">
+                        {intervals.map((it, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input type="time" value={it.start} onChange={(e)=> updateInterval(d.key, idx, 'start', e.target.value)} className="input-form text-sm" disabled={isSubmitting} />
+                            <span className="text-gray-500">até</span>
+                            <input type="time" value={it.end} onChange={(e)=> updateInterval(d.key, idx, 'end', e.target.value)} className="input-form text-sm" disabled={isSubmitting} />
+                            <button type="button" className="text-xs px-2 py-1 rounded border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" onClick={()=> removeInterval(d.key, idx)} disabled={isSubmitting}>Remover</button>
+                          </div>
+                        ))}
+                        <button type="button" className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-1 px-2 rounded-md" onClick={()=> addInterval(d.key)} disabled={isSubmitting}>+ Adicionar intervalo</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500">Use “Fechado” nos dias que não funcionam. Adicione vários intervalos conforme necessário.</p>
+          </div>
+          {/* Removida a UI de JSON avançado; apenas painel visual permanece */}
           {/* Seção 6: Upload de Imagens */}
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">Imagens (máx. {MAX_IMAGES_PER_BUSINESS}, a primeira será a principal) <span className="text-red-500">*</span></label>
