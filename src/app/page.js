@@ -327,7 +327,7 @@ function BusinessList() {
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
-              <div className="grid -mx-2 sm:mx-0 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+              <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
                 {filteredBusinesses.map((business) => (
                   <Fade
                     key={business.id}

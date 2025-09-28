@@ -629,20 +629,32 @@ export default function DetalhesNegocioPage() {
     const prevKey = idxToKey[(day + 6) % 7];
 
     const effectiveOpen = (key) => computeOpenBlocks(norm.days[key] || []);
-    const checkIntervals = (key, minuteNow) => {
-      const blocks = effectiveOpen(key);
+    // Aberto agora: considera blocos de hoje normalmente e APENAS blocos overnight vindos de ontem
+    const isOpenTodayNow = (() => {
+      const blocks = effectiveOpen(todayKey);
       for (const [start, end] of blocks) {
         if (end > start) {
-          if (minuteNow >= start && minuteNow < end) return true;
+          if (minutesTotal >= start && minutesTotal < end) return true;
         } else if (end < start) {
-          // Cruza a meia-noite: aberto de start..24h e 0..end
-          if (minuteNow >= start || minuteNow < end) return true;
+          // Overnight iniciado hoje (ex.: 22:00–02:00): hoje conta quando for >= start
+          if (minutesTotal >= start) return true;
         }
       }
       return false;
-    };
+    })();
 
-    const abertoAgora = checkIntervals(todayKey, minutesTotal) || checkIntervals(prevKey, minutesTotal);
+    const isOpenFromPrevOvernight = (() => {
+      const blocksPrev = effectiveOpen(prevKey);
+      for (const [start, end] of blocksPrev) {
+        if (end < start) {
+          // Overnight que começou ontem e termina hoje: aberto hoje enquanto for antes do 'end'
+          if (minutesTotal < end) return true;
+        }
+      }
+      return false;
+    })();
+
+    const abertoAgora = isOpenTodayNow || isOpenFromPrevOvernight;
 
     // Texto de hoje
     const toLabel = (key) => {
@@ -658,8 +670,82 @@ export default function DetalhesNegocioPage() {
     };
 
     const weekly = idxToKey.map((k) => ({ key: k, name: weekdayNames[k], label: toLabel(k) }));
-    const hojeLabel = toLabel(todayKey);
-    return { abertoAgora, hojeLabel, weekly };
+    // Texto a exibir quando ABERTO: se for overnight vindo de ontem, mostra 00:00–end; senão, os blocos de hoje
+    let hojeLabelOpen = toLabel(todayKey);
+    if (!isOpenTodayNow && isOpenFromPrevOvernight) {
+      // Busca o bloco overnight de ontem que está em vigor agora e mostra até o 'end' de hoje
+      const blocksPrev = effectiveOpen(prevKey).filter(([s, e]) => e < s && minutesTotal < e);
+      if (blocksPrev.length) {
+        // Se houver vários, escolhe o primeiro por ordenação natural de computeOpenBlocks
+        const end = blocksPrev[0][1];
+        hojeLabelOpen = `00:00–${fmtHM(end)}`;
+      }
+    }
+
+    // Próxima abertura quando FECHADO
+    const getNextOpening = () => {
+      for (let off = 0; off < 7; off++) {
+        const k = idxToKey[(day + off) % 7];
+        const blocks = effectiveOpen(k);
+        if (!blocks.length) continue;
+        let candidates = [];
+        if (off === 0) {
+          // Hoje: próximos blocos cujo início ainda não chegou
+          for (const [s, e] of blocks) {
+            if (e > s) {
+              if (s > minutesTotal) candidates.push(s);
+            } else if (e < s) {
+              // overnight começa hoje
+              if (s > minutesTotal) candidates.push(s);
+            }
+          }
+        } else {
+          // Futuro: primeira abertura do dia (menor start)
+          candidates = blocks.map(([s]) => s);
+        }
+        if (candidates.length) {
+          const startMin = Math.min(...candidates);
+          return { offset: off, key: k, startMin };
+        }
+      }
+      return null;
+    };
+
+    let abreTexto = null;
+    if (!abertoAgora) {
+      const next = getNextOpening();
+      if (next) {
+        let whenLabel;
+        if (next.offset === 0) whenLabel = 'Hoje';
+        else if (next.offset === 1) whenLabel = 'Amanhã';
+        else whenLabel = weekdayNames[next.key];
+        abreTexto = `${whenLabel} às ${fmtHM(next.startMin)}`;
+      }
+    }
+
+    // Horário de fechamento quando ABERTO
+    const getCloseText = () => {
+      // Tenta identificar o bloco ativo de hoje
+      const blocksToday = effectiveOpen(todayKey);
+      for (const [s, e] of blocksToday) {
+        if (e > s) {
+          if (minutesTotal >= s && minutesTotal < e) return fmtHM(e);
+        } else if (e < s) {
+          // overnight iniciado hoje
+          if (minutesTotal >= s) return fmtHM(e);
+        }
+      }
+      // Se não achar em hoje, pode ser overnight do dia anterior
+      const blocksPrev2 = effectiveOpen(prevKey);
+      for (const [s, e] of blocksPrev2) {
+        if (e < s && minutesTotal < e) return fmtHM(e);
+      }
+      return null;
+    };
+    const fechaText = abertoAgora ? getCloseText() : null;
+    const showCloseText = !!(abertoAgora && fechaText && !`${hojeLabelOpen}`.includes(`–${fechaText}`));
+
+    return { abertoAgora, hojeLabelOpen, weekly, abreTexto, fechaText, showCloseText };
   }, [horarioFunc]);
 
   // --- Minha Renderização ---
@@ -773,11 +859,22 @@ export default function DetalhesNegocioPage() {
                     <span className="text-sm font-semibold text-emerald-800">Horário de funcionamento</span>
                     <span className={`inline-flex items-center gap-2 text-xs font-medium px-2 py-1 rounded-full ${scheduleInfo.abertoAgora ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
                       <span className={`inline-block w-2 h-2 rounded-full ${scheduleInfo.abertoAgora ? 'bg-green-600' : 'bg-red-600'}`} />
-                      {scheduleInfo.abertoAgora ? 'Aberto agora' : 'Fechado agora'}
+                      {scheduleInfo.abertoAgora ? 'Aberto' : 'Fechado'}
                     </span>
                   </div>
                   <div className="text-sm text-gray-700">
-                    <div className="mb-2"><span className="font-medium">Hoje:</span> {scheduleInfo.hojeLabel}</div>
+                    {scheduleInfo.abertoAgora ? (
+                      <>
+                        <div className="mb-1"><span className="font-medium">Hoje:</span> {scheduleInfo.hojeLabelOpen}</div>
+                        {scheduleInfo.showCloseText && (
+                          <div className="text-gray-700">Fecha às {scheduleInfo.fechaText}</div>
+                        )}
+                      </>
+                    ) : (
+                      scheduleInfo.abreTexto && (
+                        <div className="mb-2 text-gray-700">Abre {scheduleInfo.abreTexto}</div>
+                      )
+                    )}
                     <details className="group">
                       <summary className="cursor-pointer select-none text-emerald-700 hover:text-emerald-800 text-sm">Ver semana</summary>
                       <div className="mt-2 grid grid-cols-1 gap-1 text-sm">
