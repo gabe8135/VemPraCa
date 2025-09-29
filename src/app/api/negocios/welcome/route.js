@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const OWNER_EMAIL =
   process.env.WELCOME_OWNER_EMAIL || process.env.CONTACT_TO_EMAIL;
 const FROM_EMAIL =
@@ -12,6 +10,16 @@ const FROM_EMAIL =
 
 export async function POST(req) {
   try {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+      return NextResponse.json(
+        {
+          error: "Serviço de e-mail não configurado (RESEND_API_KEY ausente).",
+        },
+        { status: 500 }
+      );
+    }
+    const resend = new Resend(RESEND_API_KEY);
     const body = await req.json();
     const {
       nome, // nome do usuário (opcional)

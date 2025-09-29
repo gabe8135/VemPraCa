@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Configurações via env
 const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL; // obrigatório
 const CONTACT_FROM_EMAIL =
@@ -14,6 +12,17 @@ const CONTACT_AUTOREPLY_FROM =
 
 export async function POST(req) {
   try {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+      // Evita quebrar o build da Vercel e retorna um erro claro em runtime
+      return NextResponse.json(
+        {
+          error: "Serviço de e-mail não configurado (RESEND_API_KEY ausente).",
+        },
+        { status: 500 }
+      );
+    }
+    const resend = new Resend(RESEND_API_KEY);
     const contentType = req.headers.get("content-type") || "";
     let body;
     if (contentType.includes("application/json")) {
