@@ -96,8 +96,8 @@ function PagamentoAssinaturaContent() {
       const accessToken = sessionData.session.access_token;
       console.log("Frontend: Access Token obtido para enviar no header da API.");
 
-      // Chamo minha API backend que vai criar o link de assinatura no Mercado Pago.
-      const response = await fetch('/api/criar-link-assinatura', { // Minha URL da API backend.
+  // Chamo minha API backend que vai criar o link de assinatura no provedor de pagamento.
+    const response = await fetch('/api/stripe/checkout', { // Cria sessão de checkout Stripe.
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -111,14 +111,14 @@ function PagamentoAssinaturaContent() {
 
       const data = await response.json(); // Pego a resposta da API.
 
-      // Verifico se a resposta da API foi OK e se veio a URL de checkout.
-      if (!response.ok || !data.checkoutUrl) {
+    // Verifico se a resposta da API foi OK e se veio a URL de checkout.
+    if (!response.ok || !data.url) {
           // Se não, jogo um erro com a mensagem da API ou uma mensagem padrão.
           throw new Error(data.error || `Falha ao gerar o link de pagamento (Status: ${response.status}). Tente novamente.`);
       }
 
-      console.log("Link de checkout do Mercado Pago recebido:", data.checkoutUrl);
-      window.location.href = data.checkoutUrl; // Redireciono o usuário para a página de pagamento do Mercado Pago.
+    console.log("Link de checkout recebido:", data.url);
+    window.location.href = data.url; // Redireciono o usuário para a página de pagamento.
 
       // Lembrete: Se o redirecionamento para o MP funcionar, o código abaixo (setIsLoading(false)) não será executado,
       // pois a página atual será descarregada. Isso é o esperado.

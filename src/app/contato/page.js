@@ -11,19 +11,35 @@ export default function Contato() {
     e.preventDefault();
 
     const form = e.currentTarget;
-    const data = new FormData(form);
+    const payload = {
+      nome: form.nome?.value || "",
+      email: form.email?.value || "",
+      mensagem: form.mensagem?.value || "",
+    };
 
-    // Envio os dados do formulário para o Formspree.
-    const response = await fetch("https://formspree.io/f/mzzeoedb", {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      body: data,
-    });
-
-    // Se o envio for bem-sucedido, limpo o formulário e mostro o modal.
-    if (response.ok) {
-      form.reset();
-      setShowModal(true);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
+        form.reset();
+        setShowModal(true);
+      } else {
+        const text = await response.text();
+        try {
+          const { error } = JSON.parse(text);
+          alert(error || "Falha ao enviar. Tente novamente.");
+        } catch {
+          alert(text || "Falha ao enviar. Tente novamente.");
+        }
+      }
+    } catch (err) {
+      alert("Erro de rede. Verifique sua conexão e tente novamente.");
     }
   }
 

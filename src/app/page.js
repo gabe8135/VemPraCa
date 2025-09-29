@@ -123,6 +123,30 @@ function BusinessList() {
     return matchesCategory && matchesSearchTerm && matchesCidade;
   });
 
+  // Ordenação do grid principal (não altera o carrossel de destaques):
+  // 1) Destaque primeiro
+  // 2) Com avaliações depois
+  // 3) Categoria (nome_categoria) em ordem alfabética
+  const toBool = (v) => v === true || v === "true" || v === 1 || v === "1";
+  const hasReviews = (b) => {
+    const val = parseFloat(b?.media_avaliacoes);
+    return Number.isFinite(val);
+  };
+  const getCategory = (b) => (b?.nome_categoria || "").toString();
+  const sortedBusinesses = [...filteredBusinesses].sort((a, b) => {
+    const aFeat = toBool(a?.destaque);
+    const bFeat = toBool(b?.destaque);
+    if (aFeat !== bFeat) return aFeat ? -1 : 1;
+
+    const aHas = hasReviews(a);
+    const bHas = hasReviews(b);
+    if (aHas !== bHas) return aHas ? -1 : 1;
+
+    return getCategory(a).localeCompare(getCategory(b), "pt-BR", {
+      sensitivity: "base",
+    });
+  });
+
   const categoryDetailsFromAll = categorySlug
     ? allCategories.find((cat) => cat.slug === categorySlug)
     : null;
@@ -328,7 +352,7 @@ function BusinessList() {
             </div>
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
               <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
-                {filteredBusinesses.map((business) => (
+                {sortedBusinesses.map((business) => (
                   <Fade
                     key={business.id}
                     cascade={false}
