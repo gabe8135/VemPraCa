@@ -174,6 +174,19 @@ export default function Footer() {
                   Atendimento: {supportHours}
                 </li>
               )}
+              {/* Portfólio (mesmo estilo do botão WhatsApp) */}
+              <li>
+                <a
+                  href="https://synaliz.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md bg-emerald-500/20 px-3 py-2 text-sm font-medium ring-1 ring-inset ring-white/20 hover:bg-emerald-500/25"
+                  aria-label="Abrir portfólio em nova aba"
+                >
+                  <FiExternalLink aria-hidden className="h-4 w-4" />
+                  Portfólio
+                </a>
+              </li>
               {waHref && (
                 <li>
                   <a

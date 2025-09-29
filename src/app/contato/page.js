@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import { FiExternalLink } from "react-icons/fi";
 
 export default function Contato() {
   const [showModal, setShowModal] = useState(false); // Para controlar a visibilidade do meu modal de sucesso.
@@ -135,6 +136,28 @@ export default function Contato() {
           <span className="relative z-10 text-lg">Falar no WhatsApp</span>
         </a>
       </form>
+
+      {/* Chamada para portfólio */}
+      <div className="w-full max-w-xl mt-8">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-emerald-100/70 p-6 text-center">
+          <p className="text-gray-700 leading-relaxed">
+            Quer saber mais sobre o criador da plataforma ou requisitar um
+            serviço?
+            <br className="hidden sm:block" />
+            Acesse meu portfólio e conheça meus trabalhos.
+          </p>
+          <a
+            href="https://synaliz.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-semibold px-5 py-3 rounded-xl shadow hover:shadow-lg transition duration-300"
+            aria-label="Abrir portfólio em nova aba"
+          >
+            <FiExternalLink className="h-4 w-4" aria-hidden />
+            Ver portfólio
+          </a>
+        </div>
+      </div>
 
       {/* Este é o meu modal que aparece quando o e-mail é enviado com sucesso. */}
       {showModal && (
