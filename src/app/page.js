@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, Suspense, useRef } from "react";
 import { Fade } from "react-awesome-reveal";
 // ...existing code...
-import { supabase } from "@/app/lib/supabaseClient";
+import { supabase, isSupabaseConfigured } from "@/app/lib/supabaseClient";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import Hero from "@/app/components/Hero";
@@ -14,7 +14,13 @@ import HowItWorksSection from "@/app/components/HowItWorksSection";
 import WeatherSection from "@/app/components/WeatherSection";
 import AnnouncementsSection from "@/app/components/AnnouncementsSection";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, A11y, Autoplay } from "swiper/modules";
+import {
+  Navigation,
+  Pagination,
+  A11y,
+  Autoplay,
+  Mousewheel,
+} from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -67,6 +73,11 @@ function BusinessList() {
       setLoading(true);
       setError(null);
       try {
+        if (!isSupabaseConfigured) {
+          throw new Error(
+            "Configuração do Supabase ausente. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY."
+          );
+        }
         const { data: businessesData, error: businessesDbError } =
           await supabase
             .from("negocios_com_media")
@@ -86,7 +97,11 @@ function BusinessList() {
         setAllCategories(categoriesData || []);
       } catch (err) {
         console.error("Erro ao buscar dados iniciais:", err);
-        setError("Erro ao carregar os dados. Tente novamente mais tarde.");
+        setError(
+          err?.message?.includes("Supabase")
+            ? "Variáveis do Supabase não estão configuradas no ambiente local."
+            : "Erro ao carregar os dados. Tente novamente mais tarde."
+        );
       } finally {
         setLoading(false);
       }
@@ -298,7 +313,7 @@ function BusinessList() {
                   Destaques
                 </h2>
                 <Swiper
-                  modules={[Pagination, A11y, Autoplay]}
+                  modules={[Pagination, A11y, Autoplay, Mousewheel]}
                   spaceBetween={16}
                   slidesPerView={1.2}
                   breakpoints={{
@@ -310,6 +325,7 @@ function BusinessList() {
                   style={{ paddingLeft: 4, paddingRight: 4 }}
                   loop={true}
                   autoplay={{ delay: 3500, disableOnInteraction: false }}
+                  mousewheel={{ forceToAxis: true, releaseOnEdges: true }}
                   onInit={(swiper) => {
                     setTimeout(() => {
                       const bullets = document.querySelectorAll(

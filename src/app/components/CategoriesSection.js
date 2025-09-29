@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Fade } from "react-awesome-reveal";
-import { supabase } from "@/app/lib/supabaseClient";
+import { supabase, isSupabaseConfigured } from "@/app/lib/supabaseClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import * as Tabs from "@radix-ui/react-tabs";
 
@@ -27,6 +27,11 @@ export default function CategoriesSection() {
       setLoading(true);
       setError(null);
       try {
+        if (!isSupabaseConfigured) {
+          throw new Error(
+            "Supabase não configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY."
+          );
+        }
         const [
           { data: categories, error: catError },
           { data: businesses, error: busError },
@@ -52,7 +57,11 @@ export default function CategoriesSection() {
         );
         setCategoriesData(categoriasComNegocios);
       } catch (err) {
-        setError("Não foi possível carregar as categorias.");
+        setError(
+          err?.message?.includes("Supabase")
+            ? "Variáveis do Supabase não estão configuradas no ambiente local."
+            : "Não foi possível carregar as categorias."
+        );
       } finally {
         setLoading(false);
       }
@@ -60,23 +69,8 @@ export default function CategoriesSection() {
     fetchCategoriesAndBusinesses();
   }, []);
 
-  // Adicionei o listener de wheel para rolar as tabs
-  useEffect(() => {
-    const tabList = document.querySelector("#categories-tabs-list");
-    const onWheel = (e) => {
-      if (e.deltaY === 0) return;
-      e.preventDefault();
-      tabList.scrollLeft += e.deltaY;
-    };
-    if (tabList) {
-      tabList.addEventListener("wheel", onWheel, { passive: false });
-    }
-    return () => {
-      if (tabList) {
-        tabList.removeEventListener("wheel", onWheel);
-      }
-    };
-  }, []);
+  // Ref opcional para medições futuras (sem comportamento extra de scroll)
+  const tabsListRef = useRef(null);
 
   // Atualiza o highlight para o trigger ativo
   const updateHighlight = () => {
@@ -113,7 +107,7 @@ export default function CategoriesSection() {
   // Classes condicionais para triggers (desativa hover no ativo)
   const getTriggerClasses = (value) => {
     const isActive = selectedCategory === value;
-    const base = `category-trigger relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-colors duration-200`;
+    const base = `category-trigger relative z-10 px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-colors duration-200 shrink-0`;
     // Texto padrão verde escuro; quando ativo, texto branco e sem hover amarelo
     if (isActive) {
       return `${base} text-white`;
@@ -144,7 +138,7 @@ export default function CategoriesSection() {
             >
               <Fade cascade damping={0.15} triggerOnce>
                 {/* Wrapper do conteúdo rolável com posição relativa para o highlight */}
-                <div ref={contentRef} className="relative flex gap-2">
+                <div ref={contentRef} className="relative flex gap-2 w-max">
                   {/* Highlight deslizante (efeito líquido) */}
                   <div
                     aria-hidden
@@ -162,7 +156,6 @@ export default function CategoriesSection() {
                         "left 380ms cubic-bezier(0.22,1,0.36,1), width 380ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease-out",
                     }}
                   />
-
                   {/* Triggers (ficam acima do highlight) */}
                   <Tabs.Trigger
                     value="todas"
@@ -193,6 +186,18 @@ export default function CategoriesSection() {
           </Tabs.Root>
         )}
       </div>
+      {/* Ocultar barra de rolagem do filtro de categorias (cross-browser) */}
+      <style jsx global>{`
+        #categories-tabs-list {
+          -ms-overflow-style: none; /* IE e Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+        #categories-tabs-list::-webkit-scrollbar {
+          display: none; /* Chrome, Safari, Opera */
+          height: 0;
+          width: 0;
+        }
+      `}</style>
     </section>
   );
 }
