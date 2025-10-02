@@ -66,10 +66,16 @@ export default function Header() {
       }
     };
 
-    // Pego a sessão inicial e verifico a role.
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      handleAuthChange("INITIAL_SESSION", initialSession); // Chamo minha função para tratar a sessão inicial.
-    });
+    // Pego a sessão inicial e verifico a role (com tratamento de erro)
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession } }) => {
+        handleAuthChange("INITIAL_SESSION", initialSession);
+      })
+      .catch((err) => {
+        console.warn("Falha ao obter sessão inicial no Header:", err);
+        handleAuthChange("INITIAL_SESSION_ERROR", null);
+      });
 
     // Escuto as mudanças na autenticação (login/logout).
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -79,10 +85,31 @@ export default function Header() {
       }
     );
 
+    // Fallback adicional: se após um período ainda estiver em loading, encerra com estado neutro
+    const safetyTimeout = setTimeout(async () => {
+      if (!isMounted) return;
+      if (loadingAuth) {
+        try {
+          const { data: { session: current } } = await supabase.auth.getSession();
+          if (isMounted) setSession(current || null);
+          if (isMounted) setIsAdmin(false);
+        } catch (err) {
+          console.warn("Fallback de sessão no Header falhou:", err);
+          if (isMounted) {
+            setSession(null);
+            setIsAdmin(false);
+          }
+        } finally {
+          if (isMounted) setLoadingAuth(false);
+        }
+      }
+    }, 2500);
+
     // Limpeza quando o componente desmonta.
     return () => {
       isMounted = false;
       listener?.subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
       console.log("Listener de autenticação do Header desinscrito.");
     };
   }, []); // Roda só uma vez na montagem.
