@@ -170,7 +170,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient';
 // Meus Ícones (Posso adicionar mais conforme necessário).
-import { FaWhatsapp, FaWifi, FaParking, FaDog, FaConciergeBell, FaWheelchair, FaCampground, FaMapMarkerAlt, FaEdit, FaGlobe, FaTrash } from 'react-icons/fa';
+import { FaWhatsapp, FaWifi, FaParking, FaDog, FaConciergeBell, FaWheelchair, FaCampground, FaMapMarkerAlt, FaEdit, FaGlobe, FaTrash, FaShareAlt } from 'react-icons/fa';
 import { FiPhone, FiCoffee, FiWind, FiMail } from 'react-icons/fi';
 import { MdRestaurant, MdAcUnit, MdPool, MdRoomService, MdOutlineStar, MdOutlineStarBorder } from 'react-icons/md';
 // Swiper para o carrossel de imagens.
@@ -239,6 +239,57 @@ export default function DetalhesNegocioPage() {
   const [loadingCliques, setLoadingCliques] = useState(false);
   // Novo: estado para horário de funcionamento (JSON)
   const [horarioFunc, setHorarioFunc] = useState(null);
+  // Novo: URL de compartilhamento (gerada no client)
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return window.location.href;
+  }, [negocioId]);
+
+  // Utilitário: copiar para área de transferência com fallback
+  const copyToClipboard = async (text) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {}
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(el);
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
+  // Handler: compartilhar
+  const handleShareNegocio = async () => {
+    const title = negocio?.nome || 'Veja este lugar';
+    const text = 'Dá uma olhada neste lugar no VemPraCa:';
+    const url = shareUrl;
+    if (!url) return;
+    try {
+      if (navigator?.share) {
+        await navigator.share({ title, text, url });
+        return;
+      }
+      // Fallback desktop: copiar link
+      const ok = await copyToClipboard(url);
+      if (ok) alert('Link copiado para a área de transferência.');
+      else alert('Não foi possível compartilhar automaticamente. Copie o link: ' + url);
+    } catch (e) {
+      // Caso o usuário cancele o share nativo ou ocorra erro, tenta copiar
+      const ok = await copyToClipboard(url);
+      if (ok) alert('Link copiado para a área de transferência.');
+    }
+  };
 
   // --- Minha função para verificar Role (Admin) ---
   const checkUserRole = async (userId) => {
@@ -948,10 +999,19 @@ export default function DetalhesNegocioPage() {
         {canEditOrDelete && (
           <Fade direction="up" delay={320} triggerOnce>
             {/* Botões de Editar/Excluir */}
-            <div className="mb-6 flex justify-end gap-4">
+            <div className="mb-6 grid grid-cols-3 gap-3 md:flex md:justify-end md:gap-4">
+              <button
+                onClick={handleShareNegocio}
+                title="Compartilhar"
+                aria-label="Compartilhar"
+                className="inline-flex w-full md:w-auto items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl shadow transition duration-200"
+              >
+                <FaShareAlt className="h-4 w-4" />
+                Compart.
+              </button>
               <Link
                 href={`/meu-negocio/editar/${negocio.id}`}
-                className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+                className="inline-flex w-full md:w-auto items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
                 aria-disabled={isDeleting}
                 onClick={(e) => { if (isDeleting) e.preventDefault(); }}
               >
@@ -961,7 +1021,7 @@ export default function DetalhesNegocioPage() {
               <button
                 onClick={handleDeleteNegocio}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
+                className="inline-flex w-full md:w-auto items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200 disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>
