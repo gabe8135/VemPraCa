@@ -90,7 +90,9 @@ export default function Header() {
       if (!isMounted) return;
       if (loadingAuth) {
         try {
-          const { data: { session: current } } = await supabase.auth.getSession();
+          const {
+            data: { session: current },
+          } = await supabase.auth.getSession();
           if (isMounted) setSession(current || null);
           if (isMounted) setIsAdmin(false);
         } catch (err) {
