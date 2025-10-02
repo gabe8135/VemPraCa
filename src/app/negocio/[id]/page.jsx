@@ -1042,6 +1042,23 @@ export default function DetalhesNegocioPage() {
           </Fade>
         )}
 
+        {/* Botão de compartilhar para todos (quando não é dono nem admin) */}
+        {!canEditOrDelete && (
+          <Fade direction="up" delay={320} triggerOnce>
+            <div className="mb-6 flex justify-center">
+              <button
+                onClick={handleShareNegocio}
+                title="Compartilhar"
+                aria-label="Compartilhar"
+                className="inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-200"
+              >
+                <FaShareAlt className="h-4 w-4" />
+                Compart.
+              </button>
+            </div>
+          </Fade>
+        )}
+
         <Fade direction="up" delay={400} triggerOnce>
           {/* Avaliações */}
           <div id="avaliacao" className="mt-10">
