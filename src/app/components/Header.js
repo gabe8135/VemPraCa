@@ -43,9 +43,10 @@ export default function Header() {
       if (!isMounted) return;
       try {
         console.log(`Evento de autenticação: ${event}`, session);
-        setSession(session); // Atualizo a sessão.
 
         if (session?.user) {
+          // Temos uma sessão válida: atualizo e checo role
+          setSession(session);
           // Se tem sessão, verifico a role.
           try {
             const isAdminUser = await checkUserRole(session.user.id);
@@ -58,8 +59,17 @@ export default function Header() {
             if (isMounted) setIsAdmin(false);
           }
         } else {
-          // Sem sessão, não é admin.
-          if (isMounted) setIsAdmin(false);
+          // Sessão ausente. Só zera se for um evento claro de saída/erro inicial; evita flicker em eventos transitórios
+          const shouldClear =
+            event === "SIGNED_OUT" ||
+            event === "INITIAL_SESSION" ||
+            event === "INITIAL_SESSION_ERROR";
+          if (shouldClear) {
+            if (isMounted) {
+              setSession(null);
+              setIsAdmin(false);
+            }
+          }
         }
       } finally {
         if (isMounted) setLoadingAuth(false); // Finalizo o loading invariavelmente
@@ -80,38 +90,17 @@ export default function Header() {
     // Escuto as mudanças na autenticação (login/logout).
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        if (isMounted) setLoadingAuth(true); // Mostro loading ao detectar mudança.
-        handleAuthChange(event, currentSession); // Chamo minha função para tratar a mudança.
+        // Evita flicker: só liga loading para fluxos de entrada/saída explícitos
+        if (isMounted && (event === "SIGNED_IN" || event === "SIGNED_OUT"))
+          setLoadingAuth(true);
+        handleAuthChange(event, currentSession);
       }
     );
-
-    // Fallback adicional: se após um período ainda estiver em loading, encerra com estado neutro
-    const safetyTimeout = setTimeout(async () => {
-      if (!isMounted) return;
-      if (loadingAuth) {
-        try {
-          const {
-            data: { session: current },
-          } = await supabase.auth.getSession();
-          if (isMounted) setSession(current || null);
-          if (isMounted) setIsAdmin(false);
-        } catch (err) {
-          console.warn("Fallback de sessão no Header falhou:", err);
-          if (isMounted) {
-            setSession(null);
-            setIsAdmin(false);
-          }
-        } finally {
-          if (isMounted) setLoadingAuth(false);
-        }
-      }
-    }, 2500);
 
     // Limpeza quando o componente desmonta.
     return () => {
       isMounted = false;
       listener?.subscription.unsubscribe();
-      clearTimeout(safetyTimeout);
       console.log("Listener de autenticação do Header desinscrito.");
     };
   }, []); // Roda só uma vez na montagem.
