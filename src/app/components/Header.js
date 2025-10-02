@@ -1,10 +1,10 @@
 // src/app/components/Header.js
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react'; 
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/app/lib/supabaseClient';
+import Link from "next/link";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/app/lib/supabaseClient";
 
 export default function Header() {
   const router = useRouter();
@@ -20,15 +20,15 @@ export default function Header() {
     if (!userId) return false;
     try {
       const { data, error } = await supabase
-        .from('profiles') // Minha tabela de perfis.
-        .select('role')
-        .eq('id', userId)
+        .from("profiles") // Minha tabela de perfis.
+        .select("role")
+        .eq("id", userId)
         .single();
       // Se o perfil não for encontrado (PGRST116), não é um erro fatal, só não é admin.
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error; // Outros erros eu lanço.
       }
-      return data?.role === 'admin';
+      return data?.role === "admin";
     } catch (err) {
       console.error("Erro ao verificar role do usuário no Header:", err);
       return false; // Em caso de erro, assumo que não é admin.
@@ -41,27 +41,34 @@ export default function Header() {
 
     const handleAuthChange = async (event, session) => {
       if (!isMounted) return;
+      try {
+        console.log(`Evento de autenticação: ${event}`, session);
+        setSession(session); // Atualizo a sessão.
 
-      console.log(`Evento de autenticação: ${event}`, session);
-      setSession(session); // Atualizo a sessão.
-
-      if (session?.user) {
-        // Se tem sessão, verifico a role.
-        const isAdminUser = await checkUserRole(session.user.id);
-        if (isMounted) {
-          setIsAdmin(isAdminUser);
-          console.log("Usuário é admin:", isAdminUser);
+        if (session?.user) {
+          // Se tem sessão, verifico a role.
+          try {
+            const isAdminUser = await checkUserRole(session.user.id);
+            if (isMounted) {
+              setIsAdmin(isAdminUser);
+              console.log("Usuário é admin:", isAdminUser);
+            }
+          } catch (err) {
+            console.error("Falha ao checar role no Header:", err);
+            if (isMounted) setIsAdmin(false);
+          }
+        } else {
+          // Sem sessão, não é admin.
+          if (isMounted) setIsAdmin(false);
         }
-      } else {
-        // Sem sessão, não é admin.
-        if (isMounted) setIsAdmin(false);
+      } finally {
+        if (isMounted) setLoadingAuth(false); // Finalizo o loading invariavelmente
       }
-      if (isMounted) setLoadingAuth(false); // Finalizo o loading depois de tudo.
     };
 
     // Pego a sessão inicial e verifico a role.
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      handleAuthChange('INITIAL_SESSION', initialSession); // Chamo minha função para tratar a sessão inicial.
+      handleAuthChange("INITIAL_SESSION", initialSession); // Chamo minha função para tratar a sessão inicial.
     });
 
     // Escuto as mudanças na autenticação (login/logout).
@@ -94,17 +101,29 @@ export default function Header() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]); // Dependência: isMenuOpen, para adicionar/remover o listener conforme necessário
   const handleLogout = async () => {
     setIsMenuOpen(false); // Fecho o menu mobile antes.
     setLoadingAuth(true); // Mostro loading durante o logout.
-    await supabase.auth.signOut();
-    // O listener onAuthStateChange vai cuidar de atualizar session, isAdmin e loadingAuth.
-    router.push('/'); // Redireciono para a home.
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("Erro ao deslogar:", e);
+    } finally {
+      // Fallback: se por algum motivo o listener não disparar, garanto que o loading caia ao detectar ausência de sessão
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) setLoadingAuth(false);
+      } catch {}
+    }
+    // O listener onAuthStateChange vai cuidar de atualizar session, isAdmin e loadingAuth normalmente.
+    router.push("/"); // Redireciono para a home.
   };
 
   const toggleMenu = () => {
@@ -118,7 +137,10 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 mt-4 bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl shadow-lg shadow-[0_8px_24px_-8px_rgba(0,0,0,0.45)] w-[95%] max-w-5xl mx-auto">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8 w-full" aria-label="Global">
+      <nav
+        className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8 w-full"
+        aria-label="Global"
+      >
         {/* Logo */}
         <div className="flex flex-1">
           <Link href="/" onClick={handleLinkClick} className="-m-1.5 p-1.5">
@@ -137,18 +159,53 @@ export default function Header() {
             ref={menuButtonRef}
             className="inline-flex items-center justify-center rounded-md p-2.5 text-white hover:bg-white/10"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             </svg>
           </button>
         </div>
         {/* Menu desktop */}
         <div className="hidden lg:flex flex-1 justify-center gap-x-8">
-          <Link href="/" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Início</Link>
-          <Link href="/sobre" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Sobre</Link>
-          <Link href="/contato" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Contato</Link>
+          <Link
+            href="/"
+            className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+            onClick={handleLinkClick}
+          >
+            Início
+          </Link>
+          <Link
+            href="/sobre"
+            className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+            onClick={handleLinkClick}
+          >
+            Sobre
+          </Link>
+          <Link
+            href="/contato"
+            className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+            onClick={handleLinkClick}
+          >
+            Contato
+          </Link>
           {session && (
-            <Link href="/meus-negocios" className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Meus Negócios</Link>
+            <Link
+              href="/meus-negocios"
+              className="text-base font-semibold text-white hover:text-[#F0B100] px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Meus Negócios
+            </Link>
           )}
           {!loadingAuth && session && isAdmin && (
             <Link
@@ -163,21 +220,37 @@ export default function Header() {
         {/* Botão login à direita no desktop */}
         <div className="hidden lg:flex flex-1 justify-end">
           {loadingAuth ? (
-            <span className="text-white text-base px-4 py-1 whitespace-nowrap">Verificando...</span>
+            <span className="text-white text-base px-4 py-1 whitespace-nowrap">
+              Verificando...
+            </span>
           ) : session ? (
-            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-400 text-white px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap">Sair</button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-400 text-white px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap"
+            >
+              Sair
+            </button>
           ) : (
-            <Link href="/login" className="bg-white hover:bg-[#F0B100] text-green-800 px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap" onClick={handleLinkClick}>Login</Link>
+            <Link
+              href="/login"
+              className="bg-white hover:bg-[#F0B100] text-green-800 px-4 py-1 rounded-full font-semibold w-auto transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Login
+            </Link>
           )}
         </div>
       </nav>
       {/* Menu mobile */}
       {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={toggleMenu}></div>
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/30"
+          onClick={toggleMenu}
+        ></div>
       )}
       <nav
-        className={`lg:hidden fixed top-0 right-0 z-50 h-full bg-gradient-to-r from-green-600 to-emerald-700 shadow-lg transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-        style={{ maxWidth: '20rem', width: '100vw' }}
+        className={`lg:hidden fixed top-0 right-0 z-50 h-full bg-gradient-to-r from-green-600 to-emerald-700 shadow-lg transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+        style={{ maxWidth: "20rem", width: "100vw" }}
         ref={menuRef}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/20">
@@ -193,24 +266,59 @@ export default function Header() {
             aria-label="Fechar menu"
             className="rounded-md p-2.5 text-white hover:bg-white/10"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
         <ul className="flex flex-col gap-2 p-6 items-center">
           <li>
-            <Link href="/" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Início</Link>
+            <Link
+              href="/"
+              className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Início
+            </Link>
           </li>
           <li>
-            <Link href="/sobre" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Sobre</Link>
+            <Link
+              href="/sobre"
+              className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Sobre
+            </Link>
           </li>
           <li>
-            <Link href="/contato" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Contato</Link>
+            <Link
+              href="/contato"
+              className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Contato
+            </Link>
           </li>
           {session && (
             <li>
-              <Link href="/meus-negocios" className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Meus Negócios</Link>
+              <Link
+                href="/meus-negocios"
+                className="block w-full text-center text-lg font-semibold text-white hover:text-[#F0B100] px-4 py-2 rounded-lg transition whitespace-nowrap"
+                onClick={handleLinkClick}
+              >
+                Meus Negócios
+              </Link>
             </li>
           )}
           {!loadingAuth && session && isAdmin && (
@@ -225,14 +333,29 @@ export default function Header() {
             </li>
           )}
           {loadingAuth ? (
-            <li><span className="text-white text-lg px-4 py-2 text-center whitespace-nowrap">Verificando...</span></li>
+            <li>
+              <span className="text-white text-lg px-4 py-2 text-center whitespace-nowrap">
+                Verificando...
+              </span>
+            </li>
           ) : session ? (
             <li>
-              <button onClick={handleLogout} className="block w-full text-center text-lg font-semibold bg-red-700 text-white px-4 py-2 rounded-lg transition whitespace-nowrap">Sair</button>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-center text-lg font-semibold bg-red-700 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
+              >
+                Sair
+              </button>
             </li>
           ) : (
             <li>
-              <Link href="/login" className="block w-full text-center text-lg font-semibold bg-white hover:bg-[#F0B100] text-green-800 px-4 py-2 rounded-lg transition whitespace-nowrap" onClick={handleLinkClick}>Login</Link>
+              <Link
+                href="/login"
+                className="block w-full text-center text-lg font-semibold bg-white hover:bg-[#F0B100] text-green-800 px-4 py-2 rounded-lg transition whitespace-nowrap"
+                onClick={handleLinkClick}
+              >
+                Login
+              </Link>
             </li>
           )}
         </ul>
