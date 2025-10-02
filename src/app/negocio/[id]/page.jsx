@@ -239,10 +239,13 @@ export default function DetalhesNegocioPage() {
   const [loadingCliques, setLoadingCliques] = useState(false);
   // Novo: estado para horário de funcionamento (JSON)
   const [horarioFunc, setHorarioFunc] = useState(null);
-  // Novo: URL de compartilhamento (gerada no client)
+  // Novo: URL de compartilhamento canônica com ID (evita hashes e garante rota correta)
   const shareUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return window.location.href;
+    if (!negocioId) return '';
+    const fromEnv = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    const origin = fromEnv || (typeof window !== 'undefined' ? window.location.origin : '');
+    if (!origin) return '';
+    return `${origin}/negocio/${negocioId}`;
   }, [negocioId]);
 
   // Utilitário: copiar para área de transferência com fallback
