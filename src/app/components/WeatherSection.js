@@ -162,6 +162,7 @@ export default function WeatherSection({ cidade }) {
   const [precip, setPrecip] = useState(null);
   const [precipProb, setPrecipProb] = useState(null);
   const [stormAlert, setStormAlert] = useState(false);
+  const [todayRange, setTodayRange] = useState(null); // mín/máx de hoje
   const [resolvedCity, setResolvedCity] = useState(null);
   const [resolvedCoords, setResolvedCoords] = useState({
     lat: null,
@@ -275,6 +276,21 @@ export default function WeatherSection({ cidade }) {
           } else {
             setForecast(null);
           }
+          // Mín/Máx de hoje (índice 0)
+          if (
+            data.daily &&
+            Array.isArray(data.daily.temperature_2m_max) &&
+            data.daily.temperature_2m_max.length > 0 &&
+            Array.isArray(data.daily.temperature_2m_min) &&
+            data.daily.temperature_2m_min.length > 0
+          ) {
+            setTodayRange({
+              temp_max: data.daily.temperature_2m_max[0],
+              temp_min: data.daily.temperature_2m_min[0],
+            });
+          } else {
+            setTodayRange(null);
+          }
           setLoading(false);
         })
         .catch(() => {
@@ -368,6 +384,21 @@ export default function WeatherSection({ cidade }) {
             } else {
               setForecast(null);
             }
+            // Mín/Máx de hoje (índice 0)
+            if (
+              data.daily &&
+              Array.isArray(data.daily.temperature_2m_max) &&
+              data.daily.temperature_2m_max.length > 0 &&
+              Array.isArray(data.daily.temperature_2m_min) &&
+              data.daily.temperature_2m_min.length > 0
+            ) {
+              setTodayRange({
+                temp_max: data.daily.temperature_2m_max[0],
+                temp_min: data.daily.temperature_2m_min[0],
+              });
+            } else {
+              setTodayRange(null);
+            }
             setLoading(false);
           })
           .catch(() => {
@@ -408,31 +439,34 @@ export default function WeatherSection({ cidade }) {
     );
 
   // Função para escolher ícone e cor de acordo com o código do tempo
-  function getWeatherIcon(code, isDay) {
+  function getWeatherIcon(code, isDay, size = 64) {
     // Códigos Open-Meteo: https://open-meteo.com/en/docs#api_form
     if ([0].includes(code))
       return isDay ? (
-        <WiDaySunny className="text-yellow-400 drop-shadow-lg" size={64} />
+        <WiDaySunny className="text-yellow-400 drop-shadow-lg" size={size} />
       ) : (
-        <WiNightClear className="text-indigo-600 drop-shadow-lg" size={64} />
+        <WiNightClear className="text-indigo-600 drop-shadow-lg" size={size} />
       );
     if ([1, 2, 3].includes(code))
       return isDay ? (
-        <WiDayCloudy className="text-blue-400 drop-shadow-lg" size={64} />
+        <WiDayCloudy className="text-blue-400 drop-shadow-lg" size={size} />
       ) : (
-        <WiNightCloudy className="text-indigo-400 drop-shadow-lg" size={64} />
+        <WiNightCloudy className="text-indigo-400 drop-shadow-lg" size={size} />
       );
     if ([45, 48].includes(code))
-      return <WiFog className="text-gray-500 drop-shadow-lg" size={64} />;
+      return <WiFog className="text-gray-500 drop-shadow-lg" size={size} />;
     if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code))
-      return <WiRain className="text-cyan-500 drop-shadow-lg" size={64} />;
+      return <WiRain className="text-cyan-500 drop-shadow-lg" size={size} />;
     if ([71, 73, 75, 77, 85, 86].includes(code))
-      return <WiCloudy className="text-sky-400 drop-shadow-lg" size={64} />;
+      return <WiCloudy className="text-sky-400 drop-shadow-lg" size={size} />;
     if ([95, 96, 99].includes(code))
       return (
-        <WiThunderstorm className="text-purple-600 drop-shadow-lg" size={64} />
+        <WiThunderstorm
+          className="text-purple-600 drop-shadow-lg"
+          size={size}
+        />
       );
-    return <WiCloudy className="text-blue-300 drop-shadow-lg" size={64} />;
+    return <WiCloudy className="text-blue-300 drop-shadow-lg" size={size} />;
   }
 
   // Detecta se é dia ou noite pelo horário local
@@ -642,21 +676,45 @@ export default function WeatherSection({ cidade }) {
               <div
                 className={`relative rounded-2xl backdrop-blur-sm p-5 flex flex-col items-center text-center border shadow-sm ${theme.nowCardBg}`}
               >
-                <div className="relative mb-3">
+                <div className="relative mb-1">
                   <div className="absolute inset-0 blur-xl opacity-40 bg-gradient-to-tr from-sky-300 via-blue-200 to-indigo-200" />
                   <div className="relative flex items-center justify-center">
-                    {weather && getWeatherIcon(weather.weathercode, isDay)}
+                    {weather && getWeatherIcon(weather.weathercode, isDay, 80)}
                   </div>
                 </div>
                 {weather ? (
                   <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-light leading-none text-slate-800">
-                        {Math.round(weather.temperature)}
-                      </span>
-                      <span className="text-2xl font-semibold mt-1 text-slate-700">
-                        °C
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-5xl font-light leading-none text-slate-800">
+                          {Math.round(weather.temperature)}
+                        </span>
+                        <span className="text-2xl font-semibold mt-1 text-slate-700">
+                          °C
+                        </span>
+                      </div>
+                      {todayRange && (
+                        <div className="inline-flex">
+                          <div className="flex flex-col px-2.5 py-1 rounded-md bg-white/70 text-[12px] leading-tight text-slate-700">
+                            <div className="flex items-baseline gap-1">
+                              <span className="uppercase text-slate-500">
+                                máx
+                              </span>
+                              <span className="font-semibold">
+                                {Math.round(todayRange.temp_max)}°
+                              </span>
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="uppercase text-slate-500">
+                                mín
+                              </span>
+                              <span className="font-semibold">
+                                {Math.round(todayRange.temp_min)}°
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <p className="mt-1 text-sm font-medium tracking-wide uppercase text-slate-600">
                       {weatherCodeDescription(weather.weathercode)}
@@ -704,7 +762,7 @@ export default function WeatherSection({ cidade }) {
                         </span>
                         <div className="flex items-center gap-3 mt-1">
                           <span
-                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm border ${tomorrowTheme.tempMaxPill}`}
+                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm ${tomorrowTheme.tempMaxPill}`}
                           >
                             {Math.round(forecast.temp_max)}°C
                             <span className="text-[10px] font-medium text-blue-600">
@@ -712,7 +770,7 @@ export default function WeatherSection({ cidade }) {
                             </span>
                           </span>
                           <span
-                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm border ${tomorrowTheme.tempMinPill}`}
+                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm ${tomorrowTheme.tempMinPill}`}
                           >
                             {Math.round(forecast.temp_min)}°C
                             <span className="text-[10px] font-medium text-sky-600">
