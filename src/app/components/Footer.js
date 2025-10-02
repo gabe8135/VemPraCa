@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import InstallPWAButton from "@/app/components/InstallPWAButton";
 import {
   FiPhone,
   FiMail,
@@ -117,6 +118,10 @@ export default function Footer() {
               Conectamos pessoas a negócios locais com ofertas, serviços e
               avaliações reais. Descubra o melhor perto de você.
             </p>
+            {/* Botão de instalar PWA abaixo da descrição */}
+            <div className="mt-4">
+              <InstallPWAButton className="inline-flex items-center justify-center rounded-md bg-white text-green-800 px-4 py-2 text-sm font-semibold shadow-sm hover:bg-emerald-50 transition whitespace-nowrap" />
+            </div>
             {cnpj && (
               <p className="mt-2 text-xs/6 text-emerald-50/80">CNPJ: {cnpj}</p>
             )}

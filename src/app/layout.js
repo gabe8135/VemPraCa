@@ -65,6 +65,8 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${montserrat.variable}`}
     >
       <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#16a34a" />
         {/* <AOSInit /> */}
         {/* Google Analytics */}
         <Script
@@ -81,6 +83,18 @@ export default function RootLayout({ children }) {
         </Script>
       </head>
       <body className="scroll-smooth antialiased min-h-screen bg-white text-black flex flex-col">
+        <Script id="sw-register" strategy="afterInteractive">
+          {`
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.getRegistrations().then((regs) => {
+                const hasSW = regs.some(r => r.active && r.active.scriptURL.includes('/sw.js'));
+                if (!hasSW) navigator.serviceWorker.register('/sw.js');
+              }).catch(() => navigator.serviceWorker.register('/sw.js'));
+            });
+          }
+          `}
+        </Script>
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />

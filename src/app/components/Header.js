@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
+// Removido botão de instalação da Header
 
 export default function Header() {
   const router = useRouter();
@@ -236,7 +237,7 @@ export default function Header() {
           )}
         </div>
         {/* Botão login à direita no desktop */}
-        <div className="hidden lg:flex flex-1 justify-end">
+        <div className="hidden lg:flex flex-1 justify-end items-center gap-2">
           {loadingAuth ? (
             <span className="text-white text-base px-4 py-1 whitespace-nowrap">
               Verificando...

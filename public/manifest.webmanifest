@@ -1,0 +1,17 @@
+{
+  "name": "Vem Pra Cá",
+  "short_name": "VemPraCá",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "description": "Aproveite ofertas e serviços perto de você.",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
