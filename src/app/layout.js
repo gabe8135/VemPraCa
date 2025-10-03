@@ -65,7 +65,26 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${montserrat.variable}`}
     >
       <head>
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <Script id="pwa-bip-capture" strategy="beforeInteractive">
+          {`
+            (function(){
+              try {
+                window.__deferredPWA = window.__deferredPWA || null;
+                window.__pwaInstalled = window.__pwaInstalled || false;
+                window.addEventListener('beforeinstallprompt', function(e){
+                  e.preventDefault();
+                  window.__deferredPWA = e;
+                  window.dispatchEvent(new Event('pwa:beforeinstallprompt'));
+                });
+                window.addEventListener('appinstalled', function(){
+                  window.__pwaInstalled = true;
+                  window.dispatchEvent(new Event('pwa:installed'));
+                });
+              } catch (err) { /* no-op */ }
+            })();
+          `}
+        </Script>
+        <link rel="manifest" href="/manifest.webmanifest?v=2" />
         <meta name="theme-color" content="#16a34a" />
         {/* <AOSInit /> */}
         {/* Google Analytics */}

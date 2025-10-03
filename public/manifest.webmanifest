@@ -2,12 +2,25 @@
   "name": "Vem Pra Cá",
   "short_name": "VemPraCá",
   "start_url": "/",
+  "id": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#16a34a",
   "description": "Aproveite ofertas e serviços perto de você.",
   "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/favicon.ico",
       "sizes": "48x48",

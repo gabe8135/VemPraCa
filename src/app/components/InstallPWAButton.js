@@ -11,16 +11,34 @@ export default function InstallPWAButton({ className = "" }) {
     // Detecta se já está instalado (standalone)
     const mq = window.matchMedia("(display-mode: standalone)");
     const isIOSStandalone = window.navigator.standalone === true;
-    setIsStandalone(mq.matches || isIOSStandalone);
+    setIsStandalone(
+      mq.matches || isIOSStandalone || window.__pwaInstalled === true
+    );
 
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    // Usa evento capturado cedo se existir
+    if (window.__deferredPWA) {
+      setDeferredPrompt(window.__deferredPWA);
       setCanInstall(true);
+    }
+
+    const onBIP = () => {
+      if (window.__deferredPWA) {
+        setDeferredPrompt(window.__deferredPWA);
+        setCanInstall(true);
+      }
+    };
+    const onInstalled = () => {
+      setIsStandalone(true);
+      setCanInstall(false);
+      setDeferredPrompt(null);
     };
 
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    window.addEventListener("pwa:beforeinstallprompt", onBIP);
+    window.addEventListener("pwa:installed", onInstalled);
+    return () => {
+      window.removeEventListener("pwa:beforeinstallprompt", onBIP);
+      window.removeEventListener("pwa:installed", onInstalled);
+    };
   }, []);
 
   const handleClick = async () => {
@@ -34,17 +52,22 @@ export default function InstallPWAButton({ className = "" }) {
       return;
     }
 
-    if (!deferredPrompt) {
-      // Alguns browsers instalam via UI do navegador, então deixe uma dica
-      alert(
-        "Se o seu navegador suportar, use o menu do navegador para 'Instalar aplicativo' ou 'Adicionar à tela inicial'."
-      );
+    if (!deferredPrompt && window.__deferredPWA) {
+      setDeferredPrompt(window.__deferredPWA);
+    }
+    if (!deferredPrompt && !window.__deferredPWA) {
+      // Alguns browsers instalam via UI do navegador (ou o evento já passou). Damos uma dica.
+      alert("Use o menu do navegador para instalar o app.");
       return;
     }
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice.outcome !== "dismissed") setCanInstall(false);
-    setDeferredPrompt(null);
+    const e = deferredPrompt || window.__deferredPWA;
+    e.prompt();
+    const choice = await e.userChoice;
+    if (choice.outcome !== "dismissed") {
+      setCanInstall(false);
+      setDeferredPrompt(null);
+      window.__deferredPWA = null;
+    }
   };
 
   if (isStandalone) return null; // Se já está instalado, não exibe
