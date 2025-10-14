@@ -116,7 +116,7 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section id="categories" className="py-8 bg-white">
+    <section id="categories" className="pb-8 pt-1 bg-white">
       <div className="container mx-auto px-4">
         {/* Feedback de loading e erro. */}
         {loading && (

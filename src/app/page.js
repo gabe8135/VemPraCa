@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, Suspense, useRef } from "react";
 import { Fade } from "react-awesome-reveal";
+import { FiSearch, FiMapPin, FiSliders, FiX } from "react-icons/fi";
 // ...existing code...
 import { supabase, isSupabaseConfigured } from "@/app/lib/supabaseClient";
 import dynamic from "next/dynamic";
@@ -38,6 +39,7 @@ function BusinessList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [allCategories, setAllCategories] = useState([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Novos estados para filtro de localização
   const [selectedCidade, setSelectedCidade] = useState("");
@@ -45,6 +47,20 @@ function BusinessList() {
 
   const isFirstRender = useRef(true);
   const prevCategorySlug = useRef(categorySlug);
+
+  // Em telas médias para cima, mantém filtros sempre abertos; em mobile, começa fechado
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setFiltersOpen(mq.matches);
+    update();
+    if (mq.addEventListener) mq.addEventListener("change", update);
+    else if (mq.addListener) mq.addListener(update);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", update);
+      else if (mq.removeListener) mq.removeListener(update);
+    };
+  }, []);
 
   // Atualizar cidades disponíveis baseado nos negócios cadastrados em SP
   useEffect(() => {
@@ -177,97 +193,136 @@ function BusinessList() {
       {/* Barra de Busca com Filtros de Localização */}
       <div
         id="search-section"
-        className="container mx-auto p-4 mt-8 mb-2 relative z-10"
+        className="container mx-auto p-4 mt-6 mb-0 relative z-10"
       >
-        <h1 className="text-3xl text-green-700 font-bold mb-6 text-center">
+        <h1 className="text-3xl text-green-700 font-bold mb-4 text-center">
           Encontre o que você precisa
         </h1>
 
-        {/* Container dos filtros */}
-        <div className="space-y-4 mb-4 bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col gap-4 border border-gray-100">
+        {/* Cabeçalho compacto para mobile */}
+        <div className="md:hidden mt-2">
+          <div className="w-full flex justify-left">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((v) => !v)}
+              className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md ring-1 ring-emerald-100 px-4 py-2 text-emerald-700 font-semibold shadow-sm"
+              aria-expanded={filtersOpen}
+              aria-controls="filters-panel"
+            >
+              <FiSliders className="h-5 w-5" />
+              Filtros
+              {(selectedCidade || searchTerm) && (
+                <span className="ml-1 inline-flex items-center justify-center text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  {Boolean(searchTerm) + Boolean(selectedCidade)}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Painel dos filtros */}
+        <div
+          id="filters-panel"
+          className={`${filtersOpen ? "block" : "hidden"} md:block mb-2 bg-white/80 rounded-2xl ring-1 ring-emerald-100 backdrop-blur-md p-4 md:p-6`}
+        >
           {/* Filtros de busca e cidade animados */}
           <Fade cascade damping={0.18} triggerOnce>
             <div className="flex flex-col md:flex-row gap-3 w-full">
+              {/* Buscar por nome */}
               <div className="flex-1">
                 <label
                   htmlFor="searchTerm"
-                  className="block text-sm font-semibold text-emerald-700 mb-1"
+                  className="block text-sm font-semibold text-emerald-700 mb-1 md:mb-1"
                 >
-                  Buscar por nome
+                  <span className="sr-only md:not-sr-only">
+                    Buscar por nome
+                  </span>
                 </label>
-                <input
-                  id="searchTerm"
-                  type="text"
-                  placeholder="Ex: Pousada, Restaurante..."
-                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <div className="relative">
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/80" />
+                  <input
+                    id="searchTerm"
+                    type="text"
+                    placeholder="Ex: Pousada, Restaurante..."
+                    className="w-full pl-10 pr-3 py-3 rounded-2xl bg-white/90 text-black ring-1 ring-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Buscar por nome"
+                  />
+                </div>
               </div>
+              {/* Cidade */}
               <div className="flex-1">
                 <label
                   htmlFor="cidade"
-                  className="block text-sm font-semibold text-emerald-700 mb-1"
+                  className="block text-sm font-semibold text-emerald-700 mb-1 md:mb-1"
                 >
-                  Cidades Disponiveis em (SP)
+                  <span className="sr-only md:not-sr-only">Cidade</span>
                 </label>
-                <select
-                  id="cidade"
-                  value={selectedCidade}
-                  onChange={(e) => setSelectedCidade(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black bg-white"
-                  disabled={cidadesDisponiveis.length === 0}
-                >
-                  <option value="">Todas as cidades</option>
-                  {cidadesDisponiveis.map((cidade) => (
-                    <option key={cidade} value={cidade}>
-                      {cidade}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <FiMapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/80" />
+                  <select
+                    id="cidade"
+                    value={selectedCidade}
+                    onChange={(e) => setSelectedCidade(e.target.value)}
+                    className="w-full pl-10 pr-9 py-3 rounded-2xl bg-white/90 text-black ring-1 ring-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm appearance-none"
+                    disabled={cidadesDisponiveis.length === 0}
+                    aria-label="Filtrar por cidade"
+                  >
+                    <option value="">Todas as cidades</option>
+                    {cidadesDisponiveis.map((cidade) => (
+                      <option key={cidade} value={cidade}>
+                        {cidade}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Seta do select */}
+                  <svg
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-700"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.24 4.52a.75.75 0 01-1.08 0L5.25 8.27a.75.75 0 01-.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
               </div>
+              {/* Limpar filtros */}
               <div className="flex flex-col justify-end w-full md:w-auto">
                 <button
                   onClick={clearFilters}
-                  className="w-full md:w-auto p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition duration-200 font-semibold flex items-center justify-center gap-2"
+                  className="w-full md:w-auto px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-2xl ring-1 ring-emerald-200 transition duration-200 font-semibold inline-flex items-center justify-center gap-2"
                   type="button"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  Limpar Filtros
+                  <FiX className="h-5 w-5" />
+                  Limpar
                 </button>
               </div>
             </div>
           </Fade>
-          {/* Indicador de filtros ativos */}
-          {(selectedCidade || searchTerm) && (
-            <div className="flex flex-wrap gap-2 text-sm mt-2">
-              <span className="text-gray-600">Filtros ativos:</span>
-              {searchTerm && (
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Busca: {`"${searchTerm}"`}
-                </span>
-              )}
-              {selectedCidade && (
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Cidade: {selectedCidade}
-                </span>
-              )}
-              {/* Estado removido do filtro, não exibe badge */}
-            </div>
-          )}
+          {/* Indicador de filtros ativos (desktop) */}
+          <div className="hidden md:block">
+            {(selectedCidade || searchTerm) && (
+              <div className="flex flex-wrap gap-2 text-sm mt-3">
+                <span className="text-gray-600">Filtros ativos:</span>
+                {searchTerm && (
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    Busca: {`"${searchTerm}"`}
+                  </span>
+                )}
+                {selectedCidade && (
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                    Cidade: {selectedCidade}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

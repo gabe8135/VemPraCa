@@ -5,6 +5,7 @@ import Marquee from "react-fast-marquee";
 import Image from "next/image";
 import Header from "./Header";
 import { useEffect, useState, useMemo } from "react";
+import { FiSearch, FiBriefcase } from "react-icons/fi";
 
 // Minha lista de categorias para o carrossel da Hero.
 const categories = [
@@ -107,40 +108,79 @@ export default function Hero() {
           }}
         />
       ))}
-      {/* Overlay escuro para contraste */}
-      {/* <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-emerald-900/30 z-0"></div> */}
+      {/* Overlay para contraste e foco na mensagem */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.35),rgba(0,0,0,0.55)_30%,rgba(0,0,0,0.45)_65%,rgba(0,0,0,0.25))] z-0" />
 
       {/* Conteúdo centralizado */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 pb-8">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-4 pb-8">
         <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-3xl p-8 w-full text-center border-2 border-white/10">
           <div className="w-full overflow-x-hidden mb-6">
             <Marquee gradient={false} speed={40}>
               <CategoryList />
             </Marquee>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white font-montserrat sm:text-7xl mb-4 break-words drop-shadow-lg">
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-montserrat mb-3 break-words drop-shadow-lg">
             O ponto de encontro dos negócios locais
           </h1>
-          <p className="mt-2 text-base sm:text-lg font-medium text-white font-inter sm:text-xl break-words drop-shadow">
-            Descubra promoções e serviços incríveis perto de você
-            <br />
-            Aproveite agora e viva experiências únicas!
+          <p className="mt-1 text-base sm:text-xl font-medium text-white/95 font-inter break-words drop-shadow">
+            Encontre promoções e serviços reais perto de você.
+            <span className="hidden sm:inline">
+              {" "}
+              Role ou use os botões abaixo.
+            </span>
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 w-full">
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             <Link
               href="#search-section"
-              className="rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-emerald-700 hover:to-green-600 transition max-w-full"
+              onClick={() => {
+                // foca o campo de busca ao chegar na seção
+                setTimeout(() => {
+                  const el = document.getElementById("searchTerm");
+                  if (el) el.focus();
+                }, 350);
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-emerald-700 hover:to-green-600 transition"
             >
-              Ver Ofertas
+              <FiSearch className="mr-2 h-5 w-5" aria-hidden />
+              Buscar agora!
             </Link>
             <Link
-              href="/sobre"
-              className="text-lg font-semibold text-white hover:text-green-700 transition max-w-full"
+              href="/meus-negocios"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 text-lg font-semibold text-white ring-1 ring-white/70 hover:ring-white bg-white/10 hover:bg-white/15 transition"
             >
-              Saiba mais <span aria-hidden="true">→</span>
+              <FiBriefcase className="mr-2 h-5 w-5" aria-hidden />
+              Anuncie seu negócio
             </Link>
           </div>
+          <p className="mt-5 text-sm text-white/90">
+            Logo abaixo você encontra as melhores ofertas e categorias.
+          </p>
         </div>
+      </div>
+
+      {/* Seta de scroll para indicar conteúdo abaixo */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
+        <Link
+          href="#search-section"
+          aria-label="Ir para as ofertas"
+          className="group inline-flex flex-col items-center text-white/90 hover:text-white"
+        >
+          <span className="text-xs mb-1 opacity-90">Ver ofertas abaixo</span>
+          <svg
+            className="h-6 w-6 animate-bounce"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </Link>
       </div>
     </section>
   );
