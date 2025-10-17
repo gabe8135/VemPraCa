@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
@@ -155,7 +156,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 mt-4 bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl shadow-lg shadow-[0_8px_24px_-8px_rgba(0,0,0,0.45)] w-[95%] max-w-5xl mx-auto">
+    <header className="fixed top-0 left-0 right-0 z-50 mt-4 bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.45)] w-[95%] max-w-5xl mx-auto">
       <nav
         className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8 w-full"
         aria-label="Global"
@@ -163,10 +164,13 @@ export default function Header() {
         {/* Logo */}
         <div className="flex flex-1">
           <Link href="/" onClick={handleLinkClick} className="-m-1.5 p-1.5">
-            <img
-              className="h-10 w-auto"
+            <Image
               src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//VemPraCa.webp"
               alt="Vem Pra Cá"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+              priority
             />
           </Link>
         </div>
@@ -228,11 +232,20 @@ export default function Header() {
           )}
           {!loadingAuth && session && isAdmin && (
             <Link
-              href="/admin/negocios" // <-- ALTERADO!
+              href="/admin/negocios"
               className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
               onClick={handleLinkClick}
             >
               Painel Admin
+            </Link>
+          )}
+          {!loadingAuth && session && isAdmin && (
+            <Link
+              href="/eventos/festa-caicara/admin"
+              className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+              onClick={handleLinkClick}
+            >
+              Admin Festança
             </Link>
           )}
         </div>
@@ -274,10 +287,13 @@ export default function Header() {
       >
         <div className="flex items-center justify-between p-4 border-b border-white/20">
           <Link href="/" onClick={handleLinkClick} className="-m-1.5 p-1.5">
-            <img
-              className="h-10 w-auto"
+            <Image
               src="https://zrrqlmmecqfbobiblzkb.supabase.co/storage/v1/object/public/imagens-site//VemPraCa.webp"
               alt="Vem Pra Cá"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+              priority
             />
           </Link>
           <button
@@ -343,11 +359,22 @@ export default function Header() {
           {!loadingAuth && session && isAdmin && (
             <li>
               <Link
-                href="/admin/negocios" // <-- ALTERADO!
+                href="/admin/negocios"
                 className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
                 onClick={handleLinkClick}
               >
                 Painel Admin
+              </Link>
+            </li>
+          )}
+          {!loadingAuth && session && isAdmin && (
+            <li>
+              <Link
+                href="/eventos/festa-caicara/admin"
+                className="block w-full text-center text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
+                onClick={handleLinkClick}
+              >
+                Admin Festança
               </Link>
             </li>
           )}

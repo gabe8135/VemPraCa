@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import ShareButton from "@/app/components/ShareButton";
+import FestaCaicaraMetrics from "@/app/components/FestaCaicaraMetrics";
+import VisibilityGate from "@/app/components/FestaCaicaraVisibilityGate";
 import { FiHome, FiShare2 } from "react-icons/fi";
 
 export const metadata = {
@@ -132,6 +134,21 @@ export default function FestaCaicaraPage() {
           />
         </div>
 
+        <div className="my-4">
+          <div className="bg-emerald-50 ring-1 ring-emerald-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-emerald-800 font-medium">
+              Avalie os estandes gastronômicos e ajude a festa a ficar ainda
+              melhor!
+            </p>
+            <Link
+              href="/eventos/festa-caicara/estandes"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              Ir para estandes
+            </Link>
+          </div>
+        </div>
+
         <div className="space-y-6">
           {programacao.map((bloco) => (
             <div
@@ -166,6 +183,10 @@ export default function FestaCaicaraPage() {
             Voltar para a home
           </Link>
         </div>
+
+        <VisibilityGate fallback={null}>
+          <FestaCaicaraMetrics />
+        </VisibilityGate>
       </div>
     </section>
   );
