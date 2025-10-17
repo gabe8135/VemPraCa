@@ -55,6 +55,9 @@ export default async function StandRatingPage({ params }) {
           <h1 className="text-3xl font-extrabold text-emerald-700">
             {stand.nome}
           </h1>
+          {stand.proprietario && (
+            <p className="text-sm text-gray-600 mt-1">Proprietário: {stand.proprietario}</p>
+          )}
           <p className="text-gray-600 mt-2">{stand.descricao}</p>
           {stand.pratoPrincipal && (
             <p className="text-emerald-700 font-medium mt-2">

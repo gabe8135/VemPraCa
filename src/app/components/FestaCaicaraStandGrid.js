@@ -2,7 +2,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useMemo } from "react";
-import StarRating from "@/app/components/StarRating";
 
 // Card/grid de estandes no estilo "cards de negócios" simplificado:
 // - foto fixa public/event/caicara.webp
@@ -35,17 +34,16 @@ export default function FestaCaicaraStandGrid({ stands }) {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {stands.map((s) => {
         const m = metrics[s.slug] || { total: 0, media: 0 };
-        const owner = s.proprietario || "Organização Festança";
         return (
           <Link
             key={s.slug}
             href={`/eventos/festa-caicara/estandes/${s.slug}`}
             className="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-emerald-100 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-emerald-400"
           >
-            <div className="h-40 bg-gray-100 overflow-hidden relative">
+            <div className="h-36 md:h-40 bg-gray-100 overflow-hidden relative">
               <Image
                 src={baseImg}
                 alt={s.nome}
@@ -59,7 +57,6 @@ export default function FestaCaicaraStandGrid({ stands }) {
               <h3 className="text-lg font-bold text-emerald-700 group-hover:text-emerald-800">
                 {s.nome}
               </h3>
-              <p className="text-xs text-gray-600">Proprietário: {owner}</p>
               <div className="flex items-center gap-2">
                 <StarReadonly value={m.media} />
                 <span className="text-xs text-gray-600">({m.total})</span>

@@ -75,8 +75,9 @@ export const stands = [
     slug: "magia-dos-sabores",
     nome: "Magia dos Sabores",
     proprietario: "Sellane Castro",
-    descricao: "Prato principal e sobremesa com cataia.",
-    pratoPrincipal: "Sambaqui (arroz com marisco com casca – lambe-lambe)",
+    descricao: "Prato principal e sobremesas",
+    pratoPrincipal:
+      "Paella de Frutos do Mar, preparada com arroz cozido em um rico caldo, aromatizado com açafrão e especiarias, e generosamente guarnecido com camarões suculentos, lulas macias e mexilhões frescos.",
     itens: ["Sobremesa: Cataia Doce (pudim de cataia com calda de cataia)"],
   },
   {
