@@ -138,13 +138,13 @@ export async function GET(request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_KEY;
     const { searchParams } = new URL(request.url);
-  const estande = searchParams.get("estande_slug");
-  const wantList = searchParams.get("list");
-  const limitParam = parseInt(searchParams.get("limit") || "20", 10);
-  const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-  const notaMinParam = searchParams.get("notaMin");
+    const estande = searchParams.get("estande_slug");
+    const wantList = searchParams.get("list");
+    const limitParam = parseInt(searchParams.get("limit") || "20", 10);
+    const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const notaMinParam = searchParams.get("notaMin");
     const notaMin = notaMinParam != null ? parseFloat(notaMinParam) : null;
     const limit = isNaN(limitParam)
       ? 20
@@ -170,9 +170,9 @@ export async function GET(request) {
       if (sData?.value?.start) defaultStart = sData.value.start;
       if (sData?.value?.end) defaultEnd = sData.value.end;
     } catch {}
-  const isDev = process.env.NODE_ENV !== "production";
-  const effFrom = from || (isDev ? null : defaultStart);
-  const effTo = to || (isDev ? null : defaultEnd);
+    const isDev = process.env.NODE_ENV !== "production";
+    const effFrom = from || (isDev ? null : defaultStart);
+    const effTo = to || (isDev ? null : defaultEnd);
 
     // Limita aos estandes cadastrados da edição atual (2025)
     let allowedSlugs = null;
@@ -204,8 +204,8 @@ export async function GET(request) {
       if (estande) q = q.eq("estande_slug", estande);
       if (Array.isArray(allowedSlugs) && allowedSlugs.length)
         q = q.in("estande_slug", allowedSlugs);
-  if (effFrom) q = q.gte("created_at", effFrom);
-  if (effTo) q = q.lte("created_at", effTo);
+      if (effFrom) q = q.gte("created_at", effFrom);
+      if (effTo) q = q.lte("created_at", effTo);
       if (notaMin != null && !Number.isNaN(notaMin)) q = q.gte("nota", notaMin);
 
       const { data, count, error } = await q;
@@ -224,14 +224,21 @@ export async function GET(request) {
     }
 
     if (estande) {
-      if (Array.isArray(allowedSlugs) && allowedSlugs.length && !allowedSlugs.includes(estande)) {
+      if (
+        Array.isArray(allowedSlugs) &&
+        allowedSlugs.length &&
+        !allowedSlugs.includes(estande)
+      ) {
         // Estande não pertence à edição atual
         return NextResponse.json({ total: 0, media: 0 });
       }
       // Métricas por estande
-      let q = supabase.from(TABLE).select("nota, created_at").eq("estande_slug", estande);
-  if (effFrom) q = q.gte("created_at", effFrom);
-  if (effTo) q = q.lte("created_at", effTo);
+      let q = supabase
+        .from(TABLE)
+        .select("nota, created_at")
+        .eq("estande_slug", estande);
+      if (effFrom) q = q.gte("created_at", effFrom);
+      if (effTo) q = q.lte("created_at", effTo);
       const { data, error } = await q;
       if (error) throw error;
 
@@ -243,8 +250,8 @@ export async function GET(request) {
 
     // Métricas gerais
     let q = supabase.from(TABLE).select("estande_slug, nota, created_at");
-  if (effFrom) q = q.gte("created_at", effFrom);
-  if (effTo) q = q.lte("created_at", effTo);
+    if (effFrom) q = q.gte("created_at", effFrom);
+    if (effTo) q = q.lte("created_at", effTo);
     if (Array.isArray(allowedSlugs) && allowedSlugs.length)
       q = q.in("estande_slug", allowedSlugs);
     const { data, error } = await q;

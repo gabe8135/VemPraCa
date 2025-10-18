@@ -95,15 +95,14 @@ export async function GET(request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_KEY;
-    const { searchParams } = new URL(request.url);
-    const wantList = searchParams.get("list");
     if (!supabaseUrl || !supabaseKey) {
-      if (wantList) return NextResponse.json({ total: 0, items: [] });
       return NextResponse.json({ total: 0, porEstande: {} });
     }
     const supabase = createClient(supabaseUrl || "", supabaseKey || "");
+    const { searchParams } = new URL(request.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
+    const wantList = searchParams.get("list");
     const limitParam = parseInt(searchParams.get("limit") || "500", 10);
     const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
     const limit = isNaN(limitParam)
@@ -123,9 +122,9 @@ export async function GET(request) {
       if (sData?.value?.start) defaultStart = sData.value.start;
       if (sData?.value?.end) defaultEnd = sData.value.end;
     } catch {}
-  const isDev = process.env.NODE_ENV !== "production";
-  const effFrom = from || (isDev ? null : defaultStart);
-  const effTo = to || (isDev ? null : defaultEnd);
+    const isDev = process.env.NODE_ENV !== "production";
+    const effFrom = from || (isDev ? null : defaultStart);
+    const effTo = to || (isDev ? null : defaultEnd);
 
     // Limita aos estandes cadastrados da edição atual (2025)
     let allowedSlugs = null;
@@ -148,8 +147,8 @@ export async function GET(request) {
       .from(TABLE)
       .select("id, estande_slug, created_at")
       .order("created_at", { ascending: false });
-  if (effFrom) q = q.gte("created_at", effFrom);
-  if (effTo) q = q.lte("created_at", effTo);
+    if (effFrom) q = q.gte("created_at", effFrom);
+    if (effTo) q = q.lte("created_at", effTo);
     if (Array.isArray(allowedSlugs) && allowedSlugs.length)
       q = q.in("estande_slug", allowedSlugs);
 

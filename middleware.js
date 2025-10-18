@@ -11,5 +11,15 @@ export function middleware(request) {
     );
     return response;
   }
+  // Compatibilidade: redireciona slug antigo da Tenda 10 para o novo slug
+  if (url.pathname === "/eventos/festa-caicara/estandes/tenda-10") {
+    url.pathname = "/eventos/festa-caicara/estandes/rancho-alegre";
+    return NextResponse.redirect(url);
+  }
+  // Compatibilidade inversa: se apontarem para o novo slug e a versão ativa não tiver, redireciona para o antigo
+  if (url.pathname === "/eventos/festa-caicara/estandes/rancho-alegre") {
+    url.pathname = "/eventos/festa-caicara/estandes/tenda-10";
+    return NextResponse.redirect(url);
+  }
   return NextResponse.next();
 }

@@ -86,7 +86,7 @@ export const stands = [
     proprietario: "Lucila dos Santos",
     descricao: "Peixe assado na brasa e porções do mar.",
     pratoPrincipal:
-      "Tainha na Brisa (meia tainha assada na brasa com cobertura de vinagrete)",
+      "Tainha na Brasa (meia tainha assada na brasa com cobertura de vinagrete)",
     itens: [
       "Bolinho de mandioca com camarão",
       "Espetinhos de frutos do mar",
@@ -94,11 +94,12 @@ export const stands = [
     ],
   },
   {
-    slug: "tenda-10",
-    nome: "Tenda 10 (em breve)",
-    proprietario: "A confirmar",
-    descricao: "Informações serão atualizadas em breve.",
-    itens: [],
+    slug: "rancho-alegre",
+    nome: "Rancho Alegre",
+    proprietario: "Edison da Silva",
+    descricao: "Baião Caiçara, porções em geral, bebidas e refeições.",
+    pratoPrincipal: "Baião Caiçara",
+    itens: ["Porções em geral", "Bebidas", "Refeições"],
   },
   {
     slug: "espaco-crianca",

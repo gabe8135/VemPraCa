@@ -64,7 +64,9 @@ export default function FestaCaicaraCharts() {
     let alive = true;
     (async () => {
       try {
-        const r = await fetch("/api/eventos/festa-caicara/settings", { cache: "no-store" });
+        const r = await fetch("/api/eventos/festa-caicara/settings", {
+          cache: "no-store",
+        });
         const j = await r.json();
         const start = j?.start || "2025-10-24T00:00:00-03:00";
         const end = j?.end || "2025-10-28T00:00:00-03:00";
@@ -108,8 +110,10 @@ export default function FestaCaicaraCharts() {
         sList.json(),
       ]);
 
-      if (!rList.ok) throw new Error(jList?.error || "Falha avaliações (lista)");
-      if (!rAgg.ok) throw new Error(jAgg?.error || "Falha avaliações (métricas)");
+      if (!rList.ok)
+        throw new Error(jList?.error || "Falha avaliações (lista)");
+      if (!rAgg.ok)
+        throw new Error(jAgg?.error || "Falha avaliações (métricas)");
       if (!sList.ok) throw new Error(jScans?.error || "Falha scans (lista)");
 
       setRatings(Array.isArray(jList?.items) ? jList.items : []);
@@ -157,7 +161,10 @@ export default function FestaCaicaraCharts() {
       const k = ymd(r.created_at);
       if (counts.has(k)) counts.set(k, (counts.get(k) || 0) + 1);
     });
-    return festaDias.map((d) => ({ dia: d.label, count: counts.get(d.key) || 0 }));
+    return festaDias.map((d) => ({
+      dia: d.label,
+      count: counts.get(d.key) || 0,
+    }));
   }, [ratings, festaDias]);
 
   const scansTotal = scans.length;
@@ -176,7 +183,14 @@ export default function FestaCaicaraCharts() {
     }));
   }, [ranking, slugToName]);
 
-  const colors = ["#10b981", "#34d399", "#93c5fd", "#fbbf24", "#f43f5e", "#6366f1"];
+  const colors = [
+    "#10b981",
+    "#34d399",
+    "#93c5fd",
+    "#fbbf24",
+    "#f43f5e",
+    "#6366f1",
+  ];
 
   return (
     <div className="space-y-6">
@@ -184,7 +198,9 @@ export default function FestaCaicaraCharts() {
       <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
         <div className="flex flex-col md:flex-row md:items-end gap-3">
           <div className="grow">
-            <label className="block text-sm font-medium text-emerald-700">De</label>
+            <label className="block text-sm font-medium text-emerald-700">
+              De
+            </label>
             <input
               type="datetime-local"
               value={from ? from.slice(0, 16) : ""}
@@ -193,7 +209,9 @@ export default function FestaCaicaraCharts() {
             />
           </div>
           <div className="grow">
-            <label className="block text-sm font-medium text-emerald-700">Até</label>
+            <label className="block text-sm font-medium text-emerald-700">
+              Até
+            </label>
             <input
               type="datetime-local"
               value={to ? to.slice(0, 16) : ""}
@@ -223,7 +241,9 @@ export default function FestaCaicaraCharts() {
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Agora (server): {new Date(serverNow || Date.now()).toLocaleString("pt-BR")} | {ratings.length} avaliações, {scansTotal} scans
+          Agora (server):{" "}
+          {new Date(serverNow || Date.now()).toLocaleString("pt-BR")} |{" "}
+          {ratings.length} avaliações, {scansTotal} scans
         </p>
         {error && (
           <p className="text-sm text-red-600 mt-2">
@@ -240,7 +260,9 @@ export default function FestaCaicaraCharts() {
         </div>
         <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
           <p className="text-sm text-gray-500">Média geral</p>
-          <p className="text-2xl font-bold text-emerald-700">{mediaFormatted} ⭐</p>
+          <p className="text-2xl font-bold text-emerald-700">
+            {mediaFormatted} ⭐
+          </p>
         </div>
         <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
           <p className="text-sm text-gray-500">Total de scans</p>
@@ -248,13 +270,17 @@ export default function FestaCaicaraCharts() {
         </div>
         <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
           <p className="text-sm text-gray-500">Estandes no ranking</p>
-          <p className="text-2xl font-bold text-emerald-700">{rankingDisplay.length}</p>
+          <p className="text-2xl font-bold text-emerald-700">
+            {rankingDisplay.length}
+          </p>
         </div>
       </div>
 
       {/* Avaliações por dia */}
       <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
-        <h3 className="font-semibold text-emerald-700 mb-3">Avaliações por dia</h3>
+        <h3 className="font-semibold text-emerald-700 mb-3">
+          Avaliações por dia
+        </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={ratingsByDay}>
@@ -262,7 +288,12 @@ export default function FestaCaicaraCharts() {
               <XAxis dataKey="day" tickFormatter={toLocalLabel} />
               <YAxis allowDecimals={false} />
               <Tooltip labelFormatter={toLocalLabel} />
-              <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#10b981"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -278,7 +309,12 @@ export default function FestaCaicaraCharts() {
               <XAxis dataKey="day" tickFormatter={toLocalLabel} />
               <YAxis allowDecimals={false} />
               <Tooltip labelFormatter={toLocalLabel} />
-              <Line type="monotone" dataKey="count" stroke="#34d399" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#34d399"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -286,12 +322,20 @@ export default function FestaCaicaraCharts() {
 
       {/* Ranking barras */}
       <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
-        <h3 className="font-semibold text-emerald-700 mb-3">Ranking (barras)</h3>
+        <h3 className="font-semibold text-emerald-700 mb-3">
+          Ranking (barras)
+        </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rankingDisplay}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" interval={0} angle={-15} textAnchor="end" height={60} />
+              <XAxis
+                dataKey="name"
+                interval={0}
+                angle={-15}
+                textAnchor="end"
+                height={60}
+              />
               <YAxis />
               <Tooltip />
               <Legend />
@@ -304,13 +348,26 @@ export default function FestaCaicaraCharts() {
 
       {/* Pizza avaliações por dia da festa */}
       <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-4">
-        <h3 className="font-semibold text-emerald-700 mb-3">Avaliações por dia da festa</h3>
+        <h3 className="font-semibold text-emerald-700 mb-3">
+          Avaliações por dia da festa
+        </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={festaPieData} dataKey="count" nameKey="dia" cx="50%" cy="50%" outerRadius={80} label>
+              <Pie
+                data={festaPieData}
+                dataKey="count"
+                nameKey="dia"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
                 {festaPieData.map((_, i) => (
-                  <Cell key={i} fill={["#10b981", "#34d399", "#93c5fd", "#fbbf24"][i % 4]} />
+                  <Cell
+                    key={i}
+                    fill={["#10b981", "#34d399", "#93c5fd", "#fbbf24"][i % 4]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
