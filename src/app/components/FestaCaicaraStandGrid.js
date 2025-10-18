@@ -20,9 +20,28 @@ export default function FestaCaicaraStandGrid({ stands }) {
       .then((j) => {
         if (!isMounted) return;
         const m = {};
+        // Índice de alias -> slug canônico
+        const aliasToCanonical = new Map();
+        try {
+          (stands || []).forEach((s) => {
+            aliasToCanonical.set(s.slug, s.slug);
+            if (Array.isArray(s.aliases)) {
+              s.aliases.forEach((a) => aliasToCanonical.set(a, s.slug));
+            }
+          });
+        } catch {}
         if (j?.ranking?.length) {
           j.ranking.forEach((it) => {
-            m[it.slug] = { total: it.total, media: it.media };
+            const targetSlug = aliasToCanonical.get(it.slug) || it.slug;
+            const prev = m[targetSlug] || { total: 0, soma: 0 };
+            // Consolida métricas caso venham separadas por alias
+            m[targetSlug] = {
+              total: (prev.total || 0) + (it.total || 0),
+              media:
+                ((prev.media || 0) * (prev.total || 0) +
+                  (it.media || 0) * (it.total || 0)) /
+                ((prev.total || 0) + (it.total || 0) || 1),
+            };
           });
         }
         setMetrics(m);
@@ -31,7 +50,7 @@ export default function FestaCaicaraStandGrid({ stands }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [stands]);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

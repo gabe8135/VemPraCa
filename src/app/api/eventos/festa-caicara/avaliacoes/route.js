@@ -174,7 +174,33 @@ export async function GET(request) {
     const effFrom = from || (isDev ? null : defaultStart);
     const effTo = to || (isDev ? null : defaultEnd);
 
-    // Limita aos estandes cadastrados da edição atual (2025)
+    // Helpers para normalizar e mapear aliases -> slug canônico
+    const normalize = (s) => {
+      try {
+        return String(s)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "");
+      } catch {
+        return String(s || "").toLowerCase();
+      }
+    };
+
+    const aliasToCanonical = new Map();
+    const nameToCanonical = new Map();
+    try {
+      (localStands || []).forEach((s) => {
+        aliasToCanonical.set(normalize(s.slug), s.slug);
+        if (Array.isArray(s.aliases)) {
+          s.aliases.forEach((a) => aliasToCanonical.set(normalize(a), s.slug));
+        }
+        if (s.nome) nameToCanonical.set(normalize(s.nome), s.slug);
+      });
+    } catch {}
+
+    // Limita aos estandes cadastrados da edição atual (2025), incluindo aliases do dataset local
     let allowedSlugs = null;
     try {
       const { data: slugRows } = await supabase
@@ -190,6 +216,18 @@ export async function GET(request) {
         allowedSlugs = null;
       }
     }
+    // Expande allowedSlugs com aliases conhecidos do dataset local
+    if (
+      Array.isArray(allowedSlugs) &&
+      allowedSlugs.length &&
+      Array.isArray(localStands)
+    ) {
+      const set = new Set(allowedSlugs);
+      localStands.forEach((s) => {
+        if (Array.isArray(s.aliases)) s.aliases.forEach((a) => set.add(a));
+      });
+      allowedSlugs = Array.from(set);
+    }
 
     // Novo: listagem de avaliações reais (respeita janela por padrão)
     if (wantList) {
@@ -201,7 +239,21 @@ export async function GET(request) {
         )
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
-      if (estande) q = q.eq("estande_slug", estande);
+      if (estande) {
+        const norm = normalize(estande);
+        const canonical =
+          aliasToCanonical.get(norm) || nameToCanonical.get(norm) || null;
+        if (canonical) {
+          const wanted = new Set([canonical]);
+          const found = (localStands || []).find((s) => s.slug === canonical);
+          if (found && Array.isArray(found.aliases))
+            found.aliases.forEach((a) => wanted.add(a));
+          wanted.add(estande); // inclui o próprio parâmetro (caso venha diferente)
+          q = q.in("estande_slug", Array.from(wanted));
+        } else {
+          q = q.eq("estande_slug", estande);
+        }
+      }
       if (Array.isArray(allowedSlugs) && allowedSlugs.length)
         q = q.in("estande_slug", allowedSlugs);
       if (effFrom) q = q.gte("created_at", effFrom);
@@ -233,10 +285,20 @@ export async function GET(request) {
         return NextResponse.json({ total: 0, media: 0 });
       }
       // Métricas por estande
-      let q = supabase
-        .from(TABLE)
-        .select("nota, created_at")
-        .eq("estande_slug", estande);
+      let q = supabase.from(TABLE).select("nota, created_at");
+      const norm = normalize(estande);
+      const canonical =
+        aliasToCanonical.get(norm) || nameToCanonical.get(norm) || null;
+      if (canonical) {
+        const wanted = new Set([canonical]);
+        const found = (localStands || []).find((s) => s.slug === canonical);
+        if (found && Array.isArray(found.aliases))
+          found.aliases.forEach((a) => wanted.add(a));
+        wanted.add(estande);
+        q = q.in("estande_slug", Array.from(wanted));
+      } else {
+        q = q.eq("estande_slug", estande);
+      }
       if (effFrom) q = q.gte("created_at", effFrom);
       if (effTo) q = q.lte("created_at", effTo);
       const { data, error } = await q;
@@ -262,9 +324,11 @@ export async function GET(request) {
     const media = total ? soma / total : 0;
     const porEstande = {};
     for (const r of data) {
-      porEstande[r.estande_slug] ||= { total: 0, soma: 0 };
-      porEstande[r.estande_slug].total += 1;
-      porEstande[r.estande_slug].soma += r.nota || 0;
+      const norm = normalize(r.estande_slug);
+      const canonical = aliasToCanonical.get(norm) || r.estande_slug;
+      porEstande[canonical] ||= { total: 0, soma: 0 };
+      porEstande[canonical].total += 1;
+      porEstande[canonical].soma += r.nota || 0;
     }
     const ranking = Object.entries(porEstande)
       .map(([slug, { total, soma }]) => ({

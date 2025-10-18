@@ -21,9 +21,6 @@ async function absoluteBase() {
 
 export default async function QRCodesPage() {
   const base = await absoluteBase();
-  // Compat alias temporário: garantir que o QR do "Rancho Alegre" funcione em produção
-  // Remover após deploy que contenha o slug definitivo.
-  const qrAlias = (slug) => (slug === "rancho-alegre" ? "tenda-10" : slug);
   return (
     <section className="container mx-auto mt-20 px-4 py-8">
       <FestaCaicaraAdminNav />
@@ -37,8 +34,7 @@ export default async function QRCodesPage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {stands.map((s) => {
-            const slugForQR = qrAlias(s.slug);
-            const url = `${base}/eventos/festa-caicara/estandes/${slugForQR}`;
+            const url = `${base}/eventos/festa-caicara/estandes/${s.slug}`;
             return (
               <article
                 key={s.slug}

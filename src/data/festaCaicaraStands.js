@@ -100,6 +100,7 @@ export const stands = [
     descricao: "Baião Caiçara, porções em geral, bebidas e refeições.",
     pratoPrincipal: "Baião Caiçara",
     itens: ["Porções em geral", "Bebidas", "Refeições"],
+    aliases: ["tenda-10"],
   },
   {
     slug: "espaco-crianca",
@@ -121,7 +122,18 @@ export function getStandBySlug(slug) {
   if (direct) return direct;
   // Fallback: normaliza para ASCII e compara (tolerante a acentos)
   const norm = normalizeSlug(slug);
-  return stands.find((s) => normalizeSlug(s.slug) === norm) || null;
+  const bySlug = stands.find((s) => normalizeSlug(s.slug) === norm);
+  if (bySlug) return bySlug;
+  // Novo: aceitar também o slug derivado do NOME do estande (ex.: "rancho-alegre")
+  const byName = stands.find((s) => normalizeSlug(s.nome) === norm);
+  if (byName) return byName;
+  // Opcional: se algum estande definir aliases, considerar também
+  const byAlias = stands.find(
+    (s) =>
+      Array.isArray(s.aliases) &&
+      s.aliases.some((a) => normalizeSlug(a) === norm)
+  );
+  return byAlias || null;
 }
 
 function normalizeSlug(s) {
