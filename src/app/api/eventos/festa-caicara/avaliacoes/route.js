@@ -158,9 +158,10 @@ export async function GET(request) {
     }
     const supabase = createClient(supabaseUrl || "", supabaseKey || "");
 
-    // Janela padrão desta edição (fallback para 24-27/10/2025) caso não venha filtro
+    // Janela padrão desta edição (fallback para 24-27/10/2025), respeitando o modo
     let defaultStart = "2025-10-24T00:00:00-03:00";
     let defaultEnd = "2025-10-28T00:00:00-03:00";
+    let mode = "auto";
     try {
       const { data: sData } = await supabase
         .from("app_settings")
@@ -169,10 +170,12 @@ export async function GET(request) {
         .maybeSingle();
       if (sData?.value?.start) defaultStart = sData.value.start;
       if (sData?.value?.end) defaultEnd = sData.value.end;
+      if (sData?.value?.mode) mode = sData.value.mode;
     } catch {}
     const isDev = process.env.NODE_ENV !== "production";
-    const effFrom = from || (isDev ? null : defaultStart);
-    const effTo = to || (isDev ? null : defaultEnd);
+    const enforceWindow = mode !== "on" && !isDev;
+    const effFrom = from || (enforceWindow ? defaultStart : null);
+    const effTo = to || (enforceWindow ? defaultEnd : null);
 
     // Helpers para normalizar e mapear aliases -> slug canônico
     const normalize = (s) => {
