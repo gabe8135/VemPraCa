@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 
 // Card/grid de estandes no estilo "cards de negócios" simplificado:
 // - foto fixa public/event/caicara.webp
@@ -10,7 +10,6 @@ import { useEffect, useState, useMemo } from "react";
 // - média de estrelas (calculada por fetch na API)
 export default function FestaCaicaraStandGrid({ stands }) {
   const [metrics, setMetrics] = useState({});
-  const baseImg = "/event/caicara.webp"; // usar a mesma imagem para todos
 
   useEffect(() => {
     let isMounted = true;
@@ -63,14 +62,7 @@ export default function FestaCaicaraStandGrid({ stands }) {
             className="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-emerald-100 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-emerald-400"
           >
             <div className="h-36 md:h-40 bg-gray-100 overflow-hidden relative">
-              <Image
-                src={baseImg}
-                alt={s.nome}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover"
-                priority={false}
-              />
+              <StandImage slug={s.slug} alt={s.nome} />
             </div>
             <div className="p-4 flex flex-col gap-2">
               <h3 className="text-lg font-bold text-emerald-700 group-hover:text-emerald-800">
@@ -132,5 +124,31 @@ function StarIcon({ type }) {
         <rect x="0" y="0" width="12" height="24" fill="white" />
       )}
     </svg>
+  );
+}
+
+// Exibe a imagem do estande baseada no slug, com fallbacks automáticos.
+// Ordem de tentativa: /event/<slug>.webp -> /event/<slug>.png -> /event/caicara.webp
+function StandImage({ slug, alt }) {
+  const [src, setSrc] = useState(`/event/${slug}.webp`);
+  const triedPng = useRef(false);
+  const handleError = () => {
+    if (!triedPng.current && src.endsWith('.webp')) {
+      triedPng.current = true;
+      setSrc(`/event/${slug}.png`);
+    } else if (src.indexOf('/event/caicara.webp') === -1) {
+      setSrc('/event/caicara.webp');
+    }
+  };
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      className="object-cover"
+      priority={false}
+      onError={handleError}
+    />
   );
 }
