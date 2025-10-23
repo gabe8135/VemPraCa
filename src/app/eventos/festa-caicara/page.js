@@ -158,7 +158,7 @@ export default function FestaCaicaraPage() {
               <h2 className="text-xl font-bold text-emerald-700 mb-2">
                 {bloco.dia}
               </h2>
-              <ul className="list-disc pl-5 space-y-1 text-gray-800">
+              <ul className="list-disc pl-5 space-y-1 text-green-900">
                 {bloco.itens.map((item, idx) => (
                   <li key={idx}>{item}</li>
                 ))}

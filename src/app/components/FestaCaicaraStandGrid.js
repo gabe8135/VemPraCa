@@ -133,11 +133,11 @@ function StandImage({ slug, alt }) {
   const [src, setSrc] = useState(`/event/${slug}.webp`);
   const triedPng = useRef(false);
   const handleError = () => {
-    if (!triedPng.current && src.endsWith('.webp')) {
+    if (!triedPng.current && src.endsWith(".webp")) {
       triedPng.current = true;
       setSrc(`/event/${slug}.png`);
-    } else if (src.indexOf('/event/caicara.webp') === -1) {
-      setSrc('/event/caicara.webp');
+    } else if (src.indexOf("/event/caicara.webp") === -1) {
+      setSrc("/event/caicara.webp");
     }
   };
   return (
