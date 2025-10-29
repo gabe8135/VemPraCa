@@ -1,5 +1,5 @@
 // src/app/eventos/festa-caicara/info/page.js
-import FestaCaicaraCharts from "@/app/components/FestaCaicaraCharts";
+import EventCharts from "@/app/components/EventCharts";
 import FestaCaicaraAdminNav from "@/app/components/FestaCaicaraAdminNav";
 import AdminGate from "@/app/components/AdminGate";
 
@@ -17,7 +17,7 @@ export default function FestaInfoPage() {
           Gráficos representativos de avaliações e interações por período do
           evento.
         </p>
-        <FestaCaicaraCharts />
+        <EventCharts />
       </AdminGate>
     </section>
   );

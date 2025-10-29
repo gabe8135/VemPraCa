@@ -1,7 +1,7 @@
 // src/app/eventos/festa-caicara/estandes/page.js
 import { stands } from "@/data/festaCaicaraStands";
-import FestaCaicaraStandGrid from "@/app/components/FestaCaicaraStandGrid";
-import VisibilityGate from "@/app/components/FestaCaicaraVisibilityGate";
+import EventStandGrid from "@/app/components/EventStandGrid";
+import EventVisibilityGate from "@/app/components/EventVisibilityGate";
 import Link from "next/link";
 
 export const metadata = {
@@ -24,7 +24,7 @@ export default function EstandesListPage() {
           </p>
         </header>
 
-        <VisibilityGate
+        <EventVisibilityGate
           fallback={
             <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-6 text-center text-gray-600">
               <p>
@@ -42,8 +42,8 @@ export default function EstandesListPage() {
             </div>
           }
         >
-          <FestaCaicaraStandGrid stands={stands} />
-        </VisibilityGate>
+          <EventStandGrid stands={stands} />
+        </EventVisibilityGate>
       </div>
     </section>
   );

@@ -3,8 +3,8 @@ import Link from "next/link";
 import FestaCaicaraRatingForm from "@/app/components/FestaCaicaraRatingForm";
 import ScanPing from "@/app/components/ScanPing";
 import { getStandBySlug } from "@/data/festaCaicaraStands";
-import FestaCaicaraStandReviews from "@/app/components/FestaCaicaraStandReviews";
-import VisibilityGate from "@/app/components/FestaCaicaraVisibilityGate";
+import EventStandReviews from "@/app/components/EventStandReviews";
+import EventVisibilityGate from "@/app/components/EventVisibilityGate";
 
 export async function generateMetadata({ params }) {
   const p = await params;
@@ -75,7 +75,7 @@ export default async function StandRatingPage({ params }) {
           )}
         </header>
 
-        <VisibilityGate
+        <EventVisibilityGate
           fallback={
             <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-6 text-center text-gray-600">
               As avaliações estarão disponíveis apenas durante a IX Festança
@@ -91,9 +91,9 @@ export default async function StandRatingPage({ params }) {
             <h2 className="text-lg font-semibold text-emerald-700 mb-2">
               Avaliações recentes
             </h2>
-            <FestaCaicaraStandReviews slug={stand.slug} />
+            <EventStandReviews slug={stand.slug} />
           </div>
-        </VisibilityGate>
+        </EventVisibilityGate>
 
         <div className="mt-6 text-center">
           <Link

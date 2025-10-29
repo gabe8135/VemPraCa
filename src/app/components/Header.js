@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { FiCalendar, FiSettings } from "react-icons/fi";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
@@ -233,19 +234,23 @@ export default function Header() {
           {!loadingAuth && session && isAdmin && (
             <Link
               href="/admin/negocios"
-              className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+              className="inline-flex items-center justify-center bg-gradient-to-r from-yellow-300 to-amber-400 text-green-900 hover:from-yellow-300 hover:to-yellow-400 rounded-full w-9 h-9 transition shadow-sm"
               onClick={handleLinkClick}
+              aria-label="Painel Admin"
+              title="Painel Admin"
             >
-              Painel Admin
+              <FiSettings className="h-5 w-5" />
             </Link>
           )}
           {!loadingAuth && session && isAdmin && (
             <Link
               href="/eventos/festa-caicara/admin"
-              className="text-base font-semibold bg-gradient-to-r from-yellow-300 to-amber-400 text-green-800 hover:bg-yellow-400 px-4 py-1 rounded-full w-auto transition whitespace-nowrap"
+              className="inline-flex items-center justify-center bg-gradient-to-r from-yellow-300 to-amber-400 text-green-900 hover:from-yellow-300 hover:to-yellow-400 rounded-full w-9 h-9 transition shadow-sm"
               onClick={handleLinkClick}
+              aria-label="Admin Festança"
+              title="Admin Festança"
             >
-              Admin Festança
+              <FiCalendar className="h-5 w-5" />
             </Link>
           )}
         </div>

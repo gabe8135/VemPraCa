@@ -1,7 +1,6 @@
 // src/app/eventos/festa-caicara/admin/page.js
-import React, { Suspense } from "react";
+import React from "react";
 import FestaCaicaraAdminNav from "@/app/components/FestaCaicaraAdminNav";
-import ClientAdminPage from "./ClientAdminPage";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +8,15 @@ export default function AdminFestancaPage() {
   return (
     <section className="container mx-auto mt-20 px-4 py-8">
       <FestaCaicaraAdminNav />
-      <Suspense fallback={<p className="text-sm text-gray-500">Carregando…</p>}>
-        <ClientAdminPage />
-      </Suspense>
+      <div className="rounded-2xl ring-1 ring-emerald-100 bg-white p-6">
+        <h1 className="text-xl font-bold text-emerald-700 mb-2">
+          Painel encerrado
+        </h1>
+        <p className="text-sm text-gray-600">
+          O painel administrativo desta edição foi arquivado. Use as páginas de
+          informações e QR Codes para consultas.
+        </p>
+      </div>
     </section>
   );
 }

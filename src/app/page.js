@@ -223,7 +223,7 @@ function BusinessList() {
         {/* Painel dos filtros */}
         <div
           id="filters-panel"
-          className={`${filtersOpen ? "block" : "hidden"} md:block mb-2 bg-white/80 rounded-2xl ring-1 ring-emerald-100 backdrop-blur-md p-4 md:p-6`}
+          className={`${filtersOpen ? "block" : "hidden"} md:block mb-2 rounded-2xl ring-1 backdrop-blur-md p-4 md:p-6 bg-[#FFFCF5] ring-[#FDEFD6]`}
         >
           {/* Filtros de busca e cidade animados */}
           <Fade cascade damping={0.18} triggerOnce>
@@ -369,11 +369,11 @@ function BusinessList() {
                 </h2>
                 <Swiper
                   modules={[Pagination, A11y, Autoplay, Mousewheel]}
-                  spaceBetween={16}
-                  slidesPerView={1.2}
+                  spaceBetween={14}
+                  slidesPerView={1.5}
                   breakpoints={{
-                    640: { slidesPerView: 2.2 },
-                    1024: { slidesPerView: 3.2 },
+                    640: { slidesPerView: 2.5, spaceBetween: 16 },
+                    1024: { slidesPerView: 3.5, spaceBetween: 18 },
                   }}
                   pagination={{ clickable: true }}
                   className="!pb-8"
@@ -398,7 +398,7 @@ function BusinessList() {
                       .slice(0, 8)
                       .map((business) => (
                         <SwiperSlide key={business.id} className="!h-auto flex">
-                          <BusinessCard business={business} />
+                          <BusinessCard business={business} compact />
                         </SwiperSlide>
                       ))}
                   </Fade>
@@ -438,11 +438,11 @@ function BusinessList() {
           </>
         )}
       </div>
+      {/* Seção de Anúncios */}
+      <AnnouncementsSection />
+
       {/* Seção do Clima */}
       <WeatherSection cidade={selectedCidade || "Ilha Comprida"} />
-
-      {/* Seção de Anúncios (Em breve) */}
-      <AnnouncementsSection />
     </>
   );
 }
