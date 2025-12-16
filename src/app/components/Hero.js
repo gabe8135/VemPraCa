@@ -68,8 +68,6 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, [images.length, loading]);
 
-
-
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
       {/* Carrossel de fundo animado otimizado com next/image */}
