@@ -55,23 +55,10 @@ export default function Hero() {
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Pré-carrega a primeira imagem e carrega as demais de forma lazy
+  // Pré-carrega a primeira imagem (usando next/image priority) e carrega as demais de forma lazy
   useEffect(() => {
-    let isMounted = true;
-    const img = new window.Image();
-    img.src = images[0];
-    img.onload = () => {
-      if (isMounted) setLoading(false);
-      // Lazy load das outras imagens
-      images.slice(1).forEach((src) => {
-        const lazyImg = new window.Image();
-        lazyImg.src = src;
-      });
-    };
-    return () => {
-      isMounted = false;
-    };
-  }, [images]);
+    setLoading(false); // next/image cuida do carregamento e prioridade
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -81,32 +68,34 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, [images.length, loading]);
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-        <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Carrossel de fundo animado */}
+      {/* Carrossel de fundo animado otimizado com next/image */}
       {images.map((img, idx) => (
         <div
           key={img}
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `url('${img}')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
             opacity: idx === current ? 1 : 0,
             zIndex: 0,
             pointerEvents: "none",
             transition: "opacity 1.2s cubic-bezier(0.4,0,0.2,1)",
             willChange: "opacity",
           }}
-        />
+        >
+          <Image
+            src={img}
+            alt="Banner"
+            fill
+            priority={idx === 0}
+            quality={70}
+            sizes="100vw"
+            className="object-cover"
+            draggable={false}
+          />
+        </div>
       ))}
       {/* Overlay para contraste e foco na mensagem */}
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.35),rgba(0,0,0,0.55)_30%,rgba(0,0,0,0.45)_65%,rgba(0,0,0,0.25))] z-0" />
