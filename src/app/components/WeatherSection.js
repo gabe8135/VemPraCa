@@ -1,71 +1,79 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { FiClock } from "react-icons/fi";
-import { Fade } from "react-awesome-reveal";
-import {
-  WiDaySunny,
-  WiNightClear,
-  WiCloudy,
-  WiRain,
-  WiThunderstorm,
-  WiFog,
-  WiDayCloudy,
-  WiNightCloudy,
-} from "react-icons/wi";
-
-// Função simples para obter lat/lon de cidades de SP (pode expandir depois)
+// Mock de cidadesSP para garantir funcionamento do card
 const cidadesSP = {
+  "Ilha Comprida": { lat: -24.7302, lon: -47.5383 },
   "São Paulo": { lat: -23.5505, lon: -46.6333 },
   Campinas: { lat: -22.9056, lon: -47.0608 },
   Santos: { lat: -23.9608, lon: -46.3336 },
-  "Ribeirão Preto": { lat: -21.1699, lon: -47.8103 },
+  "Ribeirão Preto": { lat: -21.1775, lon: -47.8103 },
   Sorocaba: { lat: -23.5015, lon: -47.4526 },
-  "Ilha Comprida": { lat: -24.7302, lon: -47.5531 },
-  "Ilha Comprida - SP": { lat: -24.7302, lon: -47.5531 },
-  Registro: { lat: -24.497, lon: -47.849 },
-  // Adicione mais cidades conforme necessário
+  Registro: { lat: -24.4971, lon: -47.8449 },
 };
-
-// Helpers no escopo de módulo (estáveis, sem impactar dependências do useEffect)
-const cToF = (c) => (c * 9) / 5 + 32;
-const fToC = (f) => ((f - 32) * 5) / 9;
-
-// Descrição textual de códigos meteorológicos Open-Meteo em PT-BR
-const weatherCodeDescription = (code) => {
+// Função para extrair cidade e UF de uma string
+function getCidadeUF(nome) {
+  if (!nome) return { cidade: "Ilha Comprida", uf: "SP" };
+  const match = nome.match(/(.+)[,\-\s]+([A-Z]{2})$/i);
+  if (match) {
+    return { cidade: match[1].trim(), uf: match[2].toUpperCase() };
+  }
+  // fallback para cidades conhecidas
+  const lower = nome.toLowerCase();
+  if (lower.includes("ilha comprida"))
+    return { cidade: "Ilha Comprida", uf: "SP" };
+  if (lower.includes("são paulo")) return { cidade: "São Paulo", uf: "SP" };
+  if (lower.includes("campinas")) return { cidade: "Campinas", uf: "SP" };
+  if (lower.includes("santos")) return { cidade: "Santos", uf: "SP" };
+  if (lower.includes("ribeirão preto"))
+    return { cidade: "Ribeirão Preto", uf: "SP" };
+  if (lower.includes("sorocaba")) return { cidade: "Sorocaba", uf: "SP" };
+  if (lower.includes("registro")) return { cidade: "Registro", uf: "SP" };
+  return { cidade: nome, uf: "" };
+}
+// Mapeia o código do tempo para descrição textual
+function weatherCodeDescription(code) {
   const map = {
     0: "Céu limpo",
-    1: "Predomínio de sol",
+    1: "Principalmente limpo",
     2: "Parcialmente nublado",
     3: "Nublado",
-    45: "Nevoeiro",
-    48: "Nevoeiro gelado",
-    51: "Garoa fraca",
+    45: "Névoa",
+    48: "Névoa gelada",
+    51: "Garoa leve",
     53: "Garoa moderada",
-    55: "Garoa intensa",
-    56: "Garoa congelante leve",
-    57: "Garoa congelante intensa",
-    61: "Chuva fraca",
+    55: "Garoa densa",
+    61: "Chuva leve",
     63: "Chuva moderada",
     65: "Chuva forte",
-    66: "Chuva congelante leve",
-    67: "Chuva congelante forte",
-    71: "Neve fraca",
+    71: "Neve leve",
     73: "Neve moderada",
     75: "Neve forte",
     77: "Grãos de neve",
-    80: "Aversos de chuva fracos",
-    81: "Aversos de chuva moderados",
-    82: "Aversos de chuva fortes",
-    85: "Aversos de neve fracos",
-    86: "Aversos de neve fortes",
-    95: "Tempestade",
-    96: "Tempestade com granizo leve",
-    99: "Tempestade com granizo forte",
+    80: "Aguaceiros leves",
+    81: "Aguaceiros moderados",
+    82: "Aguaceiros violentos",
+    85: "Aguaceiros de neve leves",
+    86: "Aguaceiros de neve fortes",
+    95: "Trovoada",
+    96: "Trovoada com granizo leve",
+    99: "Trovoada com granizo forte",
   };
-  return map[code] || "Condição indefinida";
-};
+  return map[code] || "Tempo desconhecido";
+}
+import {
+  WiDaySunny,
+  WiNightClear,
+  WiDayCloudy,
+  WiNightCloudy,
+  WiFog,
+  WiRain,
+  WiCloudy,
+  WiThunderstorm,
+} from "react-icons/wi";
 
+import React, { useState, useEffect } from "react";
+
+// Removido bloco duplicado do componente WeatherSection
+
+// Funções utilitárias e constantes abaixo:
 // Heat Index (NOAA Rothfusz), retorna em °C
 const heatIndexC = (tempC, rh) => {
   const T = cToF(tempC);
@@ -151,7 +159,9 @@ const getNearestHourIndex = (times, currentIso) => {
   return bestIdx;
 };
 
+// Componente principal
 export default function WeatherSection({ cidade }) {
+  // Estados
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -162,7 +172,7 @@ export default function WeatherSection({ cidade }) {
   const [precip, setPrecip] = useState(null);
   const [precipProb, setPrecipProb] = useState(null);
   const [stormAlert, setStormAlert] = useState(false);
-  const [todayRange, setTodayRange] = useState(null); // mín/máx de hoje
+  const [todayRange, setTodayRange] = useState(null);
   const [resolvedCity, setResolvedCity] = useState(null);
   const [resolvedCoords, setResolvedCoords] = useState({
     lat: null,
@@ -183,11 +193,14 @@ export default function WeatherSection({ cidade }) {
         .replace(/\bsp\b/g, " ")
         .replace(/\s+/g, " ")
         .trim();
-    const cidadesLookup = Object.keys(cidadesSP).reduce((acc, key) => {
-      acc[sanitizeCityName(key)] = key;
-      return acc;
-    }, {});
-    if (cidade) {
+    const cidadesLookup =
+      typeof cidadesSP !== "undefined"
+        ? Object.keys(cidadesSP).reduce((acc, key) => {
+            acc[sanitizeCityName(key)] = key;
+            return acc;
+          }, {})
+        : {};
+    if (cidade && typeof cidadesSP !== "undefined") {
       const key = cidadesLookup[sanitizeCityName(cidade)] || "Ilha Comprida";
       const info = cidadesSP[key] || cidadesSP["Ilha Comprida"];
       if (!info) {
@@ -426,6 +439,7 @@ export default function WeatherSection({ cidade }) {
         }
       }
     }
+    // eslint-disable-next-line
   }, [cidade, userLocation]);
 
   if (!cidade && !userLocation)
@@ -437,6 +451,32 @@ export default function WeatherSection({ cidade }) {
         <p className="text-slate-600">Capturando localização...</p>
       </section>
     );
+
+  // Exibe mensagem de erro se houver
+  if (error) {
+    return (
+      <section className="w-full py-8 px-4 flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg mb-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-red-700 mb-2 tracking-tight">
+          Erro ao carregar clima
+        </h2>
+        <p className="text-slate-600">{error}</p>
+      </section>
+    );
+  }
+
+  // Debug: log dos dados carregados
+  if (typeof window !== "undefined") {
+    console.log(
+      "weather:",
+      weather,
+      "todayRange:",
+      todayRange,
+      "resolvedCity:",
+      resolvedCity,
+      "cidade:",
+      cidade
+    );
+  }
 
   // Função para escolher ícone e cor de acordo com o código do tempo
   function getWeatherIcon(code, isDay, size = 64) {
@@ -622,195 +662,234 @@ export default function WeatherSection({ cidade }) {
   const theme = getTheme(weather?.weathercode ?? 1, isDay);
   const tomorrowTheme = forecast ? getTheme(forecast.weathercode, true) : theme;
 
-  return (
-    <Fade triggerOnce>
-      <section className="relative w-[98%] mx-auto mb-8">
-        {/* Fundo suavizado: gradiente dinâmico com borda sutil */}
-        <div
-          className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${theme.wrapperBg} shadow`}
+  // Novo layout centralizado, clean, inspirado no exemplo da imagem
+  function getMainWeatherIcon(code, isDay, size = 110) {
+    // Azul claro para céu, branco para noite/neutro
+    const azulCeo = "#90cdf4"; // azul claro (tailwind sky-300)
+    const branco = "#fff";
+    if ([0].includes(code))
+      return isDay ? (
+        <WiDaySunny
+          style={{ color: azulCeo }}
+          className="drop-shadow-lg"
+          size={size}
         />
-        <div
-          className={`relative rounded-3xl overflow-hidden ring-1 ${theme.ring}`}
-        >
-          <div
-            className={`pointer-events-none absolute inset-0 ${theme.overlay} ${theme.overlayAnim}`}
+      ) : (
+        <WiNightClear
+          style={{ color: branco }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      );
+    if ([1, 2, 3].includes(code))
+      return isDay ? (
+        <WiDayCloudy
+          style={{ color: azulCeo }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      ) : (
+        <WiNightCloudy
+          style={{ color: branco }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      );
+    if ([45, 48].includes(code))
+      return (
+        <WiFog
+          style={{ color: branco }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      );
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code))
+      return isDay ? (
+        <WiRain
+          style={{ color: azulCeo }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      ) : (
+        <WiRain
+          style={{ color: branco }}
+          className="drop-shadow-lg"
+          size={size}
+        />
+      );
+    if ([95, 96, 99].includes(code))
+      return (
+        <span className="relative inline-block">
+          <WiThunderstorm
+            style={{ color: branco }}
+            className="drop-shadow-lg"
+            size={size}
           />
-          <div
-            className={`relative p-5 md:p-7 flex flex-col gap-6 ${theme.textMain}`}
-          >
-            <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 text-slate-800">
-                  <span
-                    className={`inline-flex px-2.5 py-1 rounded-full backdrop-blur-sm text-[11px] font-medium uppercase tracking-wide shadow-sm border ${theme.headerPill}`}
-                  >
-                    Clima agora
-                  </span>
-                  <span className="text-slate-700 font-light">
-                    | {cidade || "Ilha Comprida"}
-                  </span>
-                </h2>
-                {(resolvedCity ||
-                  (resolvedCoords.lat && resolvedCoords.lon)) && (
-                  <p
-                    className={`mt-1 text-[11px] font-medium ${theme.subtitleText} flex items-center gap-2`}
-                  >
-                    <FiClock className="text-blue-500" size={14} />
-                    <span>Atualizado {lastUpdate}</span>
-                    <span className="hidden sm:inline text-blue-500/70">
-                      • Fonte Open‑Meteo
-                    </span>
-                  </p>
-                )}
-              </div>
-              {stormAlert && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold shadow-sm">
-                  <WiThunderstorm size={20} className="text-red-500" />
-                  Alerta de tempestade
-                </div>
-              )}
-            </header>
+          <WiRain
+            style={{ color: azulCeo, opacity: 0.7 }}
+            className="absolute left-0 top-0"
+            size={size * 0.7}
+          />
+        </span>
+      );
+    return (
+      <WiCloudy
+        style={{ color: azulCeo }}
+        className="drop-shadow-lg"
+        size={size}
+      />
+    );
+  }
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Bloco Agora */}
-              <div
-                className={`relative rounded-2xl backdrop-blur-sm p-5 flex flex-col items-center text-center border shadow-sm ${theme.nowCardBg}`}
-              >
-                <div className="relative mb-1">
-                  <div className="absolute inset-0 blur-xl opacity-40 bg-gradient-to-tr from-sky-300 via-blue-200 to-indigo-200" />
-                  <div className="relative flex items-center justify-center">
-                    {weather && getWeatherIcon(weather.weathercode, isDay, 80)}
-                  </div>
-                </div>
-                {weather ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-light leading-none text-slate-800">
-                          {Math.round(weather.temperature)}
-                        </span>
-                        <span className="text-2xl font-semibold mt-1 text-slate-700">
-                          °C
-                        </span>
-                      </div>
-                      {todayRange && (
-                        <div className="inline-flex">
-                          <div className="flex flex-col px-2.5 py-1 rounded-md bg-white/70 text-[12px] leading-tight text-slate-700">
-                            <div className="flex items-baseline gap-1">
-                              <span className="uppercase text-slate-500">
-                                máx
-                              </span>
-                              <span className="font-semibold">
-                                {Math.round(todayRange.temp_max)}°
-                              </span>
-                            </div>
-                            <div className="flex items-baseline gap-1">
-                              <span className="uppercase text-slate-500">
-                                mín
-                              </span>
-                              <span className="font-semibold">
-                                {Math.round(todayRange.temp_min)}°
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm font-medium tracking-wide uppercase text-slate-600">
-                      {weatherCodeDescription(weather.weathercode)}
-                    </p>
-                    {typeof apparent === "number" && (
-                      <div
-                        className={`mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12px] font-medium shadow-sm border ${theme.sensationPill}`}
-                      >
-                        Sensação {Math.round(apparent)}°C
-                      </div>
-                    )}
-                  </>
-                ) : loading ? (
-                  <p className="text-sm text-slate-600">Carregando...</p>
-                ) : error ? (
-                  <p className="text-sm text-red-600">{error}</p>
-                ) : null}
-              </div>
+  function getBgGradient(code, isDay) {
+    if ([0].includes(code))
+      return isDay
+        ? "bg-gradient-to-br from-sky-300 via-blue-200 to-blue-400"
+        : "bg-gradient-to-br from-indigo-900 via-slate-800 to-slate-900";
+    if ([1, 2, 3].includes(code))
+      return isDay
+        ? "bg-gradient-to-br from-sky-200 via-blue-100 to-blue-300"
+        : "bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900";
+    if ([45, 48].includes(code))
+      return isDay
+        ? "bg-gradient-to-br from-gray-200 via-slate-100 to-slate-300"
+        : "bg-gradient-to-br from-gray-800 via-slate-700 to-slate-900";
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code))
+      return isDay
+        ? "bg-gradient-to-br from-cyan-200 via-blue-200 to-blue-400"
+        : "bg-gradient-to-br from-blue-900 via-slate-800 to-slate-900";
+    if ([95, 96, 99].includes(code))
+      return isDay
+        ? "bg-gradient-to-br from-purple-400 via-blue-300 to-blue-700"
+        : "bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900";
+    return isDay
+      ? "bg-gradient-to-br from-sky-100 via-blue-50 to-blue-200"
+      : "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900";
+  }
 
-              {/* Bloco Amanhã */}
-              <div
-                className={`relative rounded-2xl backdrop-blur-sm p-5 flex flex-col justify-between border shadow-sm ${tomorrowTheme.tomorrowCardBg}`}
-              >
-                {forecast ? (
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-semibold tracking-wide text-slate-700 uppercase">
-                        Amanhã
-                      </span>
-                      <span className="text-[11px] text-slate-500">
-                        {new Date(forecast.date).toLocaleDateString("pt-BR", {
-                          weekday: "short",
-                          day: "2-digit",
-                          month: "short",
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-5">
-                      <div className="scale-90 -ml-1">
-                        {getWeatherIcon(forecast.weathercode, true)}
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-medium text-slate-700">
-                          {weatherCodeDescription(forecast.weathercode)}
-                        </span>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span
-                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm ${tomorrowTheme.tempMaxPill}`}
-                          >
-                            {Math.round(forecast.temp_max)}°C
-                            <span className="text-[10px] font-medium text-blue-600">
-                              máx
-                            </span>
-                          </span>
-                          <span
-                            className={`inline-flex items-baseline gap-1 px-2.5 py-1 rounded-md text-[13px] font-semibold shadow-sm ${tomorrowTheme.tempMinPill}`}
-                          >
-                            {Math.round(forecast.temp_min)}°C
-                            <span className="text-[10px] font-medium text-sky-600">
-                              mín
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-                    {loading ? "Carregando previsão..." : "Sem dados"}
-                  </div>
-                )}
-              </div>
-            </div>
+  // Extrai cidade e UF para exibição
+  const { cidade: cidadeNome, uf: cidadeUF } = getCidadeUF(
+    resolvedCity || cidade || "Ilha Comprida, SP"
+  );
 
-            {/* Rodapé */}
-            <footer className="flex flex-wrap items-center gap-2 pt-2 border-t border-sky-100/70">
-              {(resolvedCity || (resolvedCoords.lat && resolvedCoords.lon)) && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] font-medium ${theme.footerLocalPill}`}
-                >
-                  Local: {resolvedCity || "GPS"}
-                </span>
-              )}
-              {resolvedCoords.lat && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[10px] tracking-wide ${theme.footerCoordPill}`}
-                >
-                  {resolvedCoords.lat.toFixed(3)},{" "}
-                  {resolvedCoords.lon.toFixed(3)}
-                </span>
-              )}
-              {/* Disclaimer removido conforme solicitação */}
-            </footer>
+  // Relógio em tempo real com dois pontos piscando
+  const [clock, setClock] = useState(new Date());
+  const [showColon, setShowColon] = useState(true);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClock(new Date());
+      setShowColon((v) => !v);
+    }, 1000); // Pisca a cada segundo
+    return () => clearInterval(interval);
+  }, []);
+
+  // Se quiser usar o horário da API, pode ajustar aqui, mas para o relógio local, use clock
+  const horaStr = `${clock.getHours().toString().padStart(2, "0")}${showColon ? ":" : " "}${clock.getMinutes().toString().padStart(2, "0")}`;
+  const dataStr = clock.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <section
+      className={`mt-4 w-[95%] max-w-5xl mx-auto my-8 rounded-3xl shadow-xl p-0 overflow-hidden ${getBgGradient(weather?.weathercode ?? 1, isDay)}`}
+    >
+      <div className="relative flex flex-col justify-between px-7 py-8 min-h-[370px]">
+        {/* Ícones decorativos de fundo dinâmicos */}
+        {(() => {
+          // Define ícones e cores conforme o clima
+          let IconLeft = WiCloudy;
+          let IconRight = WiDaySunny;
+          let colorLeft = "#90cdf4"; // azul claro
+          let colorRight = "#fff";
+          let opacityLeft = 0.1;
+          let opacityRight = 0.09;
+          if (weather) {
+            const code = weather.weathercode;
+            if ([0].includes(code)) {
+              IconLeft = isDay ? WiDaySunny : WiNightClear;
+              colorLeft = isDay ? "#90cdf4" : "#fff";
+              IconRight = isDay ? WiDaySunny : WiNightClear;
+              colorRight = isDay ? "#fff" : "#90cdf4";
+            } else if ([1, 2, 3].includes(code)) {
+              IconLeft = isDay ? WiDayCloudy : WiNightCloudy;
+              colorLeft = isDay ? "#90cdf4" : "#fff";
+              IconRight = WiCloudy;
+              colorRight = "#fff";
+            } else if ([45, 48].includes(code)) {
+              IconLeft = WiFog;
+              colorLeft = "#fff";
+              IconRight = WiCloudy;
+              colorRight = "#90cdf4";
+            } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
+              IconLeft = WiRain;
+              colorLeft = "#90cdf4";
+              IconRight = WiCloudy;
+              colorRight = "#fff";
+            } else if ([95, 96, 99].includes(code)) {
+              IconLeft = WiThunderstorm;
+              colorLeft = "#fff";
+              IconRight = WiRain;
+              colorRight = "#90cdf4";
+            }
+          }
+          return (
+            <>
+              <IconLeft
+                style={{ color: colorLeft, opacity: opacityLeft }}
+                className="pointer-events-none select-none absolute left-[-40px] top-[40px] z-0"
+                size={180}
+              />
+              <IconRight
+                style={{ color: colorRight, opacity: opacityRight }}
+                className="pointer-events-none select-none absolute right-[-30px] top-[120px] z-0"
+                size={140}
+              />
+            </>
+          );
+        })()}
+        {/* Topo: Cidade/UF à esquerda, hora à direita */}
+        <div className="w-full flex flex-row items-start justify-between mb-2">
+          <div className="flex flex-col items-start">
+            <span className="text-xl md:text-2xl font-semibold text-white drop-shadow-sm">
+              {cidadeNome}
+              {cidadeUF ? `, ${cidadeUF}` : ""}
+            </span>
+            <span className="text-base text-blue-100/90 mt-0.5">
+              {dataStr.charAt(0).toUpperCase() + dataStr.slice(1)}
+            </span>
           </div>
+          <span className="text-lg font-semibold text-blue-100/90 mt-1">
+            {horaStr}
+          </span>
         </div>
-      </section>
-    </Fade>
+        {/* Temperatura, mín/máx, descrição no canto inferior esquerdo */}
+        <div className="absolute left-7 bottom-8 flex flex-col items-start">
+          <div className="flex items-end gap-2">
+            <span className="text-7xl md:text-8xl font-bold text-white drop-shadow-lg">
+              {weather ? Math.round(weather.temperature) : "--"}
+            </span>
+            <span className="text-3xl font-semibold text-blue-100/90 mb-1">
+              °c
+            </span>
+          </div>
+          {todayRange && (
+            <span className="text-lg text-blue-100/90 font-medium mt-1">
+              {Math.round(todayRange.temp_min)}°c /{" "}
+              {Math.round(todayRange.temp_max)}°c
+            </span>
+          )}
+          <span className="text-lg text-blue-100/90 mt-1">
+            {weather ? weatherCodeDescription(weather.weathercode) : "--"}
+          </span>
+        </div>
+        {/* Ícone grande no canto inferior direito */}
+        <div className="absolute right-6 bottom-6 flex items-end justify-end">
+          {weather && getMainWeatherIcon(weather.weathercode, isDay, 120)}
+        </div>
+      </div>
+    </section>
   );
 }
