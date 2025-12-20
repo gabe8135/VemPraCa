@@ -1,14 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { FaStar } from "react-icons/fa";
 import { Fade } from "react-awesome-reveal";
 
 export default function BusinessCard({ business, compact = false }) {
+  const [fallbackImg, setFallbackImg] = useState(false);
   const { id, nome, nome_categoria, media_avaliacoes, imagens, cidade } =
     business;
 
   const mainImage =
-    imagens && imagens.length > 0
+    fallbackImg
+      ? "https://via.placeholder.com/300?text=Sem+Foto"
+      : imagens && imagens.length > 0
       ? imagens[0]
       : "https://via.placeholder.com/300?text=Sem+Foto";
 
@@ -36,10 +40,7 @@ export default function BusinessCard({ business, compact = false }) {
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/300?text=Erro";
-            }}
+            onError={() => setFallbackImg(true)}
           />
           {/* Selo flutuante */}
           {destaque && (
