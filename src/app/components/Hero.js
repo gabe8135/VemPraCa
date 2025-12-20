@@ -69,7 +69,7 @@ export default function Hero() {
   }, [images.length, loading]);
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden rounded-b-3xl">
       {/* Carrossel de fundo animado otimizado com next/image */}
       {images.map((img, idx) => (
         <div
@@ -116,27 +116,42 @@ export default function Hero() {
               Role ou use os botões abaixo.
             </span>
           </p>
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+          <div className="mt-6 grid grid-cols-2 gap-3 w-full">
+            {/* Botão Buscar agora - Mobile quadrado, desktop padrão */}
             <Link
               href="#search-section"
               onClick={() => {
-                // foca o campo de busca ao chegar na seção
                 setTimeout(() => {
                   const el = document.getElementById("searchTerm");
                   if (el) el.focus();
                 }, 350);
               }}
-              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-emerald-700 hover:to-green-600 transition"
+              className="relative rounded-2xl bg-gradient-to-r from-green-600 to-emerald-700 text-lg font-semibold text-white shadow-lg transition
+                flex flex-col justify-between items-start
+                h-24 w-full sm:h-auto sm:px-6 sm:py-3 sm:rounded-full sm:flex-row sm:items-center sm:justify-center
+                px-4 py-4"
             >
-              <FiSearch className="mr-2 h-5 w-5" aria-hidden />
-              Buscar agora!
+              <span className="absolute top-2 right-2 sm:static sm:mr-2">
+                <FiSearch className="h-6 w-6" aria-hidden />
+              </span>
+              <span className="mt-auto mb-1 ml-1 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
+                Buscar agora!
+              </span>
             </Link>
+            {/* Botão Anuncie seu negócio - Mobile quadrado, desktop padrão */}
             <Link
               href="/meus-negocios"
-              className="inline-flex items-center justify-center rounded-full px-6 py-3 text-lg font-semibold text-white ring-1 ring-white/70 hover:ring-white bg-white/10 hover:bg-white/15 transition"
+              className="relative rounded-2xl text-lg font-semibold text-white ring-1 ring-white/70 hover:ring-white bg-white/10 hover:bg-white/15 transition
+                flex flex-col justify-between items-start
+                h-24 w-full sm:h-auto sm:px-6 sm:py-3 sm:rounded-full sm:flex-row sm:items-center sm:justify-center
+                px-4 py-4"
             >
-              <FiBriefcase className="mr-2 h-5 w-5" aria-hidden />
-              Anuncie seu negócio
+              <span className="absolute top-2 right-2 sm:static sm:mr-2">
+                <FiBriefcase className="h-6 w-6" aria-hidden />
+              </span>
+              <span className="mt-auto mb-1 ml-1 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
+                Anuncie aqui!
+              </span>
             </Link>
           </div>
           <p className="mt-5 text-sm text-white/90">
