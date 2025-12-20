@@ -183,7 +183,7 @@ function PagamentoAssinaturaContent() {
 
   // --- Renderização principal da página de escolha de planos ---
   return (
-    <div className="relative"> 
+    <div className="relative min-h-screen w-full overflow-x-hidden pt-24 md:pt-28"> 
       {/* Seção com fundo suave, inspirada no layout principal */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50 to-white" />
       <section className="container mx-auto max-w-3xl p-6 md:p-10 my-10 bg-white/90 backdrop-blur rounded-2xl shadow-lg ring-1 ring-gray-100">
@@ -194,9 +194,10 @@ function PagamentoAssinaturaContent() {
         <span className="text-sm text-gray-600">Pagamento seguro com Stripe Checkout</span>
       </div>
 
+
       <h1 className="text-2xl md:text-3xl font-bold text-center mb-2 text-gray-800">Escolha seu plano</h1>
       <p className="text-center text-gray-600 mb-4">
-        Ative <b>{negocioData?.nome || 'seu negócio'}</b> escolhendo um plano abaixo. Você será redirecionado ao ambiente de pagamento seguro da Stripe.
+        Selecione um plano para ativar seu negócio. O pagamento é realizado em ambiente seguro pela Stripe.
       </p>
 
       {/* Avisos de status */}
@@ -205,48 +206,60 @@ function PagamentoAssinaturaContent() {
           <svg aria-hidden="true" className="h-5 w-5 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4 1.5 1.5L11 16l-3.5-3.5L9 12z"></path></svg>
           <div>
             <p className="font-medium">Pagamento confirmado!</p>
-            <p>Seu negócio será ativado automaticamente. Você pode acompanhar em Meus Negócios.</p>
+            <p>Seu negócio será ativado em breve. Você pode acompanhar o status em <b>Meus Negócios</b>.</p>
           </div>
         </div>
       )}
       {canceled && (
-        <div className="w-full mb-4 rounded-md border border-yellow-300 bg-yellow-50 text-yellow-900 p-3 text-sm">
-          Pagamento cancelado. Nenhuma cobrança foi realizada.
+        <div className="w-full mb-4 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-900 p-3 text-sm">
+          Pagamento não concluído. Nenhuma cobrança foi realizada.
         </div>
       )}
 
-      <div className="w-full flex flex-col gap-6">
-        <div className="border p-5 rounded-lg shadow-sm flex flex-col bg-white">
-          <h2 className="text-xl font-semibold text-green-700 text-center mb-1">Mensal</h2>
-          <p className="text-3xl font-bold text-center mb-1">R$ 25 <span className="text-base font-normal text-gray-500">/mês</span></p>
-          <ul className="text-gray-600 text-sm space-y-1 mt-2 mb-3">
-            <li>• Visibilidade completa no portal</li>
-            <li>• Gerenciamento de informações e fotos</li>
-            <li>• Suporte prioritário</li>
+
+      {/* Tabela de planos moderna, inspirada nos exemplos, com paleta do site */}
+      <div className="w-full flex flex-col md:flex-row gap-8 md:gap-6 justify-center items-stretch mt-4">
+        {/* Plano Mensal */}
+        <div className="flex-1 bg-white rounded-3xl shadow-xl border-2 border-emerald-100 flex flex-col items-center px-7 py-8 transition-all hover:scale-[1.025] hover:shadow-emerald-200">
+          <div className="mb-2 text-emerald-700 font-bold text-lg tracking-wide">Mensal</div>
+          <div className="flex items-end gap-1 mb-2">
+            <span className="text-4xl font-extrabold text-emerald-700">R$ 25</span>
+            <span className="text-base text-gray-500 font-medium">/mês</span>
+          </div>
+          <ul className="text-gray-700 text-sm space-y-2 my-4 w-full">
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Visibilidade completa no portal</li>
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Gerenciamento de informações e fotos</li>
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Suporte prioritário</li>
+            <li className="flex items-center gap-2 text-gray-400 line-through"><span className="font-bold">✗</span> Economia extra</li>
           </ul>
           <button
             onClick={() => handleAssinarClick('monthly')}
             disabled={isLoading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-wait"
+            className="mt-auto w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl transition disabled:opacity-50 disabled:cursor-wait shadow"
             aria-label="Assinar plano mensal"
           >
             {isLoading ? 'Aguarde...' : 'Assinar Mensal'}
           </button>
         </div>
 
-        <div className="border p-5 rounded-lg shadow-sm flex flex-col bg-white ring-2 ring-yellow-400 relative">
-          <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full uppercase">Mais Popular</span>
-          <h2 className="text-xl font-semibold text-yellow-700 text-center mb-1">Anual</h2>
-          <p className="text-3xl font-bold text-center mb-1">R$ 290 <span className="text-base font-normal text-gray-500">/ano</span></p>
-          <ul className="text-gray-600 text-sm space-y-1 mt-2 mb-3">
-            <li>• Todos os benefícios do Mensal</li>
-            <li>• Economia no longo prazo</li>
-            <li>• Preparado para futuros destaques</li>
+        {/* Plano Anual - destaque */}
+        <div className="flex-1 bg-gradient-to-b from-yellow-50 via-white to-emerald-50 rounded-3xl shadow-2xl border-4 border-yellow-400 flex flex-col items-center px-7 py-10 scale-105 ring-2 ring-yellow-200 relative z-10">
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-4 py-1 rounded-full uppercase shadow">Mais Popular</span>
+          <div className="mb-2 text-yellow-700 font-bold text-lg tracking-wide">Anual</div>
+          <div className="flex items-end gap-1 mb-2">
+            <span className="text-4xl font-extrabold text-yellow-700">R$ 290</span>
+            <span className="text-base text-gray-500 font-medium">/ano</span>
+          </div>
+          <ul className="text-gray-700 text-sm space-y-2 my-4 w-full">
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Todos os benefícios do Mensal</li>
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Economia no longo prazo</li>
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Preparado para futuros destaques</li>
+            <li className="flex items-center gap-2"><span className="text-emerald-500 font-bold">✓</span> Suporte prioritário</li>
           </ul>
           <button
             onClick={() => handleAssinarClick('yearly')}
             disabled={isLoading}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-wait"
+            className="mt-auto w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2.5 px-4 rounded-xl transition disabled:opacity-50 disabled:cursor-wait shadow"
             aria-label="Assinar plano anual"
           >
             {isLoading ? 'Aguarde...' : 'Assinar Anual'}
