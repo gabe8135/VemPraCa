@@ -43,28 +43,6 @@ export async function POST(req) {
               stripe_subscription_id: subscriptionId,
               stripe_customer_id: customerId,
             })
-              async function updateVisibilitySafe({ negocioId, visible, subscriptionId, customerId }) {
-                if (!negocioId) return;
-                const { data: negocio } = await supabaseAdmin
-                  .from("negocios")
-                  .select("id, grandfathered, stripe_subscription_id")
-                  .eq("id", negocioId)
-                  .single();
-                if (!negocio) return;
-                if (negocio.grandfathered) {
-                  // Negócio antigo gratuito: não alterar visibilidade automaticamente
-                  return;
-                }
-                if (subscriptionId && negocio.stripe_subscription_id && negocio.stripe_subscription_id !== subscriptionId) {
-                  // Evita alterar outro negócio por engano
-                  return;
-                }
-                const updatePayload = { is_visible: Boolean(visible) };
-                if (subscriptionId) updatePayload.stripe_subscription_id = subscriptionId;
-                if (customerId) updatePayload.stripe_customer_id = customerId;
-                await supabaseAdmin.from("negocios").update(updatePayload).eq("id", negocioId);
-              }
-
             .eq("id", negocioId);
         }
         break;
@@ -75,21 +53,26 @@ export async function POST(req) {
         const negocioId = subscription.metadata?.negocioId;
         if (negocioId) {
           const visible = ["active", "trialing"].includes(status);
-                  await updateVisibilitySafe({ negocioId, visible: true, subscriptionId, customerId });
+          await updateVisibilitySafe({
+            negocioId,
+            visible,
+            subscriptionId: subscription.id,
+            customerId: subscription.customer,
+          });
+        }
+        break;
       }
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
         const negocioId = subscription.metadata?.negocioId;
         if (negocioId) {
-          await supabaseAdmin
-                  const visible = ["active", "trialing"].includes(status);
-                  await updateVisibilitySafe({ negocioId, visible, subscriptionId: subscription.id });
-        const invoice = event.data.object;
-        if (invoice.subscription) {
-          const sub = await stripe.subscriptions.retrieve(invoice.subscription);
-          const negocioId = sub?.metadata?.negocioId;
-          if (negocioId) {
-                  await updateVisibilitySafe({ negocioId, visible: false, subscriptionId: subscription.id });
+          await updateVisibilitySafe({
+            negocioId,
+            visible: false,
+            subscriptionId: subscription.id,
+            customerId: subscription.customer,
+          });
+        }
         break;
       }
       case "invoice.payment_failed": {
@@ -97,7 +80,14 @@ export async function POST(req) {
         if (invoice.subscription) {
           const sub = await stripe.subscriptions.retrieve(invoice.subscription);
           const negocioId = sub?.metadata?.negocioId;
-                    await updateVisibilitySafe({ negocioId, visible: true, subscriptionId: sub?.id });
+          if (negocioId) {
+            await updateVisibilitySafe({
+              negocioId,
+              visible: true,
+              subscriptionId: sub?.id,
+              customerId: sub?.customer,
+            });
+          }
         }
         break;
       }
@@ -106,5 +96,45 @@ export async function POST(req) {
     }
     return NextResponse.json({ received: true });
   } catch (err) {
-                    await updateVisibilitySafe({ negocioId, visible: false, subscriptionId: sub?.id });
+    console.error(err);
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 }
+    );
+  }
+}
+
+// Função auxiliar para atualizar visibilidade do negócio
+async function updateVisibilitySafe({
+  negocioId,
+  visible,
+  subscriptionId,
+  customerId,
+}) {
+  if (!negocioId) return;
+  const { data: negocio } = await supabaseAdmin
+    .from("negocios")
+    .select("id, grandfathered, stripe_subscription_id")
+    .eq("id", negocioId)
+    .single();
+  if (!negocio) return;
+  if (negocio.grandfathered) {
+    // Negócio antigo gratuito: não alterar visibilidade automaticamente
+    return;
+  }
+  if (
+    subscriptionId &&
+    negocio.stripe_subscription_id &&
+    negocio.stripe_subscription_id !== subscriptionId
+  ) {
+    // Evita alterar outro negócio por engano
+    return;
+  }
+  const updatePayload = { is_visible: Boolean(visible) };
+  if (subscriptionId) updatePayload.stripe_subscription_id = subscriptionId;
+  if (customerId) updatePayload.stripe_customer_id = customerId;
+  await supabaseAdmin
+    .from("negocios")
+    .update(updatePayload)
+    .eq("id", negocioId);
 }
