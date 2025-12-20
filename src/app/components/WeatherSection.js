@@ -742,29 +742,30 @@ export default function WeatherSection({ cidade }) {
   }
 
   function getBgGradient(code, isDay) {
+    // Tons inspirados na imagem: azul escuro, saturado, com bom contraste
     if ([0].includes(code))
       return isDay
-        ? "bg-gradient-to-br from-sky-300 via-blue-200 to-blue-400"
-        : "bg-gradient-to-br from-indigo-900 via-slate-800 to-slate-900";
+        ? "bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800"
+        : "bg-gradient-to-br from-indigo-900 via-slate-900 to-blue-900";
     if ([1, 2, 3].includes(code))
       return isDay
-        ? "bg-gradient-to-br from-sky-200 via-blue-100 to-blue-300"
-        : "bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900";
+        ? "bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700"
+        : "bg-gradient-to-br from-slate-800 via-blue-900 to-slate-900";
     if ([45, 48].includes(code))
       return isDay
-        ? "bg-gradient-to-br from-gray-200 via-slate-100 to-slate-300"
-        : "bg-gradient-to-br from-gray-800 via-slate-700 to-slate-900";
+        ? "bg-gradient-to-br from-gray-400 via-blue-700 to-blue-900"
+        : "bg-gradient-to-br from-gray-700 via-slate-800 to-blue-900";
     if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code))
       return isDay
-        ? "bg-gradient-to-br from-cyan-200 via-blue-200 to-blue-400"
-        : "bg-gradient-to-br from-blue-900 via-slate-800 to-slate-900";
+        ? "bg-gradient-to-br from-blue-700 via-cyan-700 to-blue-900"
+        : "bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900";
     if ([95, 96, 99].includes(code))
       return isDay
-        ? "bg-gradient-to-br from-purple-400 via-blue-300 to-blue-700"
-        : "bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900";
+        ? "bg-gradient-to-br from-indigo-700 via-blue-700 to-blue-900"
+        : "bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900";
     return isDay
-      ? "bg-gradient-to-br from-sky-100 via-blue-50 to-blue-200"
-      : "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900";
+      ? "bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900"
+      : "bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900";
   }
 
   // Extrai cidade e UF para exibição
@@ -779,12 +780,18 @@ export default function WeatherSection({ cidade }) {
     const interval = setInterval(() => {
       setClock(new Date());
       setShowColon((v) => !v);
-    }, 1000); // Pisca a cada segundo
+    }, 500); // Pisca a cada 0.5 segundo
     return () => clearInterval(interval);
   }, []);
 
-  // Se quiser usar o horário da API, pode ajustar aqui, mas para o relógio local, use clock
-  const horaStr = `${clock.getHours().toString().padStart(2, "0")}${showColon ? ":" : " "}${clock.getMinutes().toString().padStart(2, "0")}`;
+  // Relógio sempre em linha única, sem quebra
+  const horaStr = (
+    <span style={{ whiteSpace: "nowrap", display: "inline-block" }}>
+      {clock.getHours().toString().padStart(2, "0")}
+      <span style={{ opacity: showColon ? 1 : 0 }}>:</span>
+      {clock.getMinutes().toString().padStart(2, "0")}
+    </span>
+  );
   const dataStr = clock.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -857,11 +864,11 @@ export default function WeatherSection({ cidade }) {
               {cidadeNome}
               {cidadeUF ? `, ${cidadeUF}` : ""}
             </span>
-            <span className="text-base text-blue-100/90 mt-0.5">
+            <span className="text-base text-blue-200 mt-0.5">
               {dataStr.charAt(0).toUpperCase() + dataStr.slice(1)}
             </span>
           </div>
-          <span className="text-lg font-semibold text-blue-100/90 mt-1">
+          <span className="text-lg font-semibold text-blue-200 mt-1">
             {horaStr}
           </span>
         </div>
@@ -871,17 +878,17 @@ export default function WeatherSection({ cidade }) {
             <span className="text-7xl md:text-8xl font-bold text-white drop-shadow-lg">
               {weather ? Math.round(weather.temperature) : "--"}
             </span>
-            <span className="text-3xl font-semibold text-blue-100/90 mb-1">
+            <span className="text-3xl font-semibold text-blue-200 mb-1">
               °c
             </span>
           </div>
           {todayRange && (
-            <span className="text-lg text-blue-100/90 font-medium mt-1">
+            <span className="text-lg text-blue-200 font-medium mt-1">
               {Math.round(todayRange.temp_min)}°c /{" "}
               {Math.round(todayRange.temp_max)}°c
             </span>
           )}
-          <span className="text-lg text-blue-100/90 mt-1">
+          <span className="text-lg text-blue-200 mt-1">
             {weather ? weatherCodeDescription(weather.weathercode) : "--"}
           </span>
         </div>

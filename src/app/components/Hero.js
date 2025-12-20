@@ -129,13 +129,13 @@ export default function Hero() {
               className="relative rounded-2xl bg-gradient-to-r from-green-600 to-emerald-700 text-lg font-semibold text-white shadow-lg transition
                 flex flex-col justify-between items-start
                 h-24 w-full sm:h-auto sm:px-6 sm:py-3 sm:rounded-full sm:flex-row sm:items-center sm:justify-center
-                px-4 py-4"
+                px-2 pb-2 pt-4"
             >
               <span className="absolute top-2 right-2 sm:static sm:mr-2">
                 <FiSearch className="h-6 w-6" aria-hidden />
               </span>
-              <span className="mt-auto mb-1 ml-1 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
-                Buscar agora!
+              <span className="mt-auto mb-0 ml-0 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
+                Buscar!
               </span>
             </Link>
             {/* Botão Anuncie seu negócio - Mobile quadrado, desktop padrão */}
@@ -144,19 +144,19 @@ export default function Hero() {
               className="relative rounded-2xl text-lg font-semibold text-white ring-1 ring-white/70 hover:ring-white bg-white/10 hover:bg-white/15 transition
                 flex flex-col justify-between items-start
                 h-24 w-full sm:h-auto sm:px-6 sm:py-3 sm:rounded-full sm:flex-row sm:items-center sm:justify-center
-                px-4 py-4"
+                px-2 pb-2 pt-4"
             >
               <span className="absolute top-2 right-2 sm:static sm:mr-2">
                 <FiBriefcase className="h-6 w-6" aria-hidden />
               </span>
-              <span className="mt-auto mb-1 ml-1 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
-                Anuncie aqui!
+              <span className="mt-auto mb-0 ml-0 sm:mt-0 sm:mb-0 sm:ml-0 sm:static sm:mr-2 text-left">
+                Anunciar
               </span>
             </Link>
           </div>
-          <p className="mt-5 text-sm text-white/90">
+          {/*<p className="mt-5 text-sm text-white/90">
             Logo abaixo você encontra as melhores ofertas e categorias.
-          </p>
+          </p>*/}
         </div>
       </div>
 
