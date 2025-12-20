@@ -96,7 +96,7 @@ export default function Hero() {
         </div>
       ))}
       {/* Overlay para contraste e foco na mensagem */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.35),rgba(0,0,0,0.55)_30%,rgba(0,0,0,0.45)_65%,rgba(0,0,0,0.25))] z-0" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.18),rgba(0,0,0,0.28)_30%,rgba(0,0,0,0.22)_65%,rgba(0,0,0,0.12))] z-0" />
 
       {/* Conteúdo centralizado */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-4 pb-8">
