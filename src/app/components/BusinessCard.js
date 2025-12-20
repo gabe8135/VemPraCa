@@ -9,10 +9,9 @@ export default function BusinessCard({ business, compact = false }) {
   const { id, nome, nome_categoria, media_avaliacoes, imagens, cidade } =
     business;
 
-  const mainImage =
-    fallbackImg
-      ? "https://via.placeholder.com/300?text=Sem+Foto"
-      : imagens && imagens.length > 0
+  const mainImage = fallbackImg
+    ? "https://via.placeholder.com/300?text=Sem+Foto"
+    : imagens && imagens.length > 0
       ? imagens[0]
       : "https://via.placeholder.com/300?text=Sem+Foto";
 
