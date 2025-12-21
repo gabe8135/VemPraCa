@@ -223,7 +223,7 @@ function BusinessList() {
         {/* Painel dos filtros */}
         <div
           id="filters-panel"
-          className={`${filtersOpen ? "block" : "hidden"} md:block mb-2 rounded-2xl ring-1 backdrop-blur-md p-4 md:p-6 bg-[#FFFCF5] ring-[#FDEFD6]`}
+          className={`${filtersOpen ? "block" : "hidden"} md:block mb-2 rounded-2xl ring-1 p-4 md:p-6 bg-white/90 ring-emerald-100 shadow-lg`}
         >
           {/* Filtros de busca e cidade animados */}
           <Fade cascade damping={0.18} triggerOnce>
@@ -239,12 +239,12 @@ function BusinessList() {
                   </span>
                 </label>
                 <div className="relative">
-                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/80" />
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/90" />
                   <input
                     id="searchTerm"
                     type="text"
                     placeholder="Ex: Pousada, Restaurante..."
-                    className="w-full pl-10 pr-3 py-3 rounded-2xl bg-white/90 text-black ring-1 ring-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                    className="w-full pl-10 pr-3 py-3 rounded-2xl bg-white text-emerald-900 border border-emerald-100 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 shadow-md transition-all duration-200 outline-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     aria-label="Buscar por nome"
@@ -260,12 +260,12 @@ function BusinessList() {
                   <span className="sr-only md:not-sr-only">Cidade</span>
                 </label>
                 <div className="relative">
-                  <FiMapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/80" />
+                  <FiMapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-600/90" />
                   <select
                     id="cidade"
                     value={selectedCidade}
                     onChange={(e) => setSelectedCidade(e.target.value)}
-                    className="w-full pl-10 pr-9 py-3 rounded-2xl bg-white/90 text-black ring-1 ring-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm appearance-none"
+                    className="w-full pl-10 pr-9 py-3 rounded-2xl bg-white text-emerald-900 border border-emerald-100 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 shadow-md transition-all duration-200 outline-none appearance-none"
                     disabled={cidadesDisponiveis.length === 0}
                     aria-label="Filtrar por cidade"
                   >
@@ -421,19 +421,39 @@ function BusinessList() {
               {filteredBusinesses.length !== 1 ? "s" : ""} encontrado
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
+            {/* Negócios agrupados por categoria */}
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
-              <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
-                {sortedBusinesses.map((business) => (
-                  <Fade
-                    key={business.id}
-                    cascade={false}
-                    duration={260}
-                    triggerOnce
-                  >
-                    <BusinessCard business={business} />
-                  </Fade>
-                ))}
-              </div>
+              {(() => {
+                // Agrupa negócios por categoria
+                const grouped = {};
+                sortedBusinesses.forEach((b) => {
+                  const cat = b.nome_categoria || "Outros";
+                  if (!grouped[cat]) grouped[cat] = [];
+                  grouped[cat].push(b);
+                });
+                const orderedCats = Object.keys(grouped).sort((a, b) =>
+                  a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+                );
+                return orderedCats.map((cat) => (
+                  <div key={cat} className="mb-10">
+                    <h2 className="text-base sm:text-lg font-semibold text-emerald-700 mb-2 pl-1 tracking-tight">
+                      {cat}
+                    </h2>
+                    <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                      {grouped[cat].map((business) => (
+                        <Fade
+                          key={business.id}
+                          cascade={false}
+                          duration={260}
+                          triggerOnce
+                        >
+                          <BusinessCard business={business} />
+                        </Fade>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           </>
         )}

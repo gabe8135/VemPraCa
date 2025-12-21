@@ -803,7 +803,23 @@ export default function DetalhesNegocioPage() {
   }, [horarioFunc]);
 
   // --- Minha Renderização ---
-  if (loading) return <div className="text-center p-10">Carregando detalhes do estabelecimento...</div>;
+  if (loading) {
+    // Loader animado moderno (spinner com efeito de "pulse" e cor do header), ocupa a tela toda
+    return (
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center min-h-screen bg-white">
+        <span className="relative flex h-16 w-16">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-40"></span>
+          <span className="relative inline-flex rounded-full h-16 w-16 bg-gradient-to-tr from-emerald-700 to-green-500 items-center justify-center">
+            <svg className="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </span>
+        </span>
+        <span className="mt-6 text-emerald-800 text-lg font-semibold animate-pulse">Carregando detalhes do estabelecimento...</span>
+      </div>
+    );
+  }
   if (error) return <div className="p-6 text-red-600 bg-red-100 rounded-md text-center">Erro: {error}</div>;
   if (!negocio) return <div className="text-center p-10">Estabelecimento não encontrado.</div>; // Segurança extra.
 
@@ -845,18 +861,27 @@ export default function DetalhesNegocioPage() {
                 }}
               >
                 <Swiper
-                  modules={[Pagination, Scrollbar, A11y, Autoplay]}
+                  modules={[Pagination, Scrollbar, A11y, Autoplay, Navigation, Zoom]}
                   autoplay={{ delay: 3000, disableOnInteraction: false }}
-                  spaceBetween={0} slidesPerView={1}
+                  spaceBetween={0}
+                  slidesPerView={1}
                   pagination={{ clickable: true }}
                   loop={todasImagens.length > 1}
-                  className="aspect-video max-h-[60vh]"
+                  effect="fade"
+                  fadeEffect={{ crossFade: true }}
+                  className="aspect-video max-h-[60vh] rounded-2xl shadow-lg"
                   onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
                   onSwiper={(swiper) => setMainSwiper(swiper)}
                 >
                   {todasImagens.map((imgUrl, index) => (
                     <SwiperSlide key={index}>
-                      <img src={imgUrl} alt={`${negocio.nome} - Imagem ${index + 1}`} className="w-full h-full object-cover transition group-hover:brightness-90" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }} />
+                      <img
+                        src={imgUrl}
+                        alt={`${negocio.nome} - Imagem ${index + 1}`}
+                        className="w-full h-full object-cover transition group-hover:brightness-90 rounded-2xl"
+                        loading="lazy"
+                        onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.png'; e.target.alt = 'Imagem indisponível'; }}
+                      />
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -943,58 +968,68 @@ export default function DetalhesNegocioPage() {
                   </div>
                 </div>
               )}
-              {/* ...existing code... */}
-              {negocio.endereco && (
-                <div className="flex items-start gap-2 text-gray-700">
-                  <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
-                  <span>{negocio.endereco}, {negocio.cidade}</span>
-                </div>
-              )}
-              {!negocio.endereco && negocio.cidade && (
-                <div className="flex items-start gap-2 text-gray-700">
-                  <FaMapMarkerAlt className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
-                  <span>{negocio.cidade}</span>
-                </div>
-              )}
-              {negocio.email_contato && (
-                <div className="flex items-center gap-2 text-gray-700">
-                  <FiMail className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <a href={`mailto:${negocio.email_contato}`} className="hover:text-green-700 break-all">
-                    {negocio.email_contato}
-                  </a>
-                </div>
-              )}
-              {negocio.telefone && (
-                <div className="flex items-center gap-2 text-gray-700">
-                  <FiPhone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700">
-                    {negocio.telefone}
-                  </a>
-                </div>
-              )}
-              {negocio.website && (
-                <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium break-all">
-                  <FaGlobe className="w-4 h-4 flex-shrink-0" />
-                  <span>{negocio.website}</span>
-                </a>
-              )}
-              {whatsappLink && (
-                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                  <FaWhatsapp className="text-xl" />
-                  Conversar no WhatsApp
-                </a>
-              )}
-              {(negocio.latitude && negocio.longitude) ? (
-                <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                  <FaMapMarkerAlt className="h-5 w-5" />
-                  Ver Localização no Mapa
-                </a>
-              ) : negocio.endereco && (
-                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${negocio.endereco}, ${negocio.cidade}`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition duration-200 w-full">
-                  <FaMapMarkerAlt className="h-5 w-5" />
-                  Ver Localização
-                </a>
-              )}
+              {/* Blocos de contato visualmente separados em cards menores */}
+              <div className="grid grid-cols-1 gap-3">
+                {negocio.endereco && (
+                  <div className="flex items-start gap-2 bg-white rounded-xl shadow-md border border-emerald-100 p-3">
+                    <FaMapMarkerAlt className="w-5 h-5 text-emerald-600 mt-1 flex-shrink-0" />
+                    <span className="text-gray-800 font-medium">{negocio.endereco}, {negocio.cidade}</span>
+                  </div>
+                )}
+                {!negocio.endereco && negocio.cidade && (
+                  <div className="flex items-start gap-2 bg-white rounded-xl shadow-md border border-emerald-100 p-3">
+                    <FaMapMarkerAlt className="w-5 h-5 text-emerald-600 mt-1 flex-shrink-0" />
+                    <span className="text-gray-800 font-medium">{negocio.cidade}</span>
+                  </div>
+                )}
+                {negocio.email_contato && (
+                  <div className="flex items-center gap-2 bg-white rounded-xl shadow-md border border-emerald-100 p-3">
+                    <FiMail className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <a href={`mailto:${negocio.email_contato}`} className="hover:text-green-700 break-all text-gray-800 font-medium">
+                      {negocio.email_contato}
+                    </a>
+                  </div>
+                )}
+                {negocio.telefone && (
+                  <div className="flex items-center gap-2 bg-white rounded-xl shadow-md border border-emerald-100 p-3">
+                    <FiPhone className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <a href={`tel:${negocio.telefone.replace(/\D/g, '')}`} className="hover:text-green-700 text-gray-800 font-medium">
+                      {negocio.telefone}
+                    </a>
+                  </div>
+                )}
+                {negocio.website && (
+                  <div className="flex items-center gap-2 bg-white rounded-xl shadow-md border border-emerald-100 p-3">
+                    <FaGlobe className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <a href={negocio.website.startsWith('http') ? negocio.website : `https://${negocio.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-800 font-medium break-all text-blue-700">
+                      {negocio.website}
+                    </a>
+                  </div>
+                )}
+                {whatsappLink && (
+                  <div className="flex items-center gap-2 bg-gradient-to-tr from-green-500 to-emerald-600 rounded-xl shadow-md border border-emerald-200 p-3">
+                    <FaWhatsapp className="text-2xl text-white flex-shrink-0" />
+                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">
+                      Conversar no WhatsApp
+                    </a>
+                  </div>
+                )}
+                {(negocio.latitude && negocio.longitude) ? (
+                  <div className="flex items-center gap-2 bg-gradient-to-tr from-blue-500 to-blue-700 rounded-xl shadow-md border border-blue-200 p-3">
+                    <FaMapMarkerAlt className="h-5 w-5 text-white" />
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${negocio.latitude},${negocio.longitude}`} target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">
+                      Ver Localização no Mapa
+                    </a>
+                  </div>
+                ) : negocio.endereco && (
+                  <div className="flex items-center gap-2 bg-gradient-to-tr from-blue-500 to-blue-700 rounded-xl shadow-md border border-blue-200 p-3">
+                    <FaMapMarkerAlt className="h-5 w-5 text-white" />
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${negocio.endereco}, ${negocio.cidade}`)}`} target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">
+                      Ver Localização
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Fade>

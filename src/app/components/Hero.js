@@ -107,7 +107,7 @@ export default function Hero() {
             </Marquee>
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-montserrat mb-3 break-words drop-shadow-lg">
-            O ponto de encontro dos negócios locais
+            O local certo para você achar o que precisa
           </h1>
           <p className="mt-1 text-base sm:text-xl font-medium text-white/95 font-inter break-words drop-shadow">
             Encontre promoções e serviços reais perto de você.

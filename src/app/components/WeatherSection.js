@@ -159,6 +159,21 @@ const getNearestHourIndex = (times, currentIso) => {
   return bestIdx;
 };
 
+// Helper para montar URL da API do Open-Meteo com parâmetros estáveis
+function buildOpenMeteoUrl(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    current_weather: "true",
+    hourly:
+      "apparent_temperature,relativehumidity_2m,precipitation,precipitation_probability,weathercode",
+    daily: "weathercode,temperature_2m_max,temperature_2m_min",
+    timezone: "auto",
+    windspeed_unit: "kmh",
+  });
+  return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+}
+
 // Componente principal
 export default function WeatherSection({ cidade }) {
   // Estados
@@ -178,6 +193,20 @@ export default function WeatherSection({ cidade }) {
     lat: null,
     lon: null,
   });
+  // Tentativas automáticas de atualização do clima
+  const [retryTick, setRetryTick] = useState(0);
+  const [lastFetchOk, setLastFetchOk] = useState(false);
+
+  // Relógio em tempo real com dois pontos piscando (deve ficar antes de qualquer return condicional)
+  const [clock, setClock] = useState(new Date());
+  const [showColon, setShowColon] = useState(true);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClock(new Date());
+      setShowColon((v) => !v);
+    }, 500); // Pisca a cada 0.5 segundo
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -212,9 +241,7 @@ export default function WeatherSection({ cidade }) {
       lon = info.lon;
       setResolvedCity(key);
       setResolvedCoords({ lat, lon });
-      fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,precipitation_probability,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&windspeed_unit=kmh`
-      )
+      fetch(buildOpenMeteoUrl(lat, lon))
         .then((res) => res.json())
         .then((data) => {
           if (data.current_weather) {
@@ -305,10 +332,12 @@ export default function WeatherSection({ cidade }) {
             setTodayRange(null);
           }
           setLoading(false);
+          setLastFetchOk(Boolean(data?.current_weather));
         })
         .catch(() => {
-          setError("Erro ao buscar dados do clima.");
+          // Evita cartão de erro: mostra card neutro sem dados
           setLoading(false);
+          setLastFetchOk(false);
         });
     } else {
       // Tenta capturar localização do usuário
@@ -317,9 +346,7 @@ export default function WeatherSection({ cidade }) {
         lon = userLocation.lon;
         setResolvedCity(null);
         setResolvedCoords({ lat, lon });
-        fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,precipitation_probability,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&windspeed_unit=kmh`
-        )
+        fetch(buildOpenMeteoUrl(lat, lon))
           .then((res) => res.json())
           .then((data) => {
             if (data.current_weather) {
@@ -413,10 +440,12 @@ export default function WeatherSection({ cidade }) {
               setTodayRange(null);
             }
             setLoading(false);
+            setLastFetchOk(Boolean(data?.current_weather));
           })
           .catch(() => {
-            setError("Erro ao buscar dados do clima.");
+            // Evita cartão de erro: mostra card neutro sem dados
             setLoading(false);
+            setLastFetchOk(false);
           });
       } else {
         // Solicita localização ao navegador
@@ -440,7 +469,16 @@ export default function WeatherSection({ cidade }) {
       }
     }
     // eslint-disable-next-line
-  }, [cidade, userLocation]);
+  }, [cidade, userLocation, retryTick]);
+
+  // Agenda próxima tentativa automática: se sucesso, atualiza a cada 5min; se falha, tenta novamente em 30s
+  useEffect(() => {
+    const okInterval = 5 * 60 * 1000; // 5 minutos
+    const failInterval = 30 * 1000; // 30 segundos
+    const delay = lastFetchOk ? okInterval : failInterval;
+    const t = setTimeout(() => setRetryTick((v) => v + 1), delay);
+    return () => clearTimeout(t);
+  }, [lastFetchOk]);
 
   if (!cidade && !userLocation)
     return (
@@ -773,17 +811,6 @@ export default function WeatherSection({ cidade }) {
     resolvedCity || cidade || "Ilha Comprida, SP"
   );
 
-  // Relógio em tempo real com dois pontos piscando
-  const [clock, setClock] = useState(new Date());
-  const [showColon, setShowColon] = useState(true);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setClock(new Date());
-      setShowColon((v) => !v);
-    }, 500); // Pisca a cada 0.5 segundo
-    return () => clearInterval(interval);
-  }, []);
-
   // Relógio sempre em linha única, sem quebra
   const horaStr = (
     <span style={{ whiteSpace: "nowrap", display: "inline-block" }}>
@@ -889,7 +916,9 @@ export default function WeatherSection({ cidade }) {
             </span>
           )}
           <span className="text-lg text-blue-200 mt-1">
-            {weather ? weatherCodeDescription(weather.weathercode) : "--"}
+            {weather
+              ? weatherCodeDescription(weather.weathercode)
+              : "Clima indisponível no momento"}
           </span>
         </div>
         {/* Ícone grande no canto inferior direito */}

@@ -8,53 +8,36 @@ import { Fade } from "react-awesome-reveal";
 // Meus passos de "Como Funciona".
 const steps = [
   {
-    icon: <FaSearch className="text-green-700" />, // Lembrete: Posso trocar por um ícone do react-icons, tipo <FaSearch />.
-    title: "Busque seu Destino",
-    description:
-      "Use a busca ou explore as categorias para encontrar o lugar perfeito.",
+    icon: <FaSearch className="text-emerald-600 drop-shadow-lg" />,
+    title: "Encontre o lugar",
+    description: "Procure o destino que você quer conhecer.",
     target: "viajante",
   },
   {
-    icon: <FaHotel className="text-green-700" />, // Lembrete: <FaHotel />
-    title: "Escolha o Serviço Desejado",
-    description:
-      "Veja fotos, detalhes, facilidades e avaliações dos nossos parceiros locais.",
+    icon: <FaHotel className="text-emerald-600 drop-shadow-lg" />,
+    title: "Veja as opções",
+    description: "Veja fotos e o que cada lugar oferece.",
     target: "viajante",
   },
   {
-    icon: <FaWhatsapp className="text-green-700" />, // Lembrete: <FaWhatsapp /> ou <FaPhone />
-    title: "Conecte-se Direto",
-    description:
-      "Entre em contato diretamente com o estabelecimento para tirar dúvidas ou reservar.",
+    icon: <FaWhatsapp className="text-emerald-600 drop-shadow-lg" />,
+    title: "Fale direto",
+    description: "Converse pelo WhatsApp para tirar dúvidas ou reservar.",
     target: "viajante",
   },
   {
-    icon: <FaEdit className="text-green-700" />, // Lembrete: <FaEdit />
-    title: "Cadastre seu Negócio",
-    description:
-      "É proprietário? Faça login e adicione seu estabelecimento em poucos passos.",
+    icon: <FaEdit className="text-emerald-600 drop-shadow-lg" />,
+    title: "Ou cadastre seu negócio",
+    description: "Tem um local? Cadastre grátis e receba visitantes.",
     target: "proprietario",
-    link: "/como-funciona", // Este link leva para a página que explica como cadastrar o negócio.
+    link: "/como-funciona",
   },
 ];
 
 export default function HowItWorksSection() {
   return (
     <section id="how-it-works" className="py-16 md:py-24 relative">
-      {/* Fundo esfumaçado decorativo em tons de verde, sem limites */}
-      <div
-        aria-hidden="true"
-        className="absolute left-1/2 top-0 -translate-x-1/2 w-[140vw] h-[300px] -z-10 pointer-events-none overflow-visible blur-[90px]"
-        style={{ maxWidth: "none" }}
-      >
-        <div
-          style={{
-            clipPath:
-              "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
-          }}
-          className="w-full h-full bg-gradient-to-r from-green-600 via-emerald-500 to-emerald-700 opacity-60"
-        />
-      </div>
+      {/* Fundo decorativo removido */}
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-extrabold text-center text-emerald-700 mb-12 tracking-tight drop-shadow-lg">
           Como Funciona
@@ -64,21 +47,21 @@ export default function HowItWorksSection() {
             {steps.map((step, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center p-8 bg-white/90 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 h-full"
+                className="flex flex-col items-center text-center p-7 bg-white rounded-3xl shadow-lg border border-emerald-100 hover:scale-[1.03] transition-transform duration-300 h-full"
               >
-                <span className="text-5xl mb-4 drop-shadow-lg">
+                <span className="text-5xl mb-5 rounded-full bg-emerald-100/60 p-4 flex items-center justify-center shadow-md">
                   {step.icon}
                 </span>
-                <h3 className="text-xl font-bold text-emerald-700 mb-2">
+                <h3 className="text-lg md:text-xl font-bold text-emerald-700 mb-2 tracking-tight">
                   {step.title}
                 </h3>
-                <p className="text-gray-700 text-base mb-6 flex-grow">
+                <p className="text-gray-700 text-base mb-6 flex-grow leading-relaxed">
                   {step.description}
                 </p>
                 {step.link && (
                   <Link
                     href={step.link}
-                    className="mt-auto bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-2 rounded-full text-base text-white font-semibold shadow hover:from-emerald-700 hover:to-green-600 hover:text-yellow-300 transition-all duration-200"
+                    className="mt-auto bg-gradient-to-r from-emerald-600 to-green-500 px-6 py-2 rounded-full text-base text-white font-semibold shadow hover:from-emerald-700 hover:to-green-600 hover:text-yellow-300 transition-all duration-200"
                   >
                     Saiba mais
                   </Link>
