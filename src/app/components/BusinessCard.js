@@ -25,7 +25,7 @@ export default function BusinessCard({ business, compact = false }) {
   return (
     <Fade triggerOnce duration={600} fraction={0.15} style={{ height: "100%" }}>
       <Link
-        href={`/negocio/${id}`}
+        href={`/negocio/${id}#inicio-negocio`}
         className={`group block overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 w-full bg-[#FFFCF5] border border-[#FDEFD6] relative ${compact ? "" : ""}`}
         style={{ height: "100%" }}
       >

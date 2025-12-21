@@ -858,7 +858,7 @@ export default function DetalhesNegocioPage() {
         <Fade direction="up" triggerOnce>
           {/* Título, Categoria e Avaliação */}
           <div className="mb-6 text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-bold mb-1 text-green-800 drop-shadow">{negocio.nome}</h1>
+            <h1 id="inicio-negocio" className="text-3xl md:text-4xl font-bold mb-1 text-green-800 drop-shadow">{negocio.nome}</h1>
             <p className="text-lg text-emerald-700 font-semibold mb-3">{negocio.nome_categoria}</p>
             <div className="flex justify-center md:justify-start">
               <EstrelasDisplay media={negocio.media_avaliacoes} total={negocio.total_avaliacoes} />
