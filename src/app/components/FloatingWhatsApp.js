@@ -58,12 +58,7 @@ export default function FloatingWhatsApp({ phoneNumber }) {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        bottom: "24px",
-        right: "24px",
-        zIndex: 9999,
-      }}
+      style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999 }}
     >
       <button
         onClick={handleWhatsAppClick}
@@ -77,29 +72,41 @@ export default function FloatingWhatsApp({ phoneNumber }) {
         </svg>
         <span className="sr-only">WhatsApp</span>
       </button>
-
       {/* Pulse effect */}
       <span className="wa-pulse" />
-
-      {/* Mini-menu de opções */}
+      {/* Overlay para fechar o menu ao clicar fora */}
       {open && (
-        <div className="wa-menu">
-          <div className="wa-menu-title">Como podemos ajudar?</div>
-          {options.map((opt, i) => (
-            <button
-              key={opt.label}
-              onClick={() => handleOptionClick(opt.message)}
-              className="wa-menu-btn"
-              onMouseDown={(e) => e.preventDefault()}
-              onTouchStart={(e) => e.preventDefault()}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <>
+          <div
+            className="wa-overlay"
+            onClick={() => setOpen(false)}
+            tabIndex={-1}
+            aria-hidden
+          />
+          <div className="wa-menu">
+            <div className="wa-menu-title">Como podemos ajudar?</div>
+            {options.map((opt, i) => (
+              <button
+                key={opt.label}
+                onClick={() => handleOptionClick(opt.message)}
+                className="wa-menu-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       <style jsx>{`
+        .wa-overlay {
+          position: fixed;
+          inset: 0;
+          background: transparent;
+          z-index: 9998;
+        }
         .floating-wa-btn {
           background-color: #25d366;
           color: white;
