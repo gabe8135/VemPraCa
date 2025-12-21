@@ -218,13 +218,41 @@ const caracteristicaIconMap = {
 };
 
 export default function DetalhesNegocioPage() {
+    // Estado para modal do carrossel (deve vir antes do uso)
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    // Referência ao Swiper do carrossel de fundo para pausar/resumir autoplay quando o modal abre/fecha
+    const [mainSwiper, setMainSwiper] = useState(null);
+
+    const { id: negocioId } = useParams(); // Pego o ID do negócio da URL.
+    const router = useRouter();
+    const [negocio, setNegocio] = useState(null);
+    const [caracteristicasNegocio, setCaracteristicasNegocio] = useState([]);
+    const [avaliacoesNegocio, setAvaliacoesNegocio] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false); // Meu estado para controlar o loading da exclusão.
+    const [cliqueStats, setCliqueStats] = useState(null);
+    const [dataVersion, setDataVersion] = useState(0); // Estado para forçar re-fetch
+    const [loadingCliques, setLoadingCliques] = useState(false);
+    // Novo: estado para horário de funcionamento (JSON)
+    const [horarioFunc, setHorarioFunc] = useState(null);
+    // Novo: URL de compartilhamento canônica com ID (evita hashes e garante rota correta)
+    const shareUrl = useMemo(() => {
+      if (!negocioId) return '';
+      const fromEnv = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+      const origin = fromEnv || (typeof window !== 'undefined' ? window.location.origin : '');
+      if (!origin) return '';
+      return `${origin}/negocio/${negocioId}`;
+    }, [negocioId]);
+
     // Sempre rola para o topo ao montar ou ao trocar de negócio
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        // Pequeno delay para garantir que o DOM esteja pronto
         setTimeout(() => {
           window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-          // Também tenta rolar o elemento raiz (caso PWA ou webview)
           if (document.documentElement) {
             document.documentElement.scrollTop = 0;
           }
@@ -234,35 +262,6 @@ export default function DetalhesNegocioPage() {
         }, 10);
       }
     }, [negocioId]);
-  // Estado para modal do carrossel (deve vir antes do uso)
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  // Referência ao Swiper do carrossel de fundo para pausar/resumir autoplay quando o modal abre/fecha
-  const [mainSwiper, setMainSwiper] = useState(null);
-
-  const { id: negocioId } = useParams(); // Pego o ID do negócio da URL.
-  const router = useRouter();
-  const [negocio, setNegocio] = useState(null);
-  const [caracteristicasNegocio, setCaracteristicasNegocio] = useState([]);
-  const [avaliacoesNegocio, setAvaliacoesNegocio] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false); // Meu estado para controlar o loading da exclusão.
-  const [cliqueStats, setCliqueStats] = useState(null);
-  const [dataVersion, setDataVersion] = useState(0); // Estado para forçar re-fetch
-  const [loadingCliques, setLoadingCliques] = useState(false);
-  // Novo: estado para horário de funcionamento (JSON)
-  const [horarioFunc, setHorarioFunc] = useState(null);
-  // Novo: URL de compartilhamento canônica com ID (evita hashes e garante rota correta)
-  const shareUrl = useMemo(() => {
-    if (!negocioId) return '';
-    const fromEnv = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
-    const origin = fromEnv || (typeof window !== 'undefined' ? window.location.origin : '');
-    if (!origin) return '';
-    return `${origin}/negocio/${negocioId}`;
-  }, [negocioId]);
 
   // Utilitário: copiar para área de transferência com fallback
   const copyToClipboard = async (text) => {
