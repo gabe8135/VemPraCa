@@ -100,7 +100,7 @@ export default function Hero() {
 
       {/* Conteúdo centralizado */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-4 pb-8">
-        <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-3xl p-8 w-full text-center border-2 border-white/10">
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-3xl p-4 w-full text-center border-2 border-white/10">
           <div className="w-full overflow-x-hidden mb-6">
             <Marquee gradient={false} speed={40}>
               <CategoryList />
