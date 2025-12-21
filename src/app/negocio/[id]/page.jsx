@@ -218,6 +218,22 @@ const caracteristicaIconMap = {
 };
 
 export default function DetalhesNegocioPage() {
+    // Sempre rola para o topo ao montar ou ao trocar de negócio
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        // Pequeno delay para garantir que o DOM esteja pronto
+        setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          // Também tenta rolar o elemento raiz (caso PWA ou webview)
+          if (document.documentElement) {
+            document.documentElement.scrollTop = 0;
+          }
+          if (document.body) {
+            document.body.scrollTop = 0;
+          }
+        }, 10);
+      }
+    }, [negocioId]);
   // Estado para modal do carrossel (deve vir antes do uso)
   const [modalOpen, setModalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
