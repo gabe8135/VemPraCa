@@ -16,72 +16,81 @@ function NegocioCard({ negocio, onDelete }) {
 
   return (
     <div
-      className="p-4 rounded-lg shadow-md bg-white hover:bg-neutral-100 hover:shadow-lg transition-shadow cursor-pointer"
+      className="group relative p-0 rounded-3xl shadow-lg bg-white/90 border border-emerald-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
       onClick={handleCardClick}
     >
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-xl font-semibold text-green-900">
-            {negocio.nome}
-          </h3>
-          <p className="text-sm text-green-700">{negocio.cidade}</p>
-          {negocio.categorias?.nome && (
-            <p className="text-sm text-green-600 mt-1">
-              Categoria: {negocio.categorias.nome}
-            </p>
-          )}
-        </div>
+      {/* Imagem de capa */}
+      <div className="relative w-full aspect-[4/2.2] bg-gradient-to-tr from-emerald-100 to-green-50 flex items-center justify-center overflow-hidden">
         <img
           src={
             negocio.imagens && negocio.imagens.length > 0
               ? negocio.imagens[0]
-              : "https://via.placeholder.com/100?text=Sem+Imagem"
+              : "https://via.placeholder.com/300x120?text=Sem+Imagem"
           }
           alt={`Imagem de ${negocio.nome}`}
-          className="w-20 h-20 object-cover rounded-md ml-4"
+          className="object-cover w-full h-full transition group-hover:scale-105"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "https://via.placeholder.com/100?text=Erro";
+            e.target.src = "https://via.placeholder.com/300x120?text=Erro";
           }}
         />
-      </div>
-      <div className="mt-4 flex space-x-2">
-        <Link
-          href={`/meu-negocio/editar/${negocio.id}`}
-          className="text-sm bg-green-600 hover:bg-emerald-600 text-white py-1 px-3 rounded-md transition-colors z-10 relative"
-          onClick={(e) => e.stopPropagation()}
-        >
-          Editar
-        </Link>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(negocio.id, negocio.nome);
-          }}
-          className="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition-colors z-10 relative"
-        >
-          Excluir
-        </button>
-        {/* Botão de ativação/assinatura para negócios inativos */}
         {!negocio.ativo && (
-          <Link
-            href={`/pagamento-assinatura?negocioId=${negocio.id}`}
-            className="text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md transition-colors z-10 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            Ativar/Assinar
-          </Link>
+          <span className="absolute top-2 left-2 bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1 rounded-full shadow">
+            Pendente
+          </span>
         )}
       </div>
-      {!negocio.ativo && (
-        <div className="mt-3 text-xs text-orange-600 bg-orange-100 p-2 rounded-md">
-          Este estabelecimento está pendente de aprovação e não está visível
-          publicamente.
-          <br />
-          Para ativar, clique em <b>Ativar/Assinar</b> e realize o pagamento da
-          assinatura.
+      {/* Conteúdo */}
+      <div className="p-5 pb-4 flex flex-col gap-2">
+        <h3 className="text-lg md:text-xl font-bold text-emerald-900 group-hover:text-emerald-700 transition-colors line-clamp-2 break-words mb-1">
+          {negocio.nome}
+        </h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-emerald-700/80 mb-1">
+          <span>{negocio.cidade}</span>
+          {negocio.categorias?.nome && (
+            <>
+              <span className="mx-1 text-emerald-400">•</span>
+              <span>{negocio.categorias.nome}</span>
+            </>
+          )}
         </div>
-      )}
+        <div className="flex gap-2 mt-2">
+          <Link
+            href={`/meu-negocio/editar/${negocio.id}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Editar
+          </Link>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(negocio.id, negocio.nome);
+            }}
+            className="inline-flex items-center gap-1 text-xs font-semibold bg-red-500 hover:bg-red-600 text-white py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative"
+          >
+            Excluir
+          </button>
+          {!negocio.ativo && (
+            <Link
+              href={`/pagamento-assinatura?negocioId=${negocio.id}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Ativar/Assinar
+            </Link>
+          )}
+        </div>
+        {!negocio.ativo && (
+          <div className="mt-3 text-xs text-orange-700 bg-orange-50 p-2 rounded-xl border border-orange-200">
+            Este estabelecimento está pendente de aprovação e não está visível
+            publicamente.
+            <br />
+            Para ativar, clique em <b>Ativar/Assinar</b> e realize o pagamento
+            da assinatura.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -235,53 +244,60 @@ export default function MeusNegociosPage() {
   }
 
   return (
-    <div className="max-w-5xl mt-25 mx-auto p-6 md:p-8">
-      <div className="flex justify-between items-center mb-8 pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-green-800">
-          Meus Negocios
-        </h1>
-        <Link
-          href="/meu-negocio"
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-2 mx-1 rounded-md transition-colors button-primary"
-        >
-          + Novo Cadastro
-        </Link>
-      </div>
-
-      {loading && (
-        <p className="text-center text-green-600">
-          Carregando seus estabelecimentos...
-        </p>
-      )}
-      {error && (
-        <p className="text-center text-red-500 bg-red-100 p-3 rounded-md">
-          {error}
-        </p>
-      )}
-
-      {!loading && !error && negocios.length === 0 && (
-        <p className="text-center text-green-600 bg-blue-50 p-6 rounded-md">
-          Você ainda não cadastrou nenhum estabelecimento.{" "}
+    <div className="min-h-screen bg-white pb-16">
+      <div className="max-w-5xl mt-28 mx-auto px-4 md:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-10 pb-4 gap-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-emerald-900 tracking-tight drop-shadow-sm font-[MyriadPro,Inter,sans-serif]">
+            Meus Negócios
+          </h1>
           <Link
             href="/meu-negocio"
-            className="text-green-600 hover:text-green-700 font-semibold"
+            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-5 rounded-xl shadow transition-colors text-base md:text-lg"
           >
-            Clique aqui para cadastrar seu primeiro!
+            <span className="text-xl leading-none">+</span> Novo Cadastro
           </Link>
-        </p>
-      )}
-
-      {!loading && !error && negocios.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {negocios.map((negocio) => (
-            <NegocioCard
-              key={negocio.id}
-              negocio={negocio}
-              onDelete={handleDeleteNegocio}
-            />
-          ))}
         </div>
-      )}
+
+        {loading && (
+          <div className="flex justify-center items-center py-16">
+            <span className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600 mr-3"></span>
+            <span className="text-emerald-700 text-lg font-medium">
+              Carregando seus estabelecimentos...
+            </span>
+          </div>
+        )}
+        {error && (
+          <div className="text-center text-red-600 bg-red-100 p-4 rounded-xl font-medium max-w-xl mx-auto">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && negocios.length === 0 && (
+          <div className="text-center text-emerald-700 bg-emerald-50 p-8 rounded-2xl shadow max-w-xl mx-auto">
+            <span className="block text-lg font-semibold mb-2">
+              Você ainda não cadastrou nenhum estabelecimento.
+            </span>
+            <Link
+              href="/meu-negocio"
+              className="inline-block mt-2 text-emerald-700 hover:text-emerald-900 font-bold underline"
+            >
+              Clique aqui para cadastrar seu primeiro!
+            </Link>
+          </div>
+        )}
+
+        {!loading && !error && negocios.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+            {negocios.map((negocio) => (
+              <NegocioCard
+                key={negocio.id}
+                negocio={negocio}
+                onDelete={handleDeleteNegocio}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -232,6 +232,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/planos" className="hover:underline">
+                  Ver planos de anúncio
+                </Link>
+              </li>
+              <li>
                 <Link href="/sobre" className="hover:underline">
                   Sobre
                 </Link>

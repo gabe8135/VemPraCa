@@ -2,10 +2,10 @@
 
 export default function TermosDeUso() {
     return (
-      <div className="bg-gray-50 mt-25 py-12 md:py-16">
+      <div className="bg-gray-50 mt-16 sm:mt-20 py-8 md:py-12">
         <div className="container mx-auto px-4 max-w-3xl bg-white p-6 md:p-10 rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">
-            Termos de Uso da Plataforma VemPraCá↗
+          <h1 id="topo-termos" className="text-3xl font-bold text-gray-800 mb-6 border-b pb-3 scroll-mt-36 sm:scroll-mt-44">
+            Termos de Uso VemPraCá↗
           </h1>
   
           <p className="text-sm text-gray-500 mb-8">

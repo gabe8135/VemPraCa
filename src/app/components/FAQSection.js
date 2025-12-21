@@ -7,35 +7,34 @@ import { useState, useRef } from "react";
 // Meu array com as perguntas e respostas para o FAQ.
 const faqData = [
   {
-    question: "Como encontro o que preciso no VemPraCá↗?",
+    question: "Como faço para achar o que preciso no VemPraCá?",
     answer:
-      "É simples! Você pode navegar pela lista na página inicial, usar a barra de busca para procurar por nome ou cidade, ou clicar nas categorias para filtrar por tipo de estabelecimento ou negocio que procura.",
+      "É fácil! Você pode rolar a página inicial, usar a busca para digitar o nome ou cidade, ou clicar nas categorias para ver só o tipo de lugar que procura.",
   },
   {
-    question:
-      "Preciso pagar alguma taxa para usar a plataforma como alguem em busca de um serviço?",
+    question: "Preciso pagar para procurar serviços aqui?",
     answer:
-      "Não! O uso da plataforma para buscar e encontrar negocios é totalmente gratuito para os contratantes.",
+      "Não! Procurar e encontrar negócios no VemPraCá é totalmente grátis para quem está buscando um serviço.",
   },
   {
-    question: "Como entro em contato com o negocio que preciso?",
+    question: "Como falo com o lugar que quero?",
     answer:
-      "Ao clicar em um estabelecimento, você verá a página de detalhes com as informações de contato fornecidas pelo proprietário, como telefone, WhatsApp (se disponível) e, às vezes, um link para o site próprio ou redes sociais.",
+      "É só clicar no nome do lugar. Vai abrir uma página com telefone, WhatsApp (se tiver) e, às vezes, site ou redes sociais para você falar direto.",
   },
   {
-    question: "Tenho meu empreendimento, como cadastro meu negocio?",
+    question: "Tenho um negócio. Como faço para aparecer aqui?",
     answer:
-      'Primeiro, crie uma conta e faça login na plataforma. Depois, acesse a seção "Meus Negócios" no menu. Se você ainda não tiver um estabelecimento cadastrado, verá um formulário para preencher com todas as informações e fotos.',
+      "Primeiro, crie sua conta e faça login. Depois, vá em 'Meus Negócios' no menu e preencha o cadastro com as informações e fotos do seu negócio.",
   },
   {
-    question: "Qual o custo para cadastrar meu estabelecimento?",
+    question: "Quanto custa para cadastrar meu negócio?",
     answer:
-      "Oferecemos diferentes planos de assinatura para manter seu estabelecimento ativo e visível em nossa plataforma. Atualmente temos planos mensais e anuais ambos com trinta dias gratuitos!. Entre em contato ou visite nossa seção de planos para proprietários para mais detalhes.",
+      "Temos planos mensais e anuais! Veja os detalhes na página de planos ou fale com a gente.",
   },
   {
-    question: "Como posso editar as informações do meu negocio?",
+    question: "Como faço para mudar as informações do meu negócio?",
     answer:
-      'Após fazer login, vá até "Meus Negócios". Se seu estabelecimento já estiver cadastrado, você será direcionado para a página de detalhes dele, onde encontrará opções para editar as informações, fotos e facilidades.',
+      "Depois de fazer login, vá em 'Meus Negócios'. Se já cadastrou seu negócio, vai aparecer a página dele e lá tem opção para editar tudo que quiser.",
   },
 ];
 
@@ -63,7 +62,10 @@ export default function FAQSection() {
               return (
                 <div
                   key={index}
-                  className={`group bg-white p-4 rounded-3xl shadow-sm hover:shadow-md transition duration-300 overflow-hidden`}
+                  className={`group bg-white p-4 rounded-3xl transition duration-300 overflow-hidden
+                    shadow-sm hover:shadow-md
+                    ${isOpen ? "shadow-2xl ring-2 ring-white-200" : ""}
+                  `}
                 >
                   <button
                     className="w-full flex justify-between items-center font-semibold text-gray-700 cursor-pointer list-none bg-transparent border-none outline-none"
