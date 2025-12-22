@@ -132,6 +132,8 @@ export default function MeuNegocioPage() {
   const [estadoSelecionado, setEstadoSelecionado] = useState("");
   const [cidades, setCidades] = useState([]);
   const [estados, setEstados] = useState([]);
+  // Checkbox de aceite dos termos
+  const [aceitouTermos, setAceitouTermos] = useState(false);
   // --- Horário de funcionamento (UI amigável) ---
   const defaultSchedule = useMemo(
     () => ({
@@ -1605,6 +1607,21 @@ export default function MeuNegocioPage() {
           </div>
 
           {/* Meu Botão de Submit. */}
+          {/* Checkbox de aceite dos termos de uso */}
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="aceitou-termos"
+              checked={aceitouTermos}
+              onChange={e => setAceitouTermos(e.target.checked)}
+              disabled={isSubmitting}
+              className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+              required
+            />
+            <label htmlFor="aceitou-termos" className="text-sm text-gray-700 select-none">
+              Eu li e aceito os <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="underline text-green-700 hover:text-green-900">Termos de Uso</a> da plataforma.
+            </label>
+          </div>
           <div className="pt-6">
             <button
               type="submit"
@@ -1612,14 +1629,13 @@ export default function MeuNegocioPage() {
                 isSubmitting ||
                 loadingInitialData ||
                 imageFiles.some((img) => img.uploading) ||
-                imageFiles.filter((img) => !img.error && (img.file || img.url))
-                  .length === 0
-              } // Desabilito se estiver submetendo, carregando dados, alguma imagem em upload, ou se não houver imagens válidas prontas para submit.
+                imageFiles.filter((img) => !img.error && (img.file || img.url)).length === 0 ||
+                !aceitouTermos
+              }
               className="w-full button-primary flex items-center justify-center py-3"
             >
               {isSubmitting ? (
                 <>
-                  {" "}
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
@@ -1639,8 +1655,8 @@ export default function MeuNegocioPage() {
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
-                  </svg>{" "}
-                  Processando...{" "}
+                  </svg>
+                  Processando...
                 </>
               ) : (
                 "Cadastrar Estabelecimento"
