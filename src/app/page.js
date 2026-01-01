@@ -62,6 +62,9 @@ function BusinessList() {
     };
   }, []);
 
+  // Estado para alternar agrupamento por categoria
+  const [groupByCategory, setGroupByCategory] = useState(false);
+
   // Atualizar cidades disponíveis baseado nos negócios cadastrados em SP
   useEffect(() => {
     if (businesses.length > 0) {
@@ -415,45 +418,87 @@ function BusinessList() {
                 `}</style>
               </div>
             )}
+            {/* Botão para alternar agrupamento por categoria */}
+            <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto flex justify-end items-center gap-3 mb-6">
+              <span className="text-sm font-semibold text-emerald-700 mr-2">
+                Agrupar por categoria
+              </span>
+              <button
+                onClick={() => setGroupByCategory((v) => !v)}
+                className={`relative flex items-center h-7 w-12 px-0.5 rounded-full border-2 transition-colors duration-300 focus:outline-none shadow-md
+                  ${
+                    groupByCategory
+                      ? "bg-emerald-500 border-emerald-600"
+                      : "bg-white border-emerald-500"
+                  }`}
+                aria-pressed={groupByCategory}
+              >
+                <span
+                  className={`inline-block h-5 w-5 rounded-full shadow-lg transform transition-transform duration-300 border-2
+                    ${
+                      groupByCategory
+                        ? "bg-white border-emerald-500"
+                        : "bg-emerald-500 border-emerald-500"
+                    }
+                    ${groupByCategory ? "translate-x-5" : "translate-x-0"}`}
+                  style={{ zIndex: 3 }}
+                />
+              </button>
+            </div>
             {/* Grid dos demais estabelecimentos */}
             <div className="mb-4 text-center text-gray-600">
               {filteredBusinesses.length} estabelecimento
               {filteredBusinesses.length !== 1 ? "s" : ""} encontrado
               {filteredBusinesses.length !== 1 ? "s" : ""}
             </div>
-            {/* Negócios agrupados por categoria */}
+            {/* Negócios agrupados por categoria ou todos juntos */}
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
-              {(() => {
-                // Agrupa negócios por categoria
-                const grouped = {};
-                sortedBusinesses.forEach((b) => {
-                  const cat = b.nome_categoria || "Outros";
-                  if (!grouped[cat]) grouped[cat] = [];
-                  grouped[cat].push(b);
-                });
-                const orderedCats = Object.keys(grouped).sort((a, b) =>
-                  a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-                );
-                return orderedCats.map((cat) => (
-                  <div key={cat} className="mb-10">
-                    <h2 className="text-base sm:text-lg font-semibold text-emerald-700 mb-2 pl-1 tracking-tight">
-                      {cat}
-                    </h2>
-                    <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
-                      {grouped[cat].map((business) => (
-                        <Fade
-                          key={business.id}
-                          cascade={false}
-                          duration={260}
-                          triggerOnce
-                        >
-                          <BusinessCard business={business} />
-                        </Fade>
-                      ))}
+              {groupByCategory ? (
+                (() => {
+                  // Agrupa negócios por categoria
+                  const grouped = {};
+                  sortedBusinesses.forEach((b) => {
+                    const cat = b.nome_categoria || "Outros";
+                    if (!grouped[cat]) grouped[cat] = [];
+                    grouped[cat].push(b);
+                  });
+                  const orderedCats = Object.keys(grouped).sort((a, b) =>
+                    a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+                  );
+                  return orderedCats.map((cat) => (
+                    <div key={cat} className="mb-10">
+                      <h2 className="text-base sm:text-lg font-semibold text-emerald-700 mb-2 pl-1 tracking-tight">
+                        {cat}
+                      </h2>
+                      <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                        {grouped[cat].map((business) => (
+                          <Fade
+                            key={business.id}
+                            cascade={false}
+                            duration={260}
+                            triggerOnce
+                          >
+                            <BusinessCard business={business} />
+                          </Fade>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ));
-              })()}
+                  ));
+                })()
+              ) : (
+                <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                  {sortedBusinesses.map((business) => (
+                    <Fade
+                      key={business.id}
+                      cascade={false}
+                      duration={260}
+                      triggerOnce
+                    >
+                      <BusinessCard business={business} />
+                    </Fade>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}

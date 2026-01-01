@@ -1040,8 +1040,8 @@ export default function MeuNegocioPage() {
             submitStatus.type === "success"
               ? "bg-green-100 text-green-800"
               : submitStatus.type === "error"
-              ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+                ? "bg-red-100 text-red-800"
+                : "bg-blue-100 text-blue-800"
           }`}
         >
           {" "}
@@ -1613,13 +1613,25 @@ export default function MeuNegocioPage() {
               type="checkbox"
               id="aceitou-termos"
               checked={aceitouTermos}
-              onChange={e => setAceitouTermos(e.target.checked)}
+              onChange={(e) => setAceitouTermos(e.target.checked)}
               disabled={isSubmitting}
               className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
               required
             />
-            <label htmlFor="aceitou-termos" className="text-sm text-gray-700 select-none">
-              Eu li e aceito os <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="underline text-green-700 hover:text-green-900">Termos de Uso</a> da plataforma.
+            <label
+              htmlFor="aceitou-termos"
+              className="text-sm text-gray-700 select-none"
+            >
+              Eu li e aceito os{" "}
+              <a
+                href="/termos-de-uso"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-green-700 hover:text-green-900"
+              >
+                Termos de Uso
+              </a>{" "}
+              da plataforma.
             </label>
           </div>
           <div className="pt-6">
@@ -1629,7 +1641,8 @@ export default function MeuNegocioPage() {
                 isSubmitting ||
                 loadingInitialData ||
                 imageFiles.some((img) => img.uploading) ||
-                imageFiles.filter((img) => !img.error && (img.file || img.url)).length === 0 ||
+                imageFiles.filter((img) => !img.error && (img.file || img.url))
+                  .length === 0 ||
                 !aceitouTermos
               }
               className="w-full button-primary flex items-center justify-center py-3"

@@ -7,7 +7,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 // Um componente simples para exibir cada negócio (você pode estilizar melhor)
-function NegocioCard({ negocio, onDelete }) {
+function NegocioCard({
+  negocio,
+  onDelete,
+  onCancelScheduled,
+  onCancelImmediate,
+  onOpenPortal,
+  loadingActionId,
+}) {
   const router = useRouter();
 
   const handleCardClick = () => {
@@ -54,7 +61,7 @@ function NegocioCard({ negocio, onDelete }) {
             </>
           )}
         </div>
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 flex-wrap">
           <Link
             href={`/meu-negocio/editar/${negocio.id}`}
             className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative"
@@ -79,6 +86,47 @@ function NegocioCard({ negocio, onDelete }) {
             >
               Ativar/Assinar
             </Link>
+          )}
+          {/* Botões de assinatura Stripe: exibir quando há assinatura vinculada */}
+          {negocio.stripe_subscription_id && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancelScheduled(negocio.id);
+                }}
+                disabled={loadingActionId === negocio.id}
+                className="inline-flex items-center gap-1 text-xs font-semibold bg-yellow-500 hover:bg-yellow-600 text-white py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative disabled:opacity-50"
+                title="Cancelar ao fim do período atual"
+              >
+                {loadingActionId === negocio.id
+                  ? "Processando..."
+                  : "Cancelar (fim do período)"}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancelImmediate(negocio.id);
+                }}
+                disabled={loadingActionId === negocio.id}
+                className="inline-flex items-center gap-1 text-xs font-semibold bg-red-100 hover:bg-red-200 text-red-700 py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative disabled:opacity-50"
+                title="Cancelamento imediato"
+              >
+                {loadingActionId === negocio.id
+                  ? "Aguarde..."
+                  : "Cancelar agora"}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenPortal(negocio.id);
+                }}
+                className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 py-1.5 px-4 rounded-xl shadow transition-colors z-10 relative"
+                title="Gerenciar cobrança no Portal Stripe"
+              >
+                Gerenciar cobrança
+              </button>
+            </>
           )}
         </div>
         {!negocio.ativo && (
@@ -117,9 +165,12 @@ export default function MeusNegociosPage() {
           cidade,
           imagens,
           ativo,
+          is_visible,
+          stripe_subscription_id,
+          stripe_customer_id,
           categorias (nome) 
         `
-        ) // Incluindo o nome da categoria
+        ) // Incluindo campos de assinatura e visibilidade
         .eq("usuario_id", userId)
         .order("data_criacao", { ascending: false }); // CORRIGIDO: Usar data_criacao
 
@@ -143,6 +194,89 @@ export default function MeusNegociosPage() {
       setLoading(false);
     }
   }, []);
+  // Ações: cancelar assinatura (fim do período / imediato) e abrir portal
+  const [loadingActionId, setLoadingActionId] = useState(null);
+
+  const callAuthorizedApi = async (url, payload) => {
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session?.access_token) {
+      throw new Error(
+        sessionError?.message || "Sessão inválida. Faça login novamente."
+      );
+    }
+    const accessToken = sessionData.session.access_token;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Operação falhou.");
+    return json;
+  };
+
+  const handleCancelScheduled = async (negocioId) => {
+    try {
+      setLoadingActionId(negocioId);
+      await callAuthorizedApi("/api/stripe/subscription/cancel", {
+        negocioId,
+        immediate: false,
+      });
+      alert(
+        "Cancelamento agendado ao fim do período. Seu negócio permanecerá visível até o término."
+      );
+      // Opcional: atualizar lista
+      fetchUserBusinesses(user.id);
+    } catch (err) {
+      console.error("Erro ao agendar cancelamento:", err);
+      alert(err.message || "Falha ao agendar cancelamento.");
+    } finally {
+      setLoadingActionId(null);
+    }
+  };
+
+  const handleCancelImmediate = async (negocioId) => {
+    try {
+      if (
+        !window.confirm(
+          "Tem certeza que deseja cancelar imediatamente? O acesso será removido agora."
+        )
+      ) {
+        return;
+      }
+      setLoadingActionId(negocioId);
+      await callAuthorizedApi("/api/stripe/subscription/cancel", {
+        negocioId,
+        immediate: true,
+      });
+      alert("Assinatura cancelada imediatamente e visibilidade desativada.");
+      fetchUserBusinesses(user.id);
+    } catch (err) {
+      console.error("Erro ao cancelar imediatamente:", err);
+      alert(err.message || "Falha ao cancelar assinatura.");
+    } finally {
+      setLoadingActionId(null);
+    }
+  };
+
+  const handleOpenPortal = async (negocioId) => {
+    try {
+      setLoadingActionId(negocioId);
+      const { url } = await callAuthorizedApi("/api/stripe/portal", {
+        negocioId,
+      });
+      window.location.href = url;
+    } catch (err) {
+      console.error("Erro ao abrir portal:", err);
+      alert(err.message || "Falha ao abrir o portal de cobrança.");
+    } finally {
+      setLoadingActionId(null);
+    }
+  };
 
   // Efeito para verificar usuário e buscar negócios
   useEffect(() => {
@@ -293,6 +427,10 @@ export default function MeusNegociosPage() {
                 key={negocio.id}
                 negocio={negocio}
                 onDelete={handleDeleteNegocio}
+                onCancelScheduled={handleCancelScheduled}
+                onCancelImmediate={handleCancelImmediate}
+                onOpenPortal={handleOpenPortal}
+                loadingActionId={loadingActionId}
               />
             ))}
           </div>
