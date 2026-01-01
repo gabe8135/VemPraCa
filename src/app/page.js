@@ -419,31 +419,33 @@ function BusinessList() {
               </div>
             )}
             {/* Botão para alternar agrupamento por categoria */}
-            <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto flex justify-end items-center gap-3 mb-6">
-              <span className="text-sm font-semibold text-emerald-700 mr-2">
-                Agrupar por categoria
-              </span>
-              <button
-                onClick={() => setGroupByCategory((v) => !v)}
-                className={`relative flex items-center h-7 w-12 px-0.5 rounded-full border-2 transition-colors duration-300 focus:outline-none shadow-md
-                  ${
-                    groupByCategory
-                      ? "bg-emerald-500 border-emerald-600"
-                      : "bg-white border-emerald-500"
-                  }`}
-                aria-pressed={groupByCategory}
-              >
-                <span
-                  className={`inline-block h-5 w-5 rounded-full shadow-lg transform transition-transform duration-300 border-2
+            <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto flex flex-col sm:flex-row sm:justify-end items-center gap-2 sm:gap-3 mb-6">
+              <div className="flex items-center justify-center w-full sm:w-auto mb-2 sm:mb-0">
+                <span className="text-sm font-semibold text-emerald-700 mr-2">
+                  Agrupar por categoria
+                </span>
+                <button
+                  onClick={() => setGroupByCategory((v) => !v)}
+                  className={`relative flex items-center h-7 w-12 px-0.5 rounded-full border-2 transition-colors duration-300 focus:outline-none shadow-md
                     ${
                       groupByCategory
-                        ? "bg-white border-emerald-500"
-                        : "bg-emerald-500 border-emerald-500"
-                    }
-                    ${groupByCategory ? "translate-x-5" : "translate-x-0"}`}
-                  style={{ zIndex: 3 }}
-                />
-              </button>
+                        ? "bg-emerald-500 border-emerald-600"
+                        : "bg-white border-emerald-500"
+                    }`}
+                  aria-pressed={groupByCategory}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full shadow-lg transform transition-transform duration-300 border-2
+                      ${
+                        groupByCategory
+                          ? "bg-white border-emerald-500"
+                          : "bg-emerald-500 border-emerald-500"
+                      }
+                      ${groupByCategory ? "translate-x-5" : "translate-x-0"}`}
+                    style={{ zIndex: 3 }}
+                  />
+                </button>
+              </div>
             </div>
             {/* Grid dos demais estabelecimentos */}
             <div className="mb-4 text-center text-gray-600">
