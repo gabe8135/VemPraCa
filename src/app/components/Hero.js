@@ -128,11 +128,7 @@ export default function Hero() {
               quality={45}
               sizes="(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 1536px"
               loading={
-                isPriorityImage
-                  ? undefined
-                  : isCurrentImage
-                    ? "eager"
-                    : "lazy"
+                isPriorityImage ? undefined : isCurrentImage ? "eager" : "lazy"
               }
               fetchPriority={isPriorityImage ? "high" : "auto"}
               className="object-cover"
