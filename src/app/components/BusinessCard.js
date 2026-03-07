@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { FaStar } from "react-icons/fa";
 import { Fade } from "react-awesome-reveal";
 
 export default function BusinessCard({ business, compact = false }) {
@@ -38,7 +37,8 @@ export default function BusinessCard({ business, compact = false }) {
             alt={`Foto de ${nome}`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 640px) 48vw, (max-width: 1024px) 33vw, (max-width: 1536px) 24vw, 320px"
+            quality={45}
             onError={() => setFallbackImg(true)}
           />
           {/* Selo flutuante */}
@@ -51,7 +51,16 @@ export default function BusinessCard({ business, compact = false }) {
           <div
             className={`absolute top-2 right-2 flex items-center bg-white/90 text-amber-700 ${compact ? "text-[11px] md:text-xs" : "text-xs md:text-sm"} font-bold px-2 py-1 rounded-full shadow`}
           >
-            <FaStar className="mr-1 text-amber-500" />
+            <svg
+              className="mr-1 text-amber-500"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M12 2.75l2.78 5.63 6.22.9-4.5 4.38 1.06 6.2L12 17l-5.56 2.86 1.06-6.2-4.5-4.38 6.22-.9L12 2.75z" />
+            </svg>
             <span>{rating ? rating : "--"}</span>
           </div>
         </div>

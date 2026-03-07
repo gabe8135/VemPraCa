@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import Image from "next/image";
-import Header from "./Header";
 import { useEffect, useState, useMemo } from "react";
 import { FiSearch, FiBriefcase } from "react-icons/fi";
 
@@ -50,51 +49,72 @@ export default function Hero() {
       "/img/HERO-2.webp",
       "/img/HERO-1.webp",
     ],
-    []
+    [],
   );
   const [current, setCurrent] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  // Pré-carrega a primeira imagem (usando next/image priority) e carrega as demais de forma lazy
-  useEffect(() => {
-    setLoading(false); // next/image cuida do carregamento e prioridade
-  }, []);
+  const [previous, setPrevious] = useState(null);
 
   useEffect(() => {
-    if (loading) return;
     const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % images.length);
+      setCurrent((prev) => {
+        setPrevious(prev);
+        return (prev + 1) % images.length;
+      });
     }, 4000); // Troca a cada 4 segundos
     return () => clearInterval(interval);
-  }, [images.length, loading]);
+  }, [images.length]);
+
+  useEffect(() => {
+    if (previous === null) return;
+    const timeoutId = setTimeout(() => {
+      setPrevious(null);
+    }, 1200);
+    return () => clearTimeout(timeoutId);
+  }, [previous]);
+
+  const visibleIndices = useMemo(() => {
+    const indices = [current];
+    if (previous !== null && previous !== current) indices.push(previous);
+    return indices;
+  }, [current, previous]);
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden rounded-b-3xl">
       {/* Carrossel de fundo animado otimizado com next/image */}
-      {images.map((img, idx) => (
-        <div
-          key={img}
-          className="absolute inset-0 w-full h-full"
-          style={{
-            opacity: idx === current ? 1 : 0,
-            zIndex: 0,
-            pointerEvents: "none",
-            transition: "opacity 1.2s cubic-bezier(0.4,0,0.2,1)",
-            willChange: "opacity",
-          }}
-        >
-          <Image
-            src={img}
-            alt="Banner"
-            fill
-            priority={idx === 0}
-            quality={70}
-            sizes="100vw"
-            className="object-cover"
-            draggable={false}
-          />
-        </div>
-      ))}
+      {visibleIndices.map((idx) => {
+        // A primeira imagem fica sempre com preload (priority), sem atributo loading.
+        // As demais seguem eager/lazy conforme estado do carrossel.
+        const isPriorityImage = idx === 0;
+
+        return (
+          <div
+            key={`${images[idx]}-${idx}`}
+            className="absolute inset-0 w-full h-full"
+            style={{
+              opacity: idx === current ? 1 : 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              transition: "opacity 1.2s cubic-bezier(0.4,0,0.2,1)",
+              willChange: "opacity",
+            }}
+          >
+            <Image
+              src={images[idx]}
+              alt="Banner"
+              fill
+              priority={isPriorityImage}
+              quality={45}
+              sizes="(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 1536px"
+              loading={
+                isPriorityImage ? undefined : idx === current ? "eager" : "lazy"
+              }
+              fetchPriority={isPriorityImage ? "high" : "auto"}
+              className="object-cover"
+              draggable={false}
+            />
+          </div>
+        );
+      })}
       {/* Overlay para contraste e foco na mensagem */}
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.18),rgba(0,0,0,0.28)_30%,rgba(0,0,0,0.22)_65%,rgba(0,0,0,0.12))] z-0" />
 

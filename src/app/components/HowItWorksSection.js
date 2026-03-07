@@ -2,31 +2,31 @@
 "use client";
 
 import Link from "next/link"; // Preciso do Link para o botão "Saiba mais".
-import { FaSearch, FaHotel, FaWhatsapp, FaEdit } from "react-icons/fa"; // Importando ícones do react-icons para substituir os emojis.
+import { FiSearch, FiHome, FiMessageCircle, FiEdit2 } from "react-icons/fi";
 import { Fade } from "react-awesome-reveal";
 
 // Meus passos de "Como Funciona".
 const steps = [
   {
-    icon: <FaSearch className="text-emerald-600 drop-shadow-lg" />,
+    icon: <FiSearch className="text-emerald-600 drop-shadow-lg" />,
     title: "Encontre o lugar",
     description: "Procure o destino que você quer conhecer.",
     target: "viajante",
   },
   {
-    icon: <FaHotel className="text-emerald-600 drop-shadow-lg" />,
+    icon: <FiHome className="text-emerald-600 drop-shadow-lg" />,
     title: "Veja as opções",
     description: "Veja fotos e o que cada lugar oferece.",
     target: "viajante",
   },
   {
-    icon: <FaWhatsapp className="text-emerald-600 drop-shadow-lg" />,
+    icon: <FiMessageCircle className="text-emerald-600 drop-shadow-lg" />,
     title: "Fale direto",
     description: "Converse pelo WhatsApp para tirar dúvidas ou reservar.",
     target: "viajante",
   },
   {
-    icon: <FaEdit className="text-emerald-600 drop-shadow-lg" />,
+    icon: <FiEdit2 className="text-emerald-600 drop-shadow-lg" />,
     title: "Ou cadastre seu negócio",
     description: "Tem um local? Cadastre grátis e receba visitantes.",
     target: "proprietario",

@@ -6,12 +6,12 @@ import { Fade } from "react-awesome-reveal";
 import { supabase, isSupabaseConfigured } from "@/app/lib/supabaseClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import * as Tabs from "@radix-ui/react-tabs";
+import BrandLoader from "@/app/components/BrandLoader";
 
 export default function CategoriesSection() {
   const [categoriesData, setCategoriesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [businesses, setBusinesses] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const selectedCategory = searchParams.get("categoria") || "todas";
@@ -29,7 +29,7 @@ export default function CategoriesSection() {
       try {
         if (!isSupabaseConfigured) {
           throw new Error(
-            "Supabase não configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY."
+            "Supabase não configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.",
           );
         }
         const [
@@ -47,20 +47,19 @@ export default function CategoriesSection() {
         ]);
         if (catError) throw catError;
         if (busError) throw busError;
-        setBusinesses(businesses || []);
         // Filtrar categorias que possuem negócios
         const categoriaIdsComNegocios = new Set(
-          (businesses || []).map((b) => b.categoria_id)
+          (businesses || []).map((b) => b.categoria_id),
         );
         const categoriasComNegocios = (categories || []).filter((cat) =>
-          categoriaIdsComNegocios.has(cat.id)
+          categoriaIdsComNegocios.has(cat.id),
         );
         setCategoriesData(categoriasComNegocios);
       } catch (err) {
         setError(
           err?.message?.includes("Supabase")
             ? "Variáveis do Supabase não estão configuradas no ambiente local."
-            : "Não foi possível carregar as categorias."
+            : "Não foi possível carregar as categorias.",
         );
       } finally {
         setLoading(false);
@@ -68,9 +67,6 @@ export default function CategoriesSection() {
     };
     fetchCategoriesAndBusinesses();
   }, []);
-
-  // Ref opcional para medições futuras (sem comportamento extra de scroll)
-  const tabsListRef = useRef(null);
 
   // Atualiza o highlight para o trigger ativo
   const updateHighlight = () => {
@@ -116,11 +112,15 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section id="categories" className="pb-8 pt-1 bg-white">
+    <section id="categories" className="pb-8 pt-1 bg-white" aria-busy={loading}>
       <div className="container mx-auto px-4">
         {/* Feedback de loading e erro. */}
         {loading && (
-          <p className="text-center text-gray-500">Carregando categorias...</p>
+          <BrandLoader
+            size="sm"
+            message="Carregando categorias..."
+            className="py-2"
+          />
         )}
         {error && <p className="text-center text-red-500">{error}</p>}
         {!loading && !error && (
@@ -135,6 +135,7 @@ export default function CategoriesSection() {
               className="flex gap-2 overflow-x-auto scrollbar-hide bg-gray-50 rounded-full p-2 max-w-full"
               style={{ WebkitOverflowScrolling: "touch" }}
               tabIndex={0}
+              aria-label="Categorias de estabelecimentos"
             >
               <Fade cascade damping={0.15} triggerOnce>
                 {/* Wrapper do conteúdo rolável com posição relativa para o highlight */}
@@ -183,6 +184,22 @@ export default function CategoriesSection() {
                 </div>
               </Fade>
             </Tabs.List>
+
+            {/* Conteúdos mínimos para manter a estrutura ARIA completa do Tabs */}
+            <div className="sr-only" aria-live="polite">
+              <Tabs.Content value="todas" forceMount>
+                Categoria selecionada: Todas
+              </Tabs.Content>
+              {categoriesData.map((cat) => (
+                <Tabs.Content
+                  key={`content-${cat.id}`}
+                  value={cat.slug}
+                  forceMount
+                >
+                  Categoria selecionada: {cat.nome}
+                </Tabs.Content>
+              ))}
+            </div>
           </Tabs.Root>
         )}
       </div>

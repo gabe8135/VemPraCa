@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import imageCompression from 'browser-image-compression';
 import LoadingModal from '@/app/components/LoadingModal'; // 1. Importar o LoadingModal
 import { FaTrash } from 'react-icons/fa';
+import BrandLoader from '@/app/components/BrandLoader';
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de cadastro) ---
 function InputField({ label, name, value, onChange, required = false, placeholder = '', type = 'text', disabled = false, ...props }) {
@@ -697,7 +698,7 @@ export default function EditarNegocioPage() {
 
 
   // --- Minha Renderização ---
-  if (loading) return <div className="text-center p-10">Carregando dados para edição...</div>;
+  if (loading) return <BrandLoader fullScreen message="Carregando dados para edição..." />;
   // Se deu erro ao carregar o negócio (permissão, não encontrado, etc.), mostro a mensagem.
   if (!negocioOriginal && !loading) return <div className="p-6 text-red-600 bg-red-100 rounded-md text-center">{submitStatus.message || 'Erro ao carregar estabelecimento.'}</div>;
 
@@ -736,7 +737,7 @@ export default function EditarNegocioPage() {
 
       {/* Meu Formulário de Edição. */}
       {loadingInitialData ? ( // Mostro um loading para as opções do formulário (categorias, características).
-          <div className="text-center p-10">Carregando opções do formulário...</div>
+          <BrandLoader size="sm" message="Carregando opções do formulário..." className="py-8" />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Seção 1: Informações Básicas */}

@@ -10,7 +10,7 @@ export async function POST(req) {
   if (!webhookSecret || !secretKey) {
     return NextResponse.json(
       { error: "STRIPE_WEBHOOK_SECRET/STRIPE_SECRET_KEY ausentes" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -99,7 +99,7 @@ export async function POST(req) {
     console.error(err);
     return NextResponse.json(
       { error: "Webhook handler failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

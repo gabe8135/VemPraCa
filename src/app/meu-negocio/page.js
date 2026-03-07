@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import imageCompression from "browser-image-compression";
 import LoadingModal from "@/app/components/LoadingModal"; // Importo o novo modal.
 import QRCodeGenerator from "@/app/components/QRCodeGenerator";
+import BrandLoader from "@/app/components/BrandLoader";
 
 // --- Meus Componentes Auxiliares (Reutilizados do formulário de edição) ---
 function InputField({
@@ -140,7 +141,7 @@ export default function MeuNegocioPage() {
       timezone: "America/Sao_Paulo",
       days: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
     }),
-    []
+    [],
   );
   const [schedule, setSchedule] = useState(defaultSchedule);
 
@@ -178,7 +179,7 @@ export default function MeuNegocioPage() {
       days: {
         ...prev.days,
         [day]: (prev.days[day] || []).map((it, i) =>
-          i === idx ? { ...it, [field]: value } : it
+          i === idx ? { ...it, [field]: value } : it,
         ),
       },
     }));
@@ -231,7 +232,7 @@ export default function MeuNegocioPage() {
       Object.entries(sch.days).map(([k, v]) => [
         k,
         (v || []).map((it) => [it.start || "00:00", it.end || "00:00"]),
-      ])
+      ]),
     );
     return { timezone: sch.timezone || "America/Sao_Paulo", days };
   };
@@ -254,7 +255,7 @@ export default function MeuNegocioPage() {
         console.error("Erro Supabase ao buscar categorias:", catRes.error);
         throw new Error(
           catRes.error.message ||
-            `Erro ao buscar categorias: ${catRes.error.code || "desconhecido"}`
+            `Erro ao buscar categorias: ${catRes.error.code || "desconhecido"}`,
         );
       }
       setCategorias(catRes.data || []);
@@ -263,13 +264,13 @@ export default function MeuNegocioPage() {
       if (caracRes.error) {
         console.error(
           "Erro Supabase ao buscar características:",
-          caracRes.error
+          caracRes.error,
         );
         throw new Error(
           caracRes.error.message ||
             `Erro ao buscar características: ${
               caracRes.error.code || "desconhecido"
-            }`
+            }`,
         );
       }
       setAllCharacteristics(caracRes.data || []);
@@ -277,11 +278,11 @@ export default function MeuNegocioPage() {
       if (relRes.error) {
         console.error(
           "Erro Supabase ao buscar relações característica-categoria:",
-          relRes.error
+          relRes.error,
         );
         throw new Error(
           relRes.error.message ||
-            `Erro ao buscar relações: ${relRes.error.code || "desconhecido"}`
+            `Erro ao buscar relações: ${relRes.error.code || "desconhecido"}`,
         );
       }
       setCaracteristicaCategoriaRelations(relRes.data || []);
@@ -289,7 +290,7 @@ export default function MeuNegocioPage() {
       // Agora 'error' será uma instância de Error com uma mensagem útil.
       console.error(
         "Erro ao buscar dados iniciais do formulário:",
-        error.message
+        error.message,
       ); // Logamos a mensagem do erro.
       // A mensagem para o usuário já usa error.message, o que é bom.
       // Adicionamos um fallback caso error.message seja undefined por algum motivo.
@@ -329,7 +330,7 @@ export default function MeuNegocioPage() {
       if (profileError && profileError.code !== "PGRST116") {
         console.error(
           "Erro ao buscar perfil do usuário no cadastro:",
-          profileError
+          profileError,
         );
         // Não é fatal para o carregamento do formulário, mas pode impactar o preenchimento do nome do proprietário
       }
@@ -355,7 +356,7 @@ export default function MeuNegocioPage() {
       console.log("🌎 [MeuNegocio] Iniciando carregamento dos estados...");
       try {
         const response = await fetch(
-          "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome"
+          "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome",
         );
 
         if (!response.ok) {
@@ -366,7 +367,7 @@ export default function MeuNegocioPage() {
         console.log(
           "✅ [MeuNegocio] Estados carregados:",
           data.length,
-          "estados"
+          "estados",
         );
         setEstados(data || []);
       } catch (error) {
@@ -383,7 +384,7 @@ export default function MeuNegocioPage() {
     const carregarCidades = async () => {
       if (!estadoSelecionado) {
         console.log(
-          "🏙️ [MeuNegocio] Nenhum estado selecionado, limpando cidades"
+          "🏙️ [MeuNegocio] Nenhum estado selecionado, limpando cidades",
         );
         setCidades([]);
         setFormState((prev) => ({ ...prev, cidade: "" }));
@@ -392,11 +393,11 @@ export default function MeuNegocioPage() {
 
       console.log(
         "🏙️ [MeuNegocio] Carregando cidades para o estado ID:",
-        estadoSelecionado
+        estadoSelecionado,
       );
       try {
         const response = await fetch(
-          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios?orderBy=nome`
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios?orderBy=nome`,
         );
 
         if (!response.ok) {
@@ -407,7 +408,7 @@ export default function MeuNegocioPage() {
         console.log(
           "✅ [MeuNegocio] Cidades carregadas:",
           data.length,
-          "cidades"
+          "cidades",
         );
         setCidades(data || []);
       } catch (error) {
@@ -436,7 +437,7 @@ export default function MeuNegocioPage() {
       (prev) =>
         prev.includes(caracteristicaId)
           ? prev.filter((id) => id !== caracteristicaId) // Se já está, remove.
-          : [...prev, caracteristicaId] // Se não está, adiciona.
+          : [...prev, caracteristicaId], // Se não está, adiciona.
     );
   };
 
@@ -452,7 +453,7 @@ export default function MeuNegocioPage() {
 
     const newFilesToAdd = selectedFiles.slice(
       0,
-      MAX_IMAGES_PER_BUSINESS - imageFiles.length
+      MAX_IMAGES_PER_BUSINESS - imageFiles.length,
     );
 
     const newImageObjects = newFilesToAdd.map((file) => {
@@ -460,7 +461,7 @@ export default function MeuNegocioPage() {
       const originalFileName = generateUniqueFileName(file);
       const blobURL = URL.createObjectURL(file); // Cria a URL temporária para preview
       console.log(
-        `Processando arquivo (MeuNegocioPage): Nome: ${file.name}, Tipo: ${file.type}, BlobURL: ${blobURL}`
+        `Processando arquivo (MeuNegocioPage): Nome: ${file.name}, Tipo: ${file.type}, BlobURL: ${blobURL}`,
       );
       return {
         id,
@@ -495,7 +496,7 @@ export default function MeuNegocioPage() {
     const imageToRemove = imageFiles.find((img) => img.id === idToRemove);
     if (!imageToRemove) {
       console.warn(
-        `Tentativa de remover imagem com ID não encontrado: ${idToRemove}`
+        `Tentativa de remover imagem com ID não encontrado: ${idToRemove}`,
       );
       return;
     }
@@ -504,7 +505,7 @@ export default function MeuNegocioPage() {
     if (imageToRemove.preview && imageToRemove.preview.startsWith("blob:")) {
       URL.revokeObjectURL(imageToRemove.preview);
       console.log(
-        `Blob URL revogada (remoção manual MeuNegocioPage) para imagem ID ${idToRemove}: ${imageToRemove.preview}`
+        `Blob URL revogada (remoção manual MeuNegocioPage) para imagem ID ${idToRemove}: ${imageToRemove.preview}`,
       );
     }
 
@@ -515,10 +516,10 @@ export default function MeuNegocioPage() {
       } else {
         const oldMainImageId = prevFiles[mainImageIndex]?.id;
         const newPotentialMainIndex = updatedFiles.findIndex(
-          (img) => img.id === oldMainImageId
+          (img) => img.id === oldMainImageId,
         );
         setMainImageIndex(
-          newPotentialMainIndex !== -1 ? newPotentialMainIndex : 0
+          newPotentialMainIndex !== -1 ? newPotentialMainIndex : 0,
         );
       }
       return updatedFiles;
@@ -530,7 +531,7 @@ export default function MeuNegocioPage() {
   const handleSetMainImage = (idToSetMain) => {
     // Quando o usuário define uma imagem como principal.
     const indexToSetMain = imageFiles.findIndex(
-      (img) => img.id === idToSetMain
+      (img) => img.id === idToSetMain,
     );
     // Só permito se a imagem não estiver em upload.
     if (indexToSetMain !== -1 && !imageFiles[indexToSetMain]?.uploading) {
@@ -561,11 +562,11 @@ export default function MeuNegocioPage() {
         prev.map((i) =>
           i.id === imgState.id
             ? { ...i, uploading: true, statusText: "Otimizando..." }
-            : i
-        )
+            : i,
+        ),
       );
       console.log(
-        `Iniciando compressão para: ${webpFileName} (MeuNegocioPage)`
+        `Iniciando compressão para: ${webpFileName} (MeuNegocioPage)`,
       );
 
       try {
@@ -581,16 +582,16 @@ export default function MeuNegocioPage() {
           `Compressão de ${webpFileName} concluída. Tamanho: ${(
             compressedFile.size /
             (1024 * 1024)
-          ).toFixed(2)} MB (MeuNegocioPage)`
+          ).toFixed(2)} MB (MeuNegocioPage)`,
         );
 
         setImageFiles((prev) =>
           prev.map((i) =>
-            i.id === imgState.id ? { ...i, statusText: "Enviando..." } : i
-          )
+            i.id === imgState.id ? { ...i, statusText: "Enviando..." } : i,
+          ),
         );
         console.log(
-          `Enviando ${webpFileName} para Supabase Storage... (MeuNegocioPage)`
+          `Enviando ${webpFileName} para Supabase Storage... (MeuNegocioPage)`,
         );
 
         const { error: uploadError } = await supabase.storage
@@ -602,7 +603,7 @@ export default function MeuNegocioPage() {
         if (uploadError) {
           console.error(
             `Erro no upload para Supabase (${webpFileName}):`,
-            uploadError
+            uploadError,
           );
           throw uploadError;
         }
@@ -612,14 +613,14 @@ export default function MeuNegocioPage() {
         } = supabase.storage.from("imagens").getPublicUrl(filePath);
         if (!publicUrl) {
           console.error(
-            `Não foi possível obter URL pública para ${webpFileName}`
+            `Não foi possível obter URL pública para ${webpFileName}`,
           );
           throw new Error("URL pública não encontrada.");
         }
 
         uploadedUrlsMap.set(imgState.id, publicUrl);
         console.log(
-          `Upload bem-sucedido para ${webpFileName}. URL pública obtida: ${publicUrl} (MeuNegocioPage)`
+          `Upload bem-sucedido para ${webpFileName}. URL pública obtida: ${publicUrl} (MeuNegocioPage)`,
         );
 
         // Revoga a Blob URL (seja a original ou a comprimida) agora que temos a URL pública
@@ -629,7 +630,7 @@ export default function MeuNegocioPage() {
               if (i.preview?.startsWith("blob:")) {
                 URL.revokeObjectURL(i.preview);
                 console.log(
-                  `Blob URL revogada após upload bem-sucedido: ${i.preview} (MeuNegocioPage)`
+                  `Blob URL revogada após upload bem-sucedido: ${i.preview} (MeuNegocioPage)`,
                 );
               }
               return {
@@ -645,17 +646,17 @@ export default function MeuNegocioPage() {
               };
             }
             return i;
-          })
+          }),
         ); // Fim do setImageFiles para sucesso
         console.log(
-          `Upload de ${webpFileName} concluído. URL: ${publicUrl} (MeuNegocioPage)`
+          `Upload de ${webpFileName} concluído. URL: ${publicUrl} (MeuNegocioPage)`,
         );
         return { id: imgState.id, success: true, url: publicUrl };
       } catch (error) {
         // Este é o único catch para o try acima
         console.error(
           `Erro no processo de ${file.name} -> ${webpFileName}:`,
-          error
+          error,
         );
         localUploadErrors.push({
           id: imgState.id,
@@ -671,7 +672,7 @@ export default function MeuNegocioPage() {
               if (i.preview?.startsWith("blob:")) {
                 URL.revokeObjectURL(i.preview);
                 console.log(
-                  `Blob URL revogada em caso de erro (uploadAndCompressImages): ${i.preview} (MeuNegocioPage)`
+                  `Blob URL revogada em caso de erro (uploadAndCompressImages): ${i.preview} (MeuNegocioPage)`,
                 );
               }
               // Atualiza o estado com erro e limpa o arquivo local
@@ -685,7 +686,7 @@ export default function MeuNegocioPage() {
               };
             }
             return i; // Mantém as outras imagens como estão
-          })
+          }),
         ); // Fim do setImageFiles para erro
         return { id: imgState.id, success: false, error: error.message };
       }
@@ -729,7 +730,7 @@ export default function MeuNegocioPage() {
       validImagesForSubmit[currentMainIndex]?.uploading
     ) {
       const firstValidIndex = imageFiles.findIndex(
-        (img) => !img.error && !img.uploading && img.url
+        (img) => !img.error && !img.uploading && img.url,
       );
       if (firstValidIndex === -1) {
         // Se não achar nenhuma, erro.
@@ -758,7 +759,7 @@ export default function MeuNegocioPage() {
     let finalImageUrls = [];
     try {
       const imagesToUploadNow = validImagesForSubmit.filter(
-        (img) => !img.uploaded && img.file
+        (img) => !img.uploaded && img.file,
       );
       let uploadedUrlsMap = new Map();
       if (imagesToUploadNow.length > 0) {
@@ -767,7 +768,7 @@ export default function MeuNegocioPage() {
           type: "loading",
         });
         console.log(
-          `Iniciando upload para ${imagesToUploadNow.length} novas imagens... (MeuNegocioPage)`
+          `Iniciando upload para ${imagesToUploadNow.length} novas imagens... (MeuNegocioPage)`,
         );
         uploadedUrlsMap = await uploadAndCompressImages(imagesToUploadNow);
       }
@@ -790,12 +791,12 @@ export default function MeuNegocioPage() {
         })
         .filter((img) => !img.error && img.url); // Filtra apenas as imagens que foram processadas com sucesso e têm URL
       console.log(
-        `Imagens processadas com sucesso e com URL: ${successfullyProcessedImages.length} (MeuNegocioPage)`
+        `Imagens processadas com sucesso e com URL: ${successfullyProcessedImages.length} (MeuNegocioPage)`,
       );
 
       if (successfullyProcessedImages.length === 0) {
         throw new Error(
-          "Nenhuma imagem válida restou após o processamento. Adicione ou corrija as imagens."
+          "Nenhuma imagem válida restou após o processamento. Adicione ou corrija as imagens.",
         );
       }
       setImageFiles(successfullyProcessedImages);
@@ -804,12 +805,12 @@ export default function MeuNegocioPage() {
       // Se a imagem principal original ainda existe, mantenha-a. Senão, use a primeira.
       const originalMainImageId = imageFiles[mainImageIndex]?.id;
       let finalMainImageIndex = successfullyProcessedImages.findIndex(
-        (img) => img.id === originalMainImageId
+        (img) => img.id === originalMainImageId,
       );
       if (finalMainImageIndex === -1) {
         finalMainImageIndex = 0; // Default to the first image if the original main is gone
         console.log(
-          `Imagem principal original removida ou falhou. Definindo a primeira imagem válida (índice ${finalMainImageIndex}) como principal. (MeuNegocioPage)`
+          `Imagem principal original removida ou falhou. Definindo a primeira imagem válida (índice ${finalMainImageIndex}) como principal. (MeuNegocioPage)`,
         );
       }
       setMainImageIndex(finalMainImageIndex); // Atualiza o estado do índice principal
@@ -818,12 +819,12 @@ export default function MeuNegocioPage() {
         successfullyProcessedImages[finalMainImageIndex]?.url;
       if (!mainImageUrl) {
         throw new Error(
-          "Erro crítico: URL da imagem principal não encontrada após processamento."
+          "Erro crítico: URL da imagem principal não encontrada após processamento.",
         );
       }
 
       console.log(
-        `URL da imagem principal final: ${mainImageUrl} (MeuNegocioPage)`
+        `URL da imagem principal final: ${mainImageUrl} (MeuNegocioPage)`,
       );
       const additionalImageUrls = successfullyProcessedImages
         .filter((img) => img.url !== mainImageUrl)
@@ -875,7 +876,7 @@ export default function MeuNegocioPage() {
         if (updateProfileError) {
           console.error(
             "Erro ao atualizar nome do proprietário no perfil (cadastro):",
-            updateProfileError
+            updateProfileError,
           );
           // Logar, mas não impedir o fluxo principal.
         }
@@ -887,7 +888,7 @@ export default function MeuNegocioPage() {
           (caracteristicaId) => ({
             negocio_id: newNegocioId,
             caracteristica_id: caracteristicaId,
-          })
+          }),
         );
         const { error: insertCaracError } = await supabase
           .from("negocio_caracteristicas")
@@ -895,7 +896,7 @@ export default function MeuNegocioPage() {
         if (insertCaracError)
           console.error(
             "Erro ao salvar características associadas:",
-            insertCaracError
+            insertCaracError,
           ); // Logo o erro, mas continuo.
       }
 
@@ -948,7 +949,7 @@ export default function MeuNegocioPage() {
         if (img.preview?.startsWith("blob:")) {
           URL.revokeObjectURL(img.preview);
           console.log(
-            `Blob URL revogada (desmontagem/limpeza MeuNegocioPage) para imagem ID ${img.id}: ${img.preview}`
+            `Blob URL revogada (desmontagem/limpeza MeuNegocioPage) para imagem ID ${img.id}: ${img.preview}`,
           );
         }
       });
@@ -974,7 +975,7 @@ export default function MeuNegocioPage() {
 
     // 2. Filtra allCharacteristics para incluir apenas aquelas cujos IDs estão na lista de IDs relevantes.
     return allCharacteristics.filter((char) =>
-      relevantCaracteristicaIds.includes(char.id)
+      relevantCaracteristicaIds.includes(char.id),
     );
   }, [
     formState.categoria_id,
@@ -999,7 +1000,9 @@ export default function MeuNegocioPage() {
 
   // --- Minha Renderização ---
   if (loadingPage) {
-    return <div className="text-center p-10">Carregando...</div>;
+    return (
+      <BrandLoader fullScreen message="Carregando página de cadastro..." />
+    );
   }
 
   return (
@@ -1057,9 +1060,11 @@ export default function MeuNegocioPage() {
 
       {/* Mostro um loading para as opções do formulário (categorias, características) ou o formulário em si. */}
       {loadingInitialData ? (
-        <div className="text-center p-10">
-          Carregando opções do formulário...
-        </div>
+        <BrandLoader
+          size="sm"
+          message="Carregando opções do formulário..."
+          className="py-8"
+        />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Seção 1: Informações Básicas */}
@@ -1144,7 +1149,7 @@ export default function MeuNegocioPage() {
                 onChange={(e) => {
                   console.log(
                     "🌎 [MeuNegocio] Estado selecionado:",
-                    e.target.value
+                    e.target.value,
                   );
                   setEstadoSelecionado(e.target.value);
                 }}
@@ -1174,7 +1179,7 @@ export default function MeuNegocioPage() {
                 onChange={(e) => {
                   console.log(
                     "🏙️ [MeuNegocio] Cidade selecionada:",
-                    e.target.value
+                    e.target.value,
                   );
                   setFormState((prev) => ({ ...prev, cidade: e.target.value }));
                 }}
@@ -1352,7 +1357,7 @@ export default function MeuNegocioPage() {
                                   d.key,
                                   idx,
                                   "start",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="input-form text-sm"
@@ -1367,7 +1372,7 @@ export default function MeuNegocioPage() {
                                   d.key,
                                   idx,
                                   "end",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="input-form text-sm"

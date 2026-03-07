@@ -71,6 +71,53 @@ import {
 
 import React, { useState, useEffect } from "react";
 
+function LiveWeatherDate({ className }) {
+  const [clock, setClock] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClock(new Date());
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const dataStr = clock.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <span className={className}>
+      {dataStr.charAt(0).toUpperCase() + dataStr.slice(1)}
+    </span>
+  );
+}
+
+function LiveWeatherClock({ className }) {
+  const [clock, setClock] = useState(new Date());
+  const [showColon, setShowColon] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClock(new Date());
+      setShowColon((v) => !v);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className={className}>
+      <span style={{ whiteSpace: "nowrap", display: "inline-block" }}>
+        {clock.getHours().toString().padStart(2, "0")}
+        <span style={{ opacity: showColon ? 1 : 0 }}>:</span>
+        {clock.getMinutes().toString().padStart(2, "0")}
+      </span>
+    </span>
+  );
+}
+
 // Removido bloco duplicado do componente WeatherSection
 
 // Funções utilitárias e constantes abaixo:
@@ -197,17 +244,6 @@ export default function WeatherSection({ cidade }) {
   const [retryTick, setRetryTick] = useState(0);
   const [lastFetchOk, setLastFetchOk] = useState(false);
 
-  // Relógio em tempo real com dois pontos piscando (deve ficar antes de qualquer return condicional)
-  const [clock, setClock] = useState(new Date());
-  const [showColon, setShowColon] = useState(true);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setClock(new Date());
-      setShowColon((v) => !v);
-    }, 500); // Pisca a cada 0.5 segundo
-    return () => clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -260,12 +296,12 @@ export default function WeatherSection({ cidade }) {
               setPrecip(
                 typeof data.hourly.precipitation?.[idx] === "number"
                   ? data.hourly.precipitation[idx]
-                  : null
+                  : null,
               );
               setPrecipProb(
                 typeof data.hourly.precipitation_probability?.[idx] === "number"
                   ? data.hourly.precipitation_probability[idx]
-                  : null
+                  : null,
               );
               const codeNow =
                 typeof data.hourly.weathercode?.[idx] === "number"
@@ -364,13 +400,13 @@ export default function WeatherSection({ cidade }) {
                 setPrecip(
                   typeof data.hourly.precipitation?.[idx] === "number"
                     ? data.hourly.precipitation[idx]
-                    : null
+                    : null,
                 );
                 setPrecipProb(
                   typeof data.hourly.precipitation_probability?.[idx] ===
                     "number"
                     ? data.hourly.precipitation_probability[idx]
-                    : null
+                    : null,
                 );
                 const codeNow =
                   typeof data.hourly.weathercode?.[idx] === "number"
@@ -460,7 +496,7 @@ export default function WeatherSection({ cidade }) {
             () => {
               setError("Não foi possível obter sua localização.");
               setLoading(false);
-            }
+            },
           );
         } else {
           setError("Geolocalização não suportada.");
@@ -468,7 +504,6 @@ export default function WeatherSection({ cidade }) {
         }
       }
     }
-    // eslint-disable-next-line
   }, [cidade, userLocation, retryTick]);
 
   // Agenda próxima tentativa automática: se sucesso, atualiza a cada 5min; se falha, tenta novamente em 30s
@@ -499,20 +534,6 @@ export default function WeatherSection({ cidade }) {
         </h2>
         <p className="text-slate-600">{error}</p>
       </section>
-    );
-  }
-
-  // Debug: log dos dados carregados
-  if (typeof window !== "undefined") {
-    console.log(
-      "weather:",
-      weather,
-      "todayRange:",
-      todayRange,
-      "resolvedCity:",
-      resolvedCity,
-      "cidade:",
-      cidade
     );
   }
 
@@ -808,23 +829,8 @@ export default function WeatherSection({ cidade }) {
 
   // Extrai cidade e UF para exibição
   const { cidade: cidadeNome, uf: cidadeUF } = getCidadeUF(
-    resolvedCity || cidade || "Ilha Comprida, SP"
+    resolvedCity || cidade || "Ilha Comprida, SP",
   );
-
-  // Relógio sempre em linha única, sem quebra
-  const horaStr = (
-    <span style={{ whiteSpace: "nowrap", display: "inline-block" }}>
-      {clock.getHours().toString().padStart(2, "0")}
-      <span style={{ opacity: showColon ? 1 : 0 }}>:</span>
-      {clock.getMinutes().toString().padStart(2, "0")}
-    </span>
-  );
-  const dataStr = clock.toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
 
   return (
     <section
@@ -891,13 +897,9 @@ export default function WeatherSection({ cidade }) {
               {cidadeNome}
               {cidadeUF ? `, ${cidadeUF}` : ""}
             </span>
-            <span className="text-base text-blue-200 mt-0.5">
-              {dataStr.charAt(0).toUpperCase() + dataStr.slice(1)}
-            </span>
+            <LiveWeatherDate className="text-base text-blue-200 mt-0.5" />
           </div>
-          <span className="text-lg font-semibold text-blue-200 mt-1">
-            {horaStr}
-          </span>
+          <LiveWeatherClock className="text-lg font-semibold text-blue-200 mt-1" />
         </div>
         {/* Temperatura, mín/máx, descrição no canto inferior esquerdo */}
         <div className="absolute left-7 bottom-8 flex flex-col items-start">

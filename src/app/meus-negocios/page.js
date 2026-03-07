@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BrandLoader from "@/app/components/BrandLoader";
 
 // Um componente simples para exibir cada negócio (você pode estilizar melhor)
 function NegocioCard({
@@ -169,7 +170,7 @@ export default function MeusNegociosPage() {
           stripe_subscription_id,
           stripe_customer_id,
           categorias (nome) 
-        `
+        `,
         ) // Incluindo campos de assinatura e visibilidade
         .eq("usuario_id", userId)
         .order("data_criacao", { ascending: false }); // CORRIGIDO: Usar data_criacao
@@ -180,7 +181,7 @@ export default function MeusNegociosPage() {
         // Lança um novo erro com uma mensagem mais informativa
         throw new Error(
           dbError.message ||
-            `Erro no banco de dados: ${dbError.code || "desconhecido"}`
+            `Erro no banco de dados: ${dbError.code || "desconhecido"}`,
         );
       }
       setNegocios(data || []);
@@ -188,7 +189,7 @@ export default function MeusNegociosPage() {
       // Agora 'err' será uma instância de Error
       console.error("Erro ao buscar negócios do usuário:", err); // Isso deve logar a mensagem do erro
       setError(
-        err.message || "Falha ao carregar seus negócios. Tente novamente."
+        err.message || "Falha ao carregar seus negócios. Tente novamente.",
       );
     } finally {
       setLoading(false);
@@ -202,7 +203,7 @@ export default function MeusNegociosPage() {
       await supabase.auth.getSession();
     if (sessionError || !sessionData?.session?.access_token) {
       throw new Error(
-        sessionError?.message || "Sessão inválida. Faça login novamente."
+        sessionError?.message || "Sessão inválida. Faça login novamente.",
       );
     }
     const accessToken = sessionData.session.access_token;
@@ -227,7 +228,7 @@ export default function MeusNegociosPage() {
         immediate: false,
       });
       alert(
-        "Cancelamento agendado ao fim do período. Seu negócio permanecerá visível até o término."
+        "Cancelamento agendado ao fim do período. Seu negócio permanecerá visível até o término.",
       );
       // Opcional: atualizar lista
       fetchUserBusinesses(user.id);
@@ -243,7 +244,7 @@ export default function MeusNegociosPage() {
     try {
       if (
         !window.confirm(
-          "Tem certeza que deseja cancelar imediatamente? O acesso será removido agora."
+          "Tem certeza que deseja cancelar imediatamente? O acesso será removido agora.",
         )
       ) {
         return;
@@ -287,7 +288,7 @@ export default function MeusNegociosPage() {
       } = await supabase.auth.getSession();
       if (sessionError || !session) {
         router.push(
-          "/login?message=Você precisa estar logado para ver seus negócios."
+          "/login?message=Você precisa estar logado para ver seus negócios.",
         );
         return;
       }
@@ -301,7 +302,7 @@ export default function MeusNegociosPage() {
     if (!user) return;
     if (
       window.confirm(
-        `Tem certeza que deseja excluir o estabelecimento "${negocioNome}"? Esta ação não pode ser desfeita.`
+        `Tem certeza que deseja excluir o estabelecimento "${negocioNome}"? Esta ação não pode ser desfeita.`,
       )
     ) {
       try {
@@ -325,7 +326,7 @@ export default function MeusNegociosPage() {
                   return pathParts[1];
                 }
                 console.warn(
-                  `Não foi possível extrair o caminho do arquivo da URL: ${url}`
+                  `Não foi possível extrair o caminho do arquivo da URL: ${url}`,
                 );
                 return null;
               } catch (e) {
@@ -342,11 +343,11 @@ export default function MeusNegociosPage() {
             if (storageError) {
               console.error(
                 "Erro ao excluir imagens do Storage, mas prosseguindo com a exclusão do negócio:",
-                storageError
+                storageError,
               );
               // Você pode optar por alertar o usuário aqui, mas a exclusão do negócio principal continuará.
               alert(
-                `Houve um erro ao tentar remover algumas imagens associadas, mas a exclusão do negócio continuará. Detalhes: ${storageError.message}`
+                `Houve um erro ao tentar remover algumas imagens associadas, mas a exclusão do negócio continuará. Detalhes: ${storageError.message}`,
               );
             }
           }
@@ -362,7 +363,7 @@ export default function MeusNegociosPage() {
         if (deleteError) throw deleteError;
 
         setNegocios((prevNegocios) =>
-          prevNegocios.filter((n) => n.id !== negocioId)
+          prevNegocios.filter((n) => n.id !== negocioId),
         );
         alert(`Negócio "${negocioNome}" excluído com sucesso.`);
       } catch (err) {
@@ -374,7 +375,7 @@ export default function MeusNegociosPage() {
 
   if (loading && !user) {
     // Loading inicial antes de saber se há usuário
-    return <div className="text-center p-10">Verificando autenticação...</div>;
+    return <BrandLoader fullScreen message="Verificando autenticação..." />;
   }
 
   return (
@@ -393,12 +394,10 @@ export default function MeusNegociosPage() {
         </div>
 
         {loading && (
-          <div className="flex justify-center items-center py-16">
-            <span className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600 mr-3"></span>
-            <span className="text-emerald-700 text-lg font-medium">
-              Carregando seus estabelecimentos...
-            </span>
-          </div>
+          <BrandLoader
+            message="Carregando seus estabelecimentos..."
+            className="py-10"
+          />
         )}
         {error && (
           <div className="text-center text-red-600 bg-red-100 p-4 rounded-xl font-medium max-w-xl mx-auto">

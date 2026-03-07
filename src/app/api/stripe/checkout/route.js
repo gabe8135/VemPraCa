@@ -12,7 +12,7 @@ export async function POST(req) {
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Configuração ausente: STRIPE_SECRET_KEY" },
-        { status: 500 }
+        { status: 500 },
       );
     }
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" });
@@ -40,7 +40,7 @@ export async function POST(req) {
     if (!planType || !negocioId) {
       return NextResponse.json(
         { error: "Campos obrigatórios: planType e negocioId." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -64,7 +64,7 @@ export async function POST(req) {
       console.error("Negócio não encontrado ou erro:", negocioErr, negocio);
       return NextResponse.json(
         { error: "Negócio não encontrado." },
-        { status: 404 }
+        { status: 404 },
       );
     }
     if (negocio.usuario_id !== user.id) {
@@ -74,7 +74,7 @@ export async function POST(req) {
       });
       return NextResponse.json(
         { error: "Você não tem permissão para este negócio." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -84,7 +84,7 @@ export async function POST(req) {
         {
           error: `Defina o ID do preço no .env: ${planType === "yearly" ? "STRIPE_PRICE_YEARLY" : "STRIPE_PRICE_MONTHLY"}`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -109,7 +109,7 @@ export async function POST(req) {
     console.error("/api/stripe/checkout error", err);
     return NextResponse.json(
       { error: "Falha ao criar sessão de checkout." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -45,8 +45,6 @@ export default function Header() {
     const handleAuthChange = async (event, session) => {
       if (!isMounted) return;
       try {
-        console.log(`Evento de autenticação: ${event}`, session);
-
         if (session?.user) {
           // Temos uma sessão válida: atualizo e checo role
           setSession(session);
@@ -55,7 +53,6 @@ export default function Header() {
             const isAdminUser = await checkUserRole(session.user.id);
             if (isMounted) {
               setIsAdmin(isAdminUser);
-              console.log("Usuário é admin:", isAdminUser);
             }
           } catch (err) {
             console.error("Falha ao checar role no Header:", err);
@@ -97,19 +94,20 @@ export default function Header() {
         if (isMounted && (event === "SIGNED_IN" || event === "SIGNED_OUT"))
           setLoadingAuth(true);
         handleAuthChange(event, currentSession);
-      }
+      },
     );
 
     // Limpeza quando o componente desmonta.
     return () => {
       isMounted = false;
       listener?.subscription.unsubscribe();
-      console.log("Listener de autenticação do Header desinscrito.");
     };
   }, []); // Roda só uma vez na montagem.
 
   // Efeito para fechar o menu ao clicar fora (apenas em mobile)
   useEffect(() => {
+    if (!isMenuOpen) return;
+
     const handleClickOutside = (event) => {
       if (
         isMenuOpen &&
@@ -148,7 +146,7 @@ export default function Header() {
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen((prev) => !prev);
   };
 
   // Fecho o menu mobile quando um link é clicado.

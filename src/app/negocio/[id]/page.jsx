@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Fade } from 'react-awesome-reveal';
+import BrandLoader from '@/app/components/BrandLoader';
 // Modal simples para exibir o carrossel em tela cheia
 function ModalCarrossel({ open, onClose, imagens, initialIndex = 0, nome }) {
   const [mounted, setMounted] = useState(false);
@@ -819,21 +820,7 @@ export default function DetalhesNegocioPage() {
 
   // --- Minha Renderização ---
   if (loading) {
-    // Loader animado moderno (spinner com efeito de "pulse" e cor do header), ocupa a tela toda
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center min-h-screen bg-white">
-        <span className="relative flex h-16 w-16">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-40"></span>
-          <span className="relative inline-flex rounded-full h-16 w-16 bg-gradient-to-tr from-emerald-700 to-green-500 items-center justify-center">
-            <svg className="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-          </span>
-        </span>
-        <span className="mt-6 text-emerald-800 text-lg font-semibold animate-pulse">Carregando detalhes do estabelecimento...</span>
-      </div>
-    );
+    return <BrandLoader fullScreen message="Carregando detalhes do estabelecimento..." />;
   }
   if (error) return <div className="p-6 text-red-600 bg-red-100 rounded-md text-center">Erro: {error}</div>;
   if (!negocio) return <div className="text-center p-10">Estabelecimento não encontrado.</div>; // Segurança extra.
@@ -1150,7 +1137,13 @@ export default function DetalhesNegocioPage() {
             {/* Estatísticas de Acessos */}
             <div className="my-8 p-6 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-2xl shadow-md border border-slate-100">
               <h2 className="text-2xl font-semibold mb-6 pb-3 text-green-800">Visão Geral dos Acessos</h2>
-              {loadingCliques && <p className="text-center text-gray-600">Carregando estatísticas de acessos...</p>}
+              {loadingCliques && (
+                <BrandLoader
+                  size="sm"
+                  message="Carregando estatísticas de acessos..."
+                  className="py-2"
+                />
+              )}
               {!loadingCliques && !cliqueStats && <p className="text-center text-gray-600">Não foi possível carregar as estatísticas.</p>}
               {!loadingCliques && cliqueStats && (
                 <div className="overflow-x-auto">

@@ -97,7 +97,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       } catch (e) {
         console.warn(
           "Não foi possível obter o email do usuário autenticado:",
-          e
+          e,
         );
       }
     })();
@@ -123,7 +123,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       const blobURL = URL.createObjectURL(file);
 
       console.log(
-        `Processando arquivo (MeuNegocioForm): Nome: ${file.name}, Tipo: ${file.type}, BlobURL: ${blobURL}`
+        `Processando arquivo (MeuNegocioForm): Nome: ${file.name}, Tipo: ${file.type}, BlobURL: ${blobURL}`,
       );
 
       return {
@@ -160,7 +160,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     const imageToRemove = imageFiles.find((img) => img.id === idToRemove);
     if (!imageToRemove) {
       console.warn(
-        `Tentativa de remover imagem com ID não encontrado: ${idToRemove}`
+        `Tentativa de remover imagem com ID não encontrado: ${idToRemove}`,
       );
       return;
     }
@@ -168,7 +168,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     if (imageToRemove.preview && imageToRemove.preview.startsWith("blob:")) {
       URL.revokeObjectURL(imageToRemove.preview);
       console.log(
-        `Blob URL revogada para imagem ID ${idToRemove}: ${imageToRemove.preview}`
+        `Blob URL revogada para imagem ID ${idToRemove}: ${imageToRemove.preview}`,
       );
     }
 
@@ -181,11 +181,11 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         // Se a imagem removida era a principal, ou se o índice da principal ficou fora dos limites
         const oldMainImageId = prevFiles[mainImageIndex]?.id;
         const newPotentialMainIndex = updatedFiles.findIndex(
-          (img) => img.id === oldMainImageId
+          (img) => img.id === oldMainImageId,
         );
 
         setMainImageIndex(
-          newPotentialMainIndex !== -1 ? newPotentialMainIndex : 0
+          newPotentialMainIndex !== -1 ? newPotentialMainIndex : 0,
         );
       }
       return updatedFiles;
@@ -197,7 +197,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
   // Handler para definir qual imagem é a principal.
   const handleSetMainImage = (idToSetMain) => {
     const indexToSetMain = imageFiles.findIndex(
-      (img) => img.id === idToSetMain
+      (img) => img.id === idToSetMain,
     );
     // Permito definir como principal mesmo se tiver erro, mas não se estiver carregando.
     if (indexToSetMain !== -1 && !imageFiles[indexToSetMain]?.uploading) {
@@ -216,7 +216,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     setSelectedCaracteristicas((prev) =>
       prev.includes(caracteristicaId)
         ? prev.filter((id) => id !== caracteristicaId)
-        : [...prev, caracteristicaId]
+        : [...prev, caracteristicaId],
     );
   };
 
@@ -237,8 +237,8 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         prev.map((i) =>
           i.id === imgState.id
             ? { ...i, uploading: true, statusText: "Otimizando..." }
-            : i
-        )
+            : i,
+        ),
       );
       console.log(`Iniciando compressão para: ${webpFileName}`);
 
@@ -255,13 +255,13 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         console.log(`Comprimindo ${file.name} para ${webpFileName}...`);
         const compressedFile = await imageCompression(file, options);
         console.log(
-          `Compressão de ${webpFileName} concluída. Tamanho: ${(compressedFile.size / (1024 * 1024)).toFixed(2)} MB`
+          `Compressão de ${webpFileName} concluída. Tamanho: ${(compressedFile.size / (1024 * 1024)).toFixed(2)} MB`,
         );
 
         setImageFiles((prev) =>
           prev.map((i) =>
-            i.id === imgState.id ? { ...i, statusText: "Enviando..." } : i
-          )
+            i.id === imgState.id ? { ...i, statusText: "Enviando..." } : i,
+          ),
         );
         console.log(`Enviando ${webpFileName} para Supabase Storage...`);
 
@@ -275,7 +275,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         if (uploadError) {
           console.error(
             `Erro no upload para Supabase (${webpFileName}):`,
-            uploadError
+            uploadError,
           );
           throw uploadError;
         }
@@ -288,7 +288,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
 
         if (!publicUrl) {
           console.error(
-            `Não foi possível obter URL pública para ${webpFileName}`
+            `Não foi possível obter URL pública para ${webpFileName}`,
           );
           throw new Error("URL pública não encontrada.");
         }
@@ -308,15 +308,15 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
                   error: null,
                   statusText: null,
                 }
-              : i
-          )
+              : i,
+          ),
         );
 
         return { id: imgState.id, success: true, url: publicUrl };
       } catch (error) {
         console.error(
           `Erro no processo de ${file.name} -> ${webpFileName}:`,
-          error
+          error,
         );
         localUploadErrors.push({
           id: imgState.id,
@@ -333,8 +333,8 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
                   error: error.message || "Falha",
                   statusText: null,
                 }
-              : i
-          )
+              : i,
+          ),
         );
         return { id: imgState.id, success: false, error: error.message };
       }
@@ -383,7 +383,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     ) {
       // Se a principal atual for inválida, tento achar a primeira válida.
       const firstValidIndex = imageFiles.findIndex(
-        (img) => !img.error && !img.uploading
+        (img) => !img.error && !img.uploading,
       );
       if (firstValidIndex === -1) {
         // Se não houver nenhuma válida, mostro erro.
@@ -405,7 +405,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
     try {
       // 1. Faço upload das imagens que ainda não foram enviadas.
       const imagesParaUpload = validImagesForUpload.filter(
-        (img) => !img.uploaded && img.file
+        (img) => !img.uploaded && img.file,
       );
       let uploadedUrlsMap = new Map();
 
@@ -485,7 +485,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
           (caracteristicaId) => ({
             negocio_id: insertedNegocio.id,
             caracteristica_id: caracteristicaId,
-          })
+          }),
         );
         const { error: insertCaracError } = await supabase
           .from("negocio_caracteristicas")
@@ -493,7 +493,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         if (insertCaracError) {
           console.error(
             "Erro ao salvar características associadas:",
-            insertCaracError
+            insertCaracError,
           );
           // Lembrete: Decidir como tratar esse erro (talvez mostrar um aviso, mas o negócio principal foi criado).
         }
@@ -522,7 +522,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
       }
       console.log(
         "Cadastro de negócio concluído com sucesso:",
-        insertedNegocio
+        insertedNegocio,
       );
 
       // Dispara e-mails (dono e cliente) via Resend
@@ -562,7 +562,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
         if (img.preview?.startsWith("blob:")) {
           URL.revokeObjectURL(img.preview);
           console.log(
-            `Blob URL revogada (desmontagem/limpeza) para imagem ID ${img.id}: ${img.preview}`
+            `Blob URL revogada (desmontagem/limpeza) para imagem ID ${img.id}: ${img.preview}`,
           );
         }
       });
@@ -826,7 +826,7 @@ export default function MeuNegocioForm({ userId, onCadastroSucesso }) {
                     onError={(e) => {
                       console.error(
                         `Falha ao carregar imagem no SRC (MeuNegocioForm). SRC: ${img.preview}`,
-                        e.target.error
+                        e.target.error,
                       ); // LOG MAIS DETALHADO
                       e.target.onerror = null; // Previne loop de erro
                       e.target.src =

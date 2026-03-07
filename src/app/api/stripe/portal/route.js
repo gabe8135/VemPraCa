@@ -12,7 +12,7 @@ export async function POST(req) {
     if (!secretKey) {
       return NextResponse.json(
         { error: "Configuração ausente: STRIPE_SECRET_KEY" },
-        { status: 500 }
+        { status: 500 },
       );
     }
     const stripe = new Stripe(secretKey, { apiVersion: "2024-06-20" });
@@ -39,7 +39,7 @@ export async function POST(req) {
     if (!negocioId) {
       return NextResponse.json(
         { error: "Campo obrigatório: negocioId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,19 +52,19 @@ export async function POST(req) {
     if (negErr || !negocio) {
       return NextResponse.json(
         { error: "Negócio não encontrado." },
-        { status: 404 }
+        { status: 404 },
       );
     }
     if (negocio.usuario_id !== user.id) {
       return NextResponse.json(
         { error: "Você não tem permissão para este negócio." },
-        { status: 403 }
+        { status: 403 },
       );
     }
     if (!negocio.stripe_customer_id) {
       return NextResponse.json(
         { error: "Cliente Stripe não vinculado a este negócio." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -78,7 +78,7 @@ export async function POST(req) {
     console.error("/api/stripe/portal error", err);
     return NextResponse.json(
       { error: "Falha ao criar sessão do portal." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

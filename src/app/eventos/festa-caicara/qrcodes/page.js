@@ -44,7 +44,7 @@ export default async function QRCodesPage() {
                 {/* Cabeçalho com logo e chamada */}
                 <div className="flex items-center gap-3 mb-4">
                   <Image
-                    src="/favicon.png"
+                    src="/favicon.ico"
                     alt="VemPraCá"
                     width={40}
                     height={40}

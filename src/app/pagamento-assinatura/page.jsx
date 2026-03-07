@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabaseClient'; // Meu cliente Supabase já configurado.
+import BrandLoader from '@/app/components/BrandLoader';
 
 // --- Meu Componente Interno com toda a lógica da página ---
 function PagamentoAssinaturaContent() {
@@ -161,13 +162,7 @@ function PagamentoAssinaturaContent() {
 
   // --- Minha Renderização ---
   if (isInitializing) { // Enquanto estiver carregando os dados iniciais.
-    return (
-      <div className="flex justify-center items-center h-screen flex-col gap-4">
-        {/* Meu spinner de loading. */}
-        <svg className="animate-spin h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p className="text-gray-600">Carregando opções de assinatura...</p>
-      </div>
-    );
+    return <BrandLoader fullScreen message="Carregando opções de assinatura..." />;
   }
 
   // Se houver algum erro (de inicialização ou da API de assinatura).
@@ -187,7 +182,7 @@ function PagamentoAssinaturaContent() {
       {/* Seção com fundo suave, inspirada no layout principal */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50 to-white" />
       <section className="container mx-auto max-w-3xl p-6 md:p-10 my-10 bg-white/90 backdrop-blur rounded-2xl shadow-lg ring-1 ring-gray-100">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center" aria-busy={isLoading}>
       {/* Cabeçalho minimalista com ícone de segurança */}
       <div className="flex items-center gap-2 mb-3">
         <svg aria-hidden="true" className="h-5 w-5 text-green-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 116 0v3H9z"></path></svg>
@@ -274,9 +269,8 @@ function PagamentoAssinaturaContent() {
       </div>
 
       {isLoading && (
-        <div className="text-center mt-6 text-blue-600 flex items-center justify-center gap-2">
-          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-          <span>Redirecionando para o Stripe...</span>
+        <div className="text-center mt-6 text-blue-600" role="status" aria-live="polite">
+          <BrandLoader size="sm" message="Redirecionando para o Stripe..." className="py-0" />
         </div>
       )}
         </div>
@@ -291,10 +285,7 @@ function PagamentoAssinaturaContent() {
 export default function PagamentoAssinaturaPage() {
   return (
     <Suspense fallback={ // Meu fallback UI enquanto o Suspense carrega.
-      <div className="flex justify-center items-center h-screen flex-col gap-4">
-        <svg className="animate-spin h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p className="text-gray-600">Carregando página de assinatura...</p>
-      </div>
+      <BrandLoader fullScreen message="Carregando página de assinatura..." />
     }>
       <PagamentoAssinaturaContent />
     </Suspense>

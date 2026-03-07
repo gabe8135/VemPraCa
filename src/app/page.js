@@ -1,34 +1,98 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, Suspense, useRef } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { Fade } from "react-awesome-reveal";
 import { FiSearch, FiMapPin, FiSliders, FiX } from "react-icons/fi";
-// ...existing code...
 import { supabase, isSupabaseConfigured } from "@/app/lib/supabaseClient";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import Hero from "@/app/components/Hero";
-import FAQSection from "@/app/components/FAQSection";
 import CategoriesSection from "./components/CategoriesSection";
-import HowItWorksSection from "@/app/components/HowItWorksSection";
-import WeatherSection from "@/app/components/WeatherSection";
-import AnnouncementsSection from "@/app/components/AnnouncementsSection";
-import { Swiper, SwiperSlide } from "swiper/react";
-import {
-  Navigation,
-  Pagination,
-  A11y,
-  Autoplay,
-  Mousewheel,
-} from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import BrandLoader from "@/app/components/BrandLoader";
 
 const BusinessCard = dynamic(() => import("@/app/components/BusinessCard"), {
   ssr: false,
 });
+
+const FeaturedBusinessesCarousel = dynamic(
+  () => import("@/app/components/FeaturedBusinessesCarousel"),
+  {
+    ssr: false,
+    loading: () => (
+      <BrandLoader
+        size="sm"
+        message="Carregando destaques..."
+        className="py-4"
+      />
+    ),
+  },
+);
+
+const WeatherSection = dynamic(
+  () => import("@/app/components/WeatherSection"),
+  {
+    ssr: false,
+    loading: () => (
+      <BrandLoader size="sm" message="Carregando clima..." className="py-4" />
+    ),
+  },
+);
+
+const AnnouncementsSection = dynamic(
+  () => import("@/app/components/AnnouncementsSection"),
+  { ssr: false },
+);
+
+const HowItWorksSection = dynamic(
+  () => import("@/app/components/HowItWorksSection"),
+  { ssr: false },
+);
+
+const FAQSection = dynamic(() => import("@/app/components/FAQSection"), {
+  ssr: false,
+});
+
+function ViewportMount({ children, rootMargin = "500px 0px", minHeight = 0 }) {
+  const hostRef = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) return;
+    const node = hostRef.current;
+    if (!node) return;
+
+    if (
+      typeof window === "undefined" ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [visible, rootMargin]);
+
+  return (
+    <div
+      ref={hostRef}
+      style={visible || !minHeight ? undefined : { minHeight }}
+    >
+      {visible ? children : null}
+    </div>
+  );
+}
 
 function BusinessList() {
   const searchParams = useSearchParams();
@@ -38,15 +102,10 @@ function BusinessList() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [allCategories, setAllCategories] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Novos estados para filtro de localização
   const [selectedCidade, setSelectedCidade] = useState("");
-  const [cidadesDisponiveis, setCidadesDisponiveis] = useState([]);
-
-  const isFirstRender = useRef(true);
-  const prevCategorySlug = useRef(categorySlug);
 
   // Em telas médias para cima, mantém filtros sempre abertos; em mobile, começa fechado
   useEffect(() => {
@@ -65,26 +124,9 @@ function BusinessList() {
   // Estado para alternar agrupamento por categoria
   const [groupByCategory, setGroupByCategory] = useState(false);
 
-  // Atualizar cidades disponíveis baseado nos negócios cadastrados em SP
-  useEffect(() => {
-    if (businesses.length > 0) {
-      const cidadesUnicas = [
-        ...new Set(
-          businesses.filter((b) => b.estado === "SP").map((b) => b.cidade)
-        ),
-      ].sort();
-      setCidadesDisponiveis(cidadesUnicas);
-    }
-  }, [businesses]);
-
-  // Atualizar cidades disponíveis baseado nos negócios
-  useEffect(() => {
-    if (businesses.length > 0) {
-      const cidadesUnicas = [
-        ...new Set(businesses.map((b) => b.cidade)),
-      ].sort();
-      setCidadesDisponiveis(cidadesUnicas);
-    }
+  const cidadesDisponiveis = useMemo(() => {
+    if (businesses.length === 0) return [];
+    return [...new Set(businesses.map((b) => b.cidade))].sort();
   }, [businesses]);
 
   useEffect(() => {
@@ -94,7 +136,7 @@ function BusinessList() {
       try {
         if (!isSupabaseConfigured) {
           throw new Error(
-            "Configuração do Supabase ausente. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY."
+            "Configuração do Supabase ausente. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.",
           );
         }
         const { data: businessesData, error: businessesDbError } =
@@ -105,21 +147,12 @@ function BusinessList() {
 
         if (businessesDbError) throw businessesDbError;
         setBusinesses(businessesData || []);
-
-        const { data: categoriesData, error: categoriesDbError } =
-          await supabase
-            .from("categorias")
-            .select("id, nome, slug")
-            .order("nome", { ascending: true });
-
-        if (categoriesDbError) throw categoriesDbError;
-        setAllCategories(categoriesData || []);
       } catch (err) {
         console.error("Erro ao buscar dados iniciais:", err);
         setError(
           err?.message?.includes("Supabase")
             ? "Variáveis do Supabase não estão configuradas no ambiente local."
-            : "Erro ao carregar os dados. Tente novamente mais tarde."
+            : "Erro ao carregar os dados. Tente novamente mais tarde.",
         );
       } finally {
         setLoading(false);
@@ -128,14 +161,6 @@ function BusinessList() {
     fetchInitialData();
   }, []);
 
-  // Removemos a rolagem automática para evitar flicker e jump ao trocar categoria
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-    }
-    prevCategorySlug.current = categorySlug;
-  }, [categorySlug]);
-
   // Função para limpar filtros
   const clearFilters = () => {
     setSelectedCidade("");
@@ -143,19 +168,30 @@ function BusinessList() {
   };
 
   // Filtro atualizado com localização
-  const filteredBusinesses = businesses.filter((business) => {
-    const matchesCategory =
-      !categorySlug || business.slug_categoria === categorySlug;
-    const matchesSearchTerm =
-      searchTerm === "" ||
-      (business.nome?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (business.cidade?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+  const filteredBusinesses = useMemo(() => {
+    return businesses.filter((business) => {
+      const matchesCategory =
+        !categorySlug || business.slug_categoria === categorySlug;
+      const matchesSearchTerm =
+        searchTerm === "" ||
+        (business.nome?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase(),
+        ) ||
+        (business.cidade?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase(),
+        );
 
-    // Novos filtros de localização
-    const matchesCidade = !selectedCidade || business.cidade === selectedCidade;
+      // Novos filtros de localização
+      const matchesCidade =
+        !selectedCidade || business.cidade === selectedCidade;
 
-    return matchesCategory && matchesSearchTerm && matchesCidade;
-  });
+      return matchesCategory && matchesSearchTerm && matchesCidade;
+    });
+  }, [businesses, categorySlug, searchTerm, selectedCidade]);
+
+  const featuredBusinesses = useMemo(() => {
+    return filteredBusinesses.filter((b) => b.destaque === true).slice(0, 8);
+  }, [filteredBusinesses]);
 
   // Ordenação do grid principal (não altera o carrossel de destaques):
   // 1) Destaque primeiro
@@ -167,29 +203,37 @@ function BusinessList() {
     return Number.isFinite(val);
   };
   const getCategory = (b) => (b?.nome_categoria || "").toString();
-  const sortedBusinesses = [...filteredBusinesses].sort((a, b) => {
-    const aFeat = toBool(a?.destaque);
-    const bFeat = toBool(b?.destaque);
-    if (aFeat !== bFeat) return aFeat ? -1 : 1;
+  const sortedBusinesses = useMemo(() => {
+    return [...filteredBusinesses].sort((a, b) => {
+      const aFeat = toBool(a?.destaque);
+      const bFeat = toBool(b?.destaque);
+      if (aFeat !== bFeat) return aFeat ? -1 : 1;
 
-    const aHas = hasReviews(a);
-    const bHas = hasReviews(b);
-    if (aHas !== bHas) return aHas ? -1 : 1;
+      const aHas = hasReviews(a);
+      const bHas = hasReviews(b);
+      if (aHas !== bHas) return aHas ? -1 : 1;
 
-    return getCategory(a).localeCompare(getCategory(b), "pt-BR", {
-      sensitivity: "base",
+      return getCategory(a).localeCompare(getCategory(b), "pt-BR", {
+        sensitivity: "base",
+      });
     });
-  });
+  }, [filteredBusinesses]);
 
-  const categoryDetailsFromAll = categorySlug
-    ? allCategories.find((cat) => cat.slug === categorySlug)
-    : null;
+  const groupedBusinesses = useMemo(() => {
+    const grouped = {};
+    sortedBusinesses.forEach((b) => {
+      const cat = b.nome_categoria || "Outros";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(b);
+    });
+    return grouped;
+  }, [sortedBusinesses]);
 
-  const displayCategoryName =
-    categoryDetailsFromAll?.nome ||
-    (categorySlug
-      ? categorySlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-      : null);
+  const orderedCategoryNames = useMemo(() => {
+    return Object.keys(groupedBusinesses).sort((a, b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" }),
+    );
+  }, [groupedBusinesses]);
 
   return (
     <>
@@ -335,11 +379,17 @@ function BusinessList() {
       </div>
 
       {/* Lista de Negócios */}
-      <div id="businesses-list" className="container mx-auto p-4">
+      <div
+        id="businesses-list"
+        className="container mx-auto p-4 min-h-[420px]"
+        aria-busy={loading}
+      >
         {loading && (
-          <p className="text-center text-gray-600 py-8">
-            Carregando estabelecimentos...
-          </p>
+          <BrandLoader
+            size="md"
+            message="Carregando estabelecimentos..."
+            className="py-6"
+          />
         )}
         {error && <p className="text-center text-red-500">{error}</p>}
 
@@ -364,58 +414,14 @@ function BusinessList() {
         {!loading && !error && filteredBusinesses.length > 0 && (
           <>
             {/* Destaques: negócios marcados manualmente (destaque === true), até 8 itens */}
-            {filteredBusinesses.filter((b) => b.destaque === true).length >
-              0 && (
+            {featuredBusinesses.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold mb-3 text-emerald-700">
                   Destaques
                 </h2>
-                <Swiper
-                  modules={[Pagination, A11y, Autoplay, Mousewheel]}
-                  spaceBetween={14}
-                  slidesPerView={1.5}
-                  breakpoints={{
-                    640: { slidesPerView: 2.5, spaceBetween: 16 },
-                    1024: { slidesPerView: 3.5, spaceBetween: 18 },
-                  }}
-                  pagination={{ clickable: true }}
-                  className="!pb-8"
-                  style={{ paddingLeft: 4, paddingRight: 4 }}
-                  loop={true}
-                  autoplay={{ delay: 3500, disableOnInteraction: false }}
-                  mousewheel={{ forceToAxis: true, releaseOnEdges: true }}
-                  onInit={(swiper) => {
-                    setTimeout(() => {
-                      const bullets = document.querySelectorAll(
-                        ".swiper-pagination-bullet"
-                      );
-                      bullets.forEach((el) => {
-                        el.classList.add("!bg-emerald-500", "!opacity-80");
-                      });
-                    }, 100);
-                  }}
-                >
-                  <Fade cascade damping={0.18} triggerOnce>
-                    {filteredBusinesses
-                      .filter((b) => b.destaque === true)
-                      .slice(0, 8)
-                      .map((business) => (
-                        <SwiperSlide key={business.id} className="!h-auto flex">
-                          <BusinessCard business={business} compact />
-                        </SwiperSlide>
-                      ))}
-                  </Fade>
-                </Swiper>
-                <style jsx global>{`
-                  .swiper-pagination-bullet {
-                    background: #10b981 !important; /* emerald-500 */
-                    opacity: 0.8 !important;
-                  }
-                  .swiper-pagination-bullet-active {
-                    background: #047857 !important; /* emerald-700 */
-                    opacity: 1 !important;
-                  }
-                `}</style>
+                <ViewportMount minHeight={220}>
+                  <FeaturedBusinessesCarousel businesses={featuredBusinesses} />
+                </ViewportMount>
               </div>
             )}
             {/* Botão para alternar agrupamento por categoria */}
@@ -433,6 +439,7 @@ function BusinessList() {
                         : "bg-white border-emerald-500"
                     }`}
                   aria-pressed={groupByCategory}
+                  aria-label={`Alternar agrupamento por categoria: ${groupByCategory ? "ativado" : "desativado"}`}
                 >
                   <span
                     className={`inline-block h-5 w-5 rounded-full shadow-lg transform transition-transform duration-300 border-2
@@ -456,37 +463,25 @@ function BusinessList() {
             {/* Negócios agrupados por categoria ou todos juntos */}
             <div className="w-full lg:max-w-6xl lg:w-[80%] mx-auto">
               {groupByCategory ? (
-                (() => {
-                  // Agrupa negócios por categoria
-                  const grouped = {};
-                  sortedBusinesses.forEach((b) => {
-                    const cat = b.nome_categoria || "Outros";
-                    if (!grouped[cat]) grouped[cat] = [];
-                    grouped[cat].push(b);
-                  });
-                  const orderedCats = Object.keys(grouped).sort((a, b) =>
-                    a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-                  );
-                  return orderedCats.map((cat) => (
-                    <div key={cat} className="mb-10">
-                      <h2 className="text-base sm:text-lg font-semibold text-emerald-700 mb-2 pl-1 tracking-tight">
-                        {cat}
-                      </h2>
-                      <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
-                        {grouped[cat].map((business) => (
-                          <Fade
-                            key={business.id}
-                            cascade={false}
-                            duration={260}
-                            triggerOnce
-                          >
-                            <BusinessCard business={business} />
-                          </Fade>
-                        ))}
-                      </div>
+                orderedCategoryNames.map((cat) => (
+                  <div key={cat} className="mb-10">
+                    <h2 className="text-base sm:text-lg font-semibold text-emerald-700 mb-2 pl-1 tracking-tight">
+                      {cat}
+                    </h2>
+                    <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                      {groupedBusinesses[cat].map((business) => (
+                        <Fade
+                          key={business.id}
+                          cascade={false}
+                          duration={260}
+                          triggerOnce
+                        >
+                          <BusinessCard business={business} />
+                        </Fade>
+                      ))}
                     </div>
-                  ));
-                })()
+                  </div>
+                ))
               ) : (
                 <div className="grid sm:mx-0 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
                   {sortedBusinesses.map((business) => (
@@ -506,10 +501,14 @@ function BusinessList() {
         )}
       </div>
       {/* Seção de Anúncios */}
-      <AnnouncementsSection />
+      <ViewportMount minHeight={360}>
+        <AnnouncementsSection />
+      </ViewportMount>
 
       {/* Seção do Clima */}
-      <WeatherSection cidade={selectedCidade || "Ilha Comprida"} />
+      <ViewportMount minHeight={320}>
+        <WeatherSection cidade={selectedCidade || "Ilha Comprida"} />
+      </ViewportMount>
     </>
   );
 }
@@ -519,13 +518,20 @@ export default function Sobre() {
     <div className="min-h-screen relative overflow-x-hidden">
       <Hero />
       <Suspense
-        fallback={<div className="text-center p-10">Carregando...</div>}
+        fallback={
+          <BrandLoader
+            message="Carregando página inicial..."
+            className="py-10"
+          />
+        }
       >
         <BusinessList />
       </Suspense>
-      <div>
-        <HowItWorksSection />
-      </div>
+      <ViewportMount minHeight={560}>
+        <div>
+          <HowItWorksSection />
+        </div>
+      </ViewportMount>
 
       {/* Chamada para colaboração */}
       <section className="w-full py-12 px-4 flex flex-col items-center justify-center bg-white">
@@ -541,7 +547,7 @@ export default function Sobre() {
           </p>
           <Link
             href="/colabore"
-            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition animate-pulse-heart"
+            className="inline-block bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition animate-pulse-heart"
           >
             Quero Colaborar
           </Link>
@@ -566,9 +572,11 @@ export default function Sobre() {
         }
       `}</style>
 
-      <div data-aos="fade-up" data-aos-delay="100">
-        <FAQSection />
-      </div>
+      <ViewportMount minHeight={560}>
+        <div data-aos="fade-up" data-aos-delay="100">
+          <FAQSection />
+        </div>
+      </ViewportMount>
     </div>
   );
 }

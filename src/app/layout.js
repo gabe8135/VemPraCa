@@ -13,6 +13,10 @@ import FloatingWhatsAppWrapper from "@/app/components/FloatingWhatsAppWrapper";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 // import AOSInit from "./components/AOSInit";
 
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-792WGGT77D";
+const ENABLE_ANALYTICS =
+  process.env.NODE_ENV === "production" && Boolean(GA_ID);
+
 // Declare as fontes aqui, todas juntas
 const inter = Inter({
   subsets: ["latin"],
@@ -88,21 +92,25 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#16a34a" />
         {/* <AOSInit /> */}
         {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-792WGGT77D"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-792WGGT77D');
-          `}
-        </Script>
+        {ENABLE_ANALYTICS ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="lazyOnload"
+            />
+            <Script id="gtag-init" strategy="lazyOnload">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}', { send_page_view: true });
+              `}
+            </Script>
+          </>
+        ) : null}
       </head>
       <body className="scroll-smooth antialiased min-h-screen bg-white text-black flex flex-col">
-        <Script id="sw-register" strategy="afterInteractive">
+        <Script id="sw-register" strategy="lazyOnload">
           {`
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -118,7 +126,7 @@ export default function RootLayout({ children }) {
         <main className="flex-grow">{children}</main>
         <Footer />
         <FloatingWhatsAppWrapper allowedPaths={allowedPaths} />
-        <SpeedInsights />
+        {process.env.NODE_ENV === "production" ? <SpeedInsights /> : null}
       </body>
     </html>
   );
