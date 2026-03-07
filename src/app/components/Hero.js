@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Marquee from "react-fast-marquee";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { FiSearch, FiBriefcase } from "react-icons/fi";
 
 // Minha lista de categorias para o carrossel da Hero.
@@ -53,12 +53,25 @@ export default function Hero() {
   );
   const [current, setCurrent] = useState(0);
   const [previous, setPrevious] = useState(null);
+  const [loadedTick, setLoadedTick] = useState(0);
+  const loadedIndicesRef = useRef(new Set([0]));
+
+  const markImageAsLoaded = (idx) => {
+    if (loadedIndicesRef.current.has(idx)) return;
+    loadedIndicesRef.current.add(idx);
+    setLoadedTick((v) => v + 1);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => {
+        const next = (prev + 1) % images.length;
+        // Só avança quando a próxima imagem já estiver pronta.
+        // Assim nunca há "buraco" visual entre os slides.
+        if (!loadedIndicesRef.current.has(next)) return prev;
+
         setPrevious(prev);
-        return (prev + 1) % images.length;
+        return next;
       });
     }, 4000); // Troca a cada 4 segundos
     return () => clearInterval(interval);
@@ -66,17 +79,24 @@ export default function Hero() {
 
   useEffect(() => {
     if (previous === null) return;
+
+    // Só remove a imagem anterior quando a atual estiver pronta,
+    // evitando intervalo em branco em conexões mais lentas.
+    if (!loadedIndicesRef.current.has(current)) return;
+
     const timeoutId = setTimeout(() => {
       setPrevious(null);
     }, 1200);
     return () => clearTimeout(timeoutId);
-  }, [previous]);
+  }, [previous, current, loadedTick]);
 
   const visibleIndices = useMemo(() => {
     const indices = [current];
     if (previous !== null && previous !== current) indices.push(previous);
+    const next = (current + 1) % images.length;
+    if (next !== current && next !== previous) indices.push(next);
     return indices;
-  }, [current, previous]);
+  }, [current, previous, images.length]);
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden rounded-b-3xl">
@@ -85,14 +105,16 @@ export default function Hero() {
         // A primeira imagem fica sempre com preload (priority), sem atributo loading.
         // As demais seguem eager/lazy conforme estado do carrossel.
         const isPriorityImage = idx === 0;
+        const isCurrentImage = idx === current;
+        const isPreviousImage = idx === previous;
 
         return (
           <div
             key={`${images[idx]}-${idx}`}
             className="absolute inset-0 w-full h-full"
             style={{
-              opacity: idx === current ? 1 : 0,
-              zIndex: 0,
+              opacity: isCurrentImage || isPreviousImage ? 1 : 0,
+              zIndex: isCurrentImage ? 2 : 1,
               pointerEvents: "none",
               transition: "opacity 1.2s cubic-bezier(0.4,0,0.2,1)",
               willChange: "opacity",
@@ -106,11 +128,16 @@ export default function Hero() {
               quality={45}
               sizes="(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 1536px"
               loading={
-                isPriorityImage ? undefined : idx === current ? "eager" : "lazy"
+                isPriorityImage
+                  ? undefined
+                  : isCurrentImage
+                    ? "eager"
+                    : "lazy"
               }
               fetchPriority={isPriorityImage ? "high" : "auto"}
               className="object-cover"
               draggable={false}
+              onLoadingComplete={() => markImageAsLoaded(idx)}
             />
           </div>
         );
