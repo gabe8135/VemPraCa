@@ -1,0 +1,60 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#042F2E" />
+      <stop offset="1" stop-color="#0F766E" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#E6FCF4" />
+      <stop offset="1" stop-color="#D9FBEA" />
+    </linearGradient>
+    <linearGradient id="bubbleStrong" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#22C55E" />
+      <stop offset="1" stop-color="#10B981" />
+    </linearGradient>
+    <linearGradient id="bubbleSoft" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#BDEED5" />
+      <stop offset="1" stop-color="#A7F3D0" />
+    </linearGradient>
+    <filter id="shadow" x="200" y="40" width="820" height="820" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feOffset dy="14" />
+      <feGaussianBlur stdDeviation="18" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.01 0 0 0 0 0.11 0 0 0 0 0.08 0 0 0 0.35 0" />
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1" />
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="900" rx="48" fill="url(#bg)" />
+  <circle cx="1025" cy="120" r="165" fill="#34D399" fill-opacity="0.12" />
+  <circle cx="145" cy="760" r="235" fill="#6EE7B7" fill-opacity="0.13" />
+
+  <g filter="url(#shadow)">
+    <rect x="285" y="96" width="630" height="708" rx="58" fill="#07161A" />
+    <rect x="320" y="138" width="560" height="628" rx="36" fill="url(#screen)" />
+    <rect x="532" y="113" width="136" height="10" rx="5" fill="#1F2937" />
+  </g>
+
+  <rect x="352" y="210" width="300" height="84" rx="26" fill="url(#bubbleStrong)" />
+  <rect x="352" y="320" width="420" height="84" rx="26" fill="#BDEED5" />
+  <rect x="422" y="430" width="280" height="84" rx="26" fill="url(#bubbleStrong)" />
+  <rect x="352" y="540" width="500" height="84" rx="26" fill="url(#bubbleSoft)" />
+
+  <g transform="translate(836 238)">
+    <circle r="52" fill="#22C55E" />
+    <g transform="translate(-19 -19) scale(1.58)">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.63" fill="white" />
+    </g>
+  </g>
+
+  <text x="388" y="264" fill="white" font-family="Arial, sans-serif" font-size="54" font-weight="700">Ola</text>
+  <text x="382" y="374" fill="#065F46" font-family="Arial, sans-serif" font-size="44" font-weight="700">Seu bot 24 horas</text>
+  <text x="466" y="484" fill="white" font-family="Arial, sans-serif" font-size="52" font-weight="700">Perfeito!</text>
+  <text x="388" y="594" fill="#064E3B" font-family="Arial, sans-serif" font-size="38" font-weight="700">Mensagens personalizadas</text>
+
+  <rect x="118" y="100" width="150" height="52" rx="16" fill="#22C55E" />
+  <text x="193" y="135" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">BOT 24H</text>
+
+  <rect x="928" y="732" width="170" height="52" rx="16" fill="#14B8A6" />
+  <text x="1013" y="767" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="22" font-weight="700">WhatsApp AI</text>
+</svg>
